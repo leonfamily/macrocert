@@ -88,19 +88,57 @@ def check_rule_conservation(gml_text: str) -> ConservationResult:
     )
 
 
-def expelled_mass_g_per_mol(gml_text: str) -> float:
-    """Bond-level Trost expelled mass from the rule's atom-map: ΣmW(L\\R).
+def expelled_mass_g_per_mol(gml_text: str, retained_root_atom: int | None = None) -> float:
+    """Bond-level Trost expelled mass.
 
-    This is the *only* place expelled_mass is computed for the certificate;
-    the producer must not store it as metadata. Recomputed by the verifier
-    against the same atom-map, so tampering is detectable.
+    Strategy depends on whether the rule has a `retained_root_atom`:
+
+    - If `retained_root_atom` is given: build the R-side molecular graph
+      (context edges + right edges over context ∪ right nodes), BFS from
+      the retained root, and sum the atomic masses of nodes NOT in the
+      reachable component. This is the correct definition for DPO rules
+      that rebond atoms into a separate byproduct component (e.g.,
+      macrolactamization expelling H2O — no atoms deleted, just
+      re-partitioned).
+
+    - If `retained_root_atom` is None: fall back to L\\R atom-multiset
+      subtraction. This is correct only for rules that literally delete
+      atoms (rare in DPO, but possible for degenerate schemas).
     """
     rule = parse_rule(gml_text)
-    expelled = _subtract(
-        _atom_counter(rule.left, rule.context),
-        _atom_counter(rule.right, rule.context),
+    if retained_root_atom is None:
+        expelled = _subtract(
+            _atom_counter(rule.left, rule.context),
+            _atom_counter(rule.right, rule.context),
+        )
+        return sum(_atomic_mass(elem) * n for (elem, _charge), n in expelled.items())
+
+    nodes = {**{n.id: n for n in rule.context.nodes.values()},
+             **{n.id: n for n in rule.right.nodes.values()}}
+    adj: dict[int, set[int]] = {nid: set() for nid in nodes}
+    for e in list(rule.context.edges) + list(rule.right.edges):
+        if e.source in adj and e.target in adj:
+            adj[e.source].add(e.target)
+            adj[e.target].add(e.source)
+
+    if retained_root_atom not in adj:
+        raise ValueError(
+            f"retained_root_atom {retained_root_atom} not in R-side nodes "
+            f"({sorted(adj.keys())})"
+        )
+
+    reachable: set[int] = set()
+    stack = [retained_root_atom]
+    while stack:
+        nid = stack.pop()
+        if nid in reachable:
+            continue
+        reachable.add(nid)
+        stack.extend(adj[nid] - reachable)
+
+    return sum(
+        _atomic_mass(nodes[nid].label) for nid in nodes if nid not in reachable
     )
-    return sum(_atomic_mass(elem) * n for (elem, _charge), n in expelled.items())
 
 
 def _atom_counter(side: GMLSide, context: GMLSide) -> Counter:
