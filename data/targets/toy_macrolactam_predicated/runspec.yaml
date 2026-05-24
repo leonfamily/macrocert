@@ -1,0 +1,35 @@
+name: toy_macrolactam_predicated
+target:
+  structure_path: structure.mol
+  ring_size: 13
+
+blocks:
+  - aminododecanoic_acid
+
+rules: all_macrocyclization
+
+strategy:
+  # Workstream D — predicate framework smoke target.
+  # is_intramolecular cuts the linear-dimer (intermolecular) edge.
+  # ring_size_equals: 13 further insists the product carries a
+  # 13-membered ring; together the DG drops from 4 vertices (toy_macrolactam)
+  # to 3 (seco + water + macrolactam).
+  max_steps: 1
+  ring_close_only: true
+  predicates:
+    is_intramolecular: true
+    ring_size_equals: 13
+
+solver:
+  backend: mod
+  top_n: 5
+  time_budget_s: 30
+  request_infeasibility_cert: false
+
+energetics:
+  enabled: false
+
+notes: |
+  Predicate-gated twin of toy_macrolactam. Exercises Workstream D's
+  is_intramolecular + ring_size_equals predicates end-to-end through
+  spec → generate → kernel.

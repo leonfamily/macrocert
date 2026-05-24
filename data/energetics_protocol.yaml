@@ -1,0 +1,268 @@
+# data/energetics_protocol.yaml
+#
+# MacroCert Layer D -- production energetics-stack protocol.
+# Researched against the panel and the ascomylactam M5 target.
+# Full justification + citations: docs/energetics_protocol_research.md
+#
+# Status: production draft. Numerical values carry inline citations to the
+# DOI / arXiv ID that justifies them. `signed_by` and `signed_at` are
+# locked at production time by Ivan.
+
+version: 1
+schema_version: "1"
+date: "2026-05-24"
+signed_by: null            # set by Ivan at production lock-in
+signed_at: null            # set by Ivan at production lock-in
+
+# -------------------------------------------------------------------
+# Tier escalation policy -- §1 of research doc.
+# MLIP screens all edges (tier 0); DFT refines top-N within 5 kcal/mol
+# of best. xtb retained only as MLIP-unavailable fallback.
+# -------------------------------------------------------------------
+tier_escalation:
+  initial_tier: mlip
+
+  tier_0_mlip:
+    method: mace_omol25
+    apply_to: all_edges_in_ir_top_n
+    settings:
+      backbone: mace-omol25-small      # arXiv:2604.00405 (Marks-Vandezande-Gomes 2026): 96.6% FSM success, 3.8 DFT gradient evals/rxn
+      device: mps                      # Apple Silicon; falls back to cpu
+      dtype: float64
+
+  tier_1_xtb:
+    method: gfn2_xtb
+    apply_to: |
+      MLIP-OOD-flagged edges (ensemble stdev > ood_threshold_kcal_per_mol)
+      OR edges within mlip_screen_window_kcal_per_mol of best_dG at tier 0.
+      xtb is a fallback (no training-distribution dependence), NOT a
+      mandatory intermediate.
+    mlip_screen_window_kcal_per_mol: 10.0   # arXiv:2604.00405 (Marks 2026 §4): xtb gives ~25-pt-lower reliability than MACE; demoted from intermediate to fallback
+
+  tier_2_dft:
+    method: dft
+    apply_to: |
+      Edges within xtb_to_dft_window_kcal_per_mol of best_dG at tier 1
+      AND present in top-N IR envelope at the previous solver iteration.
+    xtb_to_dft_window_kcal_per_mol: 5.0     # arXiv:2604.00405 (Marks 2026): refinement-window heuristic; lifts barrier at 94-96% DFT cost reduction
+
+# -------------------------------------------------------------------
+# MLIP settings -- §2 of research doc. Primary MACE-OMol25, backup
+# UMA-Medium; 3-model heterogeneous ensemble for OOD detection.
+# -------------------------------------------------------------------
+mlip:
+  primary:
+    model: mace-omol25-small
+    package: fairchem                      # or mace-torch >= 0.3.10
+    weights_source: huggingface://fairchem-org/mace-omol25-small
+    expected_mae_kcal_per_mol: 1.5         # arXiv:2505.08762 (Levine et al. 2025, OMol25): vs wB97M-V/def2-TZVPD on OMol25 evals; corroborated by arXiv:2604.00405 §3.1
+  backup:
+    model: uma-medium                      # arXiv:2604.00405 (Marks 2026): UMA-M = 3.3 gradient evals/rxn, best for TM systems
+    use_when: primary_failed_to_converge or contains_transition_metal
+  ood_detection:
+    method: heterogeneous_ensemble
+    members:                               # npj Comput. Mater. 2025 (Liu et al., uMLIP): heterogeneous ensemble of OMol25 models for reliability
+      - mace-omol25-small                  # arXiv:2604.00405 (Marks 2026)
+      - uma-medium                         # arXiv:2604.00405 (Marks 2026)
+      - esen-s                             # arXiv:2604.00405 (Marks 2026): 93.1% FSM success on Baker/Sharada
+    metric: stdev_of_dG_predictions
+    threshold_kcal_per_mol: 2.0            # arXiv:2505.08762 (Levine 2025, OMol25 MAE 1-2 kcal/mol in-distribution); 10.1021/acscatal.5c08168 (Hill et al. 2026): OOD RMSE jumps to 5+ kcal/mol
+    secondary:
+      method: probe                        # arXiv:2605.00640 (Mehdi, Cho & Isayev 2026, PROBE): post-hoc reliability from frozen MLIP embeddings outperforms ensemble disagreement
+      reference: "Mehdi, Cho & Isayev 2026 (arXiv 2605.00640)"
+
+# -------------------------------------------------------------------
+# DFT settings -- §3 of research doc.
+# B3LYP-D3(BJ)/def2-TZVP // B3LYP-D3(BJ)/def2-SVP composite.
+# -------------------------------------------------------------------
+dft:
+  package: psi4                            # or qchem/orca via qcengine
+  composite:
+    geometry_method:     "b3lyp-d3bj/def2-svp"     # arXiv:2212.06014 (Stuyver-Jorner-Coley 2022 / Sci. Data 2023): geometry composite for ~5000 reaction profiles
+    frequency_method:    "b3lyp-d3bj/def2-svp"     # arXiv:2212.06014: ZPE + entropy at same level as geometry
+    single_point_method: "b3lyp-d3bj/def2-tzvp"    # arXiv:2212.06014: MAE 1.1 kcal/mol on BHPERI vs >1.8 for M06-2X and wB97X-D
+  dispersion: d3bj                                 # 10.1002/anie.202205735 (Bursch et al. 2022 best-practice): "no chemical context in which the dispersion correction should be left out"
+  reference: rks                                   # closed-shell singlet (panel is neutral, closed-shell)
+  scf:
+    conv: 1.0e-6                                   # arXiv:2604.00405 (Marks 2026 §2.4): SCF inner loop tolerance
+    max_iter: 250                                  # arXiv:2604.00405 (Marks 2026 §2.4)
+  rationale: |
+    B3LYP-D3(BJ) MAE 1.1 kcal/mol on BHPERI reaction barriers vs >1.8 for
+    M06-2X and wB97X-D (Stuyver, Jorner, Coley 2022, arXiv:2212.06014).
+    Composite is ~1.5x all-SVP wall time and recovers most basis-set
+    error (arXiv:2212.06014 §results). Bursch et al. 2022 (10.1002/anie.202205735)
+    accepts B3LYP-D4/TZ and wB97X-V/wB97M-V as equivalent best-practice; our
+    composite is inside that accuracy envelope.
+
+# -------------------------------------------------------------------
+# Implicit solvent -- §5 of research doc. SMD-DMF (DFT), ALPB-DMF (xtb).
+# -------------------------------------------------------------------
+solvent:
+  name: dmf
+  model_dft: smd                                   # 10.1021/jp810292n (Marenich, Cramer, Truhlar 2009, SMD): ~1 kcal/mol MAE on Minnesota Solvation Database
+  model_xtb: alpb                                  # 10.1021/acs.jctc.0c01306 (Ehlert-Stahn-Spicher-Grimme 2021, ALPB): default analytical linearized PB for GFN2-xtb
+  dielectric: 36.7                                 # NIST/CRC standard for DMF at 298 K
+  refractive_index: 1.430                          # NIST/CRC standard for DMF at 293 K (n_D)
+  rationale: |
+    DMF is the canonical macrolactamization solvent at process scale per
+    multiple natural-product peptide macrocyclization reviews:
+    PMC 7314982 (Backbone Macrocyclic Peptide Synthesis), PMC 7893715
+    (Lessons from Natural Product Total Synthesis: Macrocyclization),
+    10.3390/biomedicines13010240 (Natural Cyclic Peptides, MDPI 2025).
+    HATU/PyBOP activation at 1-10 mM dilution to suppress oligomerisation.
+  per_rule_overrides:
+    # Future hook -- chemistry-team can override per-rule
+    # (e.g. steroidal closures may prefer toluene at reflux).
+
+# -------------------------------------------------------------------
+# TS-search -- §4 of research doc.
+# FSM via sella.Sella with order=1 for P-RFO in redundant internals.
+# -------------------------------------------------------------------
+ts_search:
+  method: fsm                                      # arXiv:2604.00405 (Marks 2026 §4): FSM 88.9%/90.3% success on Baker/Sharada vs CI-NEB 70.8%/62.0% -- 25-point reliability gap
+  refinement: sella_prfo                           # arXiv:2604.00405 (Marks 2026): partitioned rational-function opt in redundant internals
+  package: "sella >= 2.0"                          # https://github.com/zadorlab/sella (Hermes, Sargsyan & Kulik 2022)
+  driver:
+    class: sella.Sella                             # arXiv:2604.00405 (Marks 2026 §2.4): Sella with internal=True, order=1
+    order: 1                                       # arXiv:2604.00405 (Marks 2026): order=1 = first-order saddle (TS)
+    internal: true                                 # arXiv:2604.00405 (Marks 2026): redundant internal coordinates
+  fsm:
+    nodes: 7                                       # arXiv:2604.00405 (Marks 2026 §A.1): production FSM string length
+    spring_constant_eV_per_A: 0.1                  # arXiv:2604.00405 (Marks 2026 §A.1)
+  refinement_low_level:
+    surface: mace-omol25-small
+    force_tol_Ha_per_Bohr: 3.0e-3                  # arXiv:2604.00405 (Marks 2026 §2.4): MLIP refinement force tolerance
+    energy_tol_Ha: 1.0e-5                          # arXiv:2604.00405 (Marks 2026 §2.4)
+    max_iter: 250                                  # arXiv:2604.00405 (Marks 2026 §2.4)
+  refinement_high_level:
+    surface: dft                                   # b3lyp-d3bj/def2-svp
+    force_tol_Ha_per_Bohr: 3.0e-4                  # arXiv:2604.00405 (Marks 2026 §2.4): DFT refinement -- one decade tighter than MLIP
+    energy_tol_Ha: 1.0e-6                          # arXiv:2604.00405 (Marks 2026 §2.4)
+    max_iter: 250                                  # arXiv:2604.00405 (Marks 2026 §2.4)
+  verification:
+    frequency_imaginary_min_cm: 50                 # arXiv:2604.00405 (Marks 2026 §2.4): exactly one imaginary mode, magnitude > 50 cm-1
+    frequency_imaginary_max_count: 1               # arXiv:2604.00405 (Marks 2026 §2.4)
+    spurious_mode_max_magnitude_cm: 200            # arXiv:2604.00405 (Marks 2026 §2.4): tolerated upper bound for spurious low-magnitude imaginary modes
+    irc_required: true                             # arXiv:2604.00405 (Marks 2026): IRC confirms reactant/product connection
+    irc_method: geodesic                           # arXiv:2604.00405 (Marks 2026)
+  rationale: |
+    FSM with low-level refinement achieves 96.6% success rate on organic
+    benchmarks at ~3.8 DFT gradient evaluations/reaction (Marks, Vandezande,
+    Gomes 2026, arXiv:2604.00405). CI-NEB achieves only 70.8% on the same
+    Baker set -- a 25-point reliability gap. P-RFO via sella.Sella in
+    redundant internals, switched from MLIP surface to DFT surface for
+    final saddle convergence.
+
+# -------------------------------------------------------------------
+# Barrier thresholds -- §6 of research doc.
+# -------------------------------------------------------------------
+thresholds:
+  dG_kcal_max: 30.0                                # 10.1039/d4sc08243e (Shaydullin et al. 2025, Chem. Sci. 16:5289): reaction free energy ceiling; Eyring half-life ~34 yr at 298 K, 30 kcal/mol
+  dG_barrier_kcal_max: 35.0                        # 10.1039/d4sc08243e (Shaydullin et al. 2025): activation-barrier ceiling for RT-to-100C solution chemistry; above this requires sealed-tube / supercritical conditions
+  rationale: |
+    35 kcal/mol is the Eyring-derived feasibility ceiling at room
+    temperature to 100C in solution (Shaydullin et al. 2025, Chem. Sci.
+    16:5289, doi:10.1039/d4sc08243e). 30 kcal/mol on dG_rxn is conservative;
+    covers canonical macrolactamization protocols (HATU/PyBOP at 0-60C).
+    Above 35 kcal/mol no commodity-scale process is achievable below 100C.
+
+# -------------------------------------------------------------------
+# Cache & provenance -- already implemented in cache.py (see open Q #9).
+# -------------------------------------------------------------------
+cache:
+  root: .cache/energetics
+  key_inputs:
+    - rule_id
+    - canonical_substrate_smiles
+    - canonical_product_smiles
+    - tier
+    - method
+    - solvent_name                                 # NEW per research §10 Q#9: solvent must be in the cache key
+    - dft_composite                                # NEW per research §10 Q#9: composite identifier ("b3lyp-d3bj+def2-svp+def2-tzvp")
+
+# -------------------------------------------------------------------
+# Feedback-loop knobs.
+# -------------------------------------------------------------------
+feedback:
+  max_iterations: 5                                # raised from v0=3 to allow DFT-bearing iterations
+  time_budget_s: 300                               # raised from v0=60; DFT needs more time
+  blacklist_on_violation: true
+  re_solve_on_new_violation: true
+
+# -------------------------------------------------------------------
+# Honesty constraints -- proposal §2.5.
+# -------------------------------------------------------------------
+honesty:
+  mlip_known_mae_on_novel_networks_kcal_per_mol: 5.0   # 10.1021/acscatal.5c08168 (Hill, Ruiz-Escudero & Montemore 2026): OOD RMSE 5+ kcal/mol pre-correction baseline
+  write_provenance_field: mlip_uncertainty_kcal_per_mol
+  defeasible_label_required: true                  # Layer D verdicts are always advisory
+
+# -------------------------------------------------------------------
+# Open questions -- carried over from research §10. These remain in the
+# YAML until a computational chemist signs off; Ivan locks at production.
+# -------------------------------------------------------------------
+# OPEN QUESTION (for Ivan): MACE-OMol25 vs UMA-Medium as production primary.
+# Marks 2026 gives MACE-OMol25 a higher organic success rate (96.6% vs 86.2%
+# FSM success), but UMA-Medium has a lower per-call cost (3.3 vs 3.8 gradient
+# evals to converge). If the panel grows to include TM-catalysed steps,
+# UMA-M should become primary. Default: MACE-OMol25.
+#
+# OPEN QUESTION (for Ivan): DFT functional -- B3LYP-D3(BJ) vs wB97X-V vs
+# r2SCAN-3c. B3LYP-D3(BJ) is recommended per Stuyver/Coley benchmarking, but
+# the Bursch/Grimme group prefers r2SCAN-3c for cheap routine calculations
+# (composite scheme already including dispersion). r2SCAN-3c is faster and
+# similarly accurate; some panels run it as the standard. Default: B3LYP-D3(BJ).
+#
+# OPEN QUESTION (for Ivan): Solvent -- DMF vs DCM vs toluene per-rule. DMF is
+# the peptide macrolactamization default; but ascomylactam-class macrocycles
+# may have particular solvent preferences from the literature on related
+# natural products. The chemistry team should check the published synthesis
+# of ascomylactam (or its close analogues) and override the solvent on a
+# per-rule basis via solvent.per_rule_overrides. Default: DMF.
+#
+# OPEN QUESTION (for Ivan): Whether to also run a barrier estimate for *every*
+# edge in the IR top-N envelope, or only for the rate-limiting candidate per
+# route. Running TS searches for all ~10^2 edges in the envelope is ~10 hours
+# of DFT wall-time. Running them only for the top-3 candidates (post-MLIP
+# triage) is ~1 hour. The proposal says "barrier estimates lift the bar for
+# trusting a route, not for ruling one out." Default: TS search only for the
+# rate-limiting step of the top-1 route per IR iteration.
+#
+# OPEN QUESTION (for Ivan): Frequency calculation -- harmonic only, or also
+# include anharmonic / quasi-RRHO? Bursch et al. recommend quasi-RRHO (Grimme's
+# qRRHO scheme) for entropy corrections on flexible molecules. Macrocycles
+# are by definition flexible -- this matters. Default: harmonic ZPE + Truhlar
+# low-frequency truncation at 100 cm-1.
+#
+# OPEN QUESTION (for Ivan): xtb's role -- keep as fallback, or remove entirely?
+# If MACE-OMol25 + UMA-Medium are both available, xtb adds little (slower than
+# MACE for our sizes and less accurate). Removal would simplify the protocol.
+# Default: keep xtb as fallback because it has no training-distribution
+# dependence. Decision needed; not blocking.
+#
+# OPEN QUESTION (for Ivan): Conformational sampling. None of the current
+# qm.py code generates multiple conformers; a single MMFF-optimised structure
+# is used. For macrocycles, conformational diversity matters. Should the
+# protocol incorporate CREST or RDKit ETKDG-based conformer sampling at the
+# MLIP tier? Default: out of scope for v0. Stretch goal for v1.
+#
+# OPEN QUESTION (for Ivan): OMol25 model availability and licensing.
+# MACE-OMol25 is distributed via fairchem (Meta) under a non-commercial
+# license. For non-research production use we may need MACE-OFF or UMA-Small
+# as a permissively-licensed alternative. Default: assume non-commercial
+# usage is fine for the v0/M5 demo. Decision required if the certificate is
+# to be shared externally.
+#
+# OPEN QUESTION (for Ivan): Cache key inclusion of solvent and DFT composite.
+# The current cache.py does NOT include the solvent name or DFT composite
+# as part of the SHA-256 key -- only rule_id, SMILES, tier, and method. This
+# is a bug for production: an entry computed in DMF and one computed in DCM
+# would collide. The cache.key_inputs above lists the additional fields;
+# cache.py must be amended. Action item.
+#
+# OPEN QUESTION (for Ivan): Multi-reference / radical chemistry. Layer D in
+# v0 assumes closed-shell singlet. The ascomylactam ring closure is
+# closed-shell, but if the rule library grows to include radical
+# macrocyclisation (e.g. SET-coupled approaches), the protocol needs the
+# unrestricted variant: UMA-Medium-NSE or AIMNet2-NSE for MLIP, UB3LYP-D3(BJ)
+# for DFT. Default: closed-shell singlet only for v0.

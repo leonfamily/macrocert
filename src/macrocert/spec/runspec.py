@@ -23,9 +23,68 @@ class TargetSpec:
 
 
 @dataclass(frozen=True)
+class PredicateSpec:
+    """Application-condition predicates for the MØD strategy.
+
+    See `macrocert.generate.strategies.PredicateSpec` for the runtime
+    counterpart. This dataclass is the YAML-deserialised shape; the
+    encoder in `build_dg.py` translates it into the generate-layer
+    object before composing the strategy.
+
+    When all fields are at their defaults the strategy reduces to the
+    v0 unconditional behaviour (`apply_rules_up_to`).
+
+    ``enforce_ez_geometry`` is a per-rule E/Z gate keyed by macrocert
+    rule_id (e.g. ``"rcm"``); values are ``"E"`` or ``"Z"``. Background
+    in ``docs/mod_stereo_reference.md`` §1.5, §5.2: MØD's
+    ``TrigonalPlanar::morphismIso`` is ``MOD_ABORT`` so E/Z cannot be
+    enforced at match time; the strategy-level filter implemented in
+    ``strategies._enforce_ez_geometry_factory`` parses the product
+    SMILES through RDKit and rejects derivations whose new double bond
+    has the opposite geometry. Default ``None`` means "no E/Z gating",
+    which preserves v0 behaviour for every existing RunSpec.
+    """
+    is_intramolecular: bool = False
+    ring_size_equals: int | None = None
+    enforce_ez_geometry: dict[str, str] | None = None
+    # Workstream D phase-3: discriminator predicates between the two
+    # ether rules. The two GML bodies (data/rules/aryl_etherification.gml
+    # and data/rules/biaryl_etherification.gml) are structurally identical
+    # because MØD's match operates on element labels — sp²-aromatic vs
+    # sp³ context at atom 5 (the alcohol-side O) is invisible at the GML
+    # level. See docs/macroetherification_research.md §1.4 and
+    # docs/biaryl_etherification_research.md §1.2.
+    #
+    # Each field is a per-rule_id map of bool: when True for a given
+    # rule_id, accept the derivation only if the product satisfies the
+    # corresponding aromaticity/hybridization constraint at the new O
+    # bridge. Implemented as rightPredicates with RDKit substructure
+    # matching on the product SMILES (MØD's Derivation Python binding
+    # does not expose the L→substrate morph mapping —
+    # external/mod/libs/pymod/src/mod/py/Derivation.cpp:8-39 binds only
+    # left/rule/right — so the substrate-side atom-5 inspection isn't
+    # tractable; the rightPredicate substructure-match fallback is the
+    # API-supported route).
+    alcohol_partner_C_must_be_aromatic: dict[str, bool] | None = None
+    alcohol_partner_C_must_be_sp3: dict[str, bool] | None = None
+
+
+@dataclass(frozen=True)
 class StrategySpec:
     max_steps: int = 6
     ring_close_only: bool = True
+    predicates: PredicateSpec = field(default_factory=lambda: PredicateSpec())
+    # Workstream F (Component 1): per-RunSpec opt-in for MØD stereo
+    # enforcement. When True, build_dg.py constructs the DG with
+    # ``LabelSettings(LabelType.Term, LabelRelation.Specialisation,
+    # LabelRelation.Specialisation)`` so that stereo annotations on rule
+    # vertices are honoured at match time. When False (default), MØD's
+    # default 2-arg ``LabelSettings`` is used and stereo strings are
+    # parsed but never enforced. See docs/mod_stereo_reference.md §2.3
+    # and external/mod/libs/libmod/src/mod/Config.hpp:82-118 for the
+    # underlying API; the on-path mirrors
+    # external/mod/examples/py/030_stereo/320_aconitase.py:54-58.
+    stereo_enforcement: bool = False
     extra: dict[str, Any] = field(default_factory=dict)
 
 
@@ -83,6 +142,16 @@ def load_runspec(path: str | Path) -> RunSpec:
         strategy=StrategySpec(
             max_steps=int(strategy.get("max_steps", 6)),
             ring_close_only=bool(strategy.get("ring_close_only", True)),
+            predicates=_parse_predicates(
+                strategy.get("predicates")
+                if isinstance(strategy.get("predicates"), dict)
+                else data.get("strategy_predicates")
+            ),
+            # Workstream F (Component 1): off by default for backward
+            # compatibility — existing rule library is stereo-free and
+            # must continue to build under the default 2-arg
+            # ``LabelSettings``. See docs/mod_stereo_reference.md §2.3.
+            stereo_enforcement=bool(strategy.get("stereo_enforcement", False)),
             extra=dict(strategy.get("extra", {})),
         ),
         solver=SolverSpec(
@@ -99,6 +168,68 @@ def load_runspec(path: str | Path) -> RunSpec:
             dG_kcal_max=energetics.get("dG_kcal_max"),
         ),
         notes=str(data.get("notes", "")),
+    )
+
+
+def _parse_predicates(d: Any) -> PredicateSpec:
+    """Build a PredicateSpec from the YAML dict.
+
+    Accepts either ``strategy.predicates:`` (nested) or top-level
+    ``strategy_predicates:`` — both encode the same thing. Unknown
+    keys are ignored to keep forward-compatibility room for additional
+    predicates added by later Workstream D milestones.
+    """
+    if not isinstance(d, dict):
+        return PredicateSpec()
+    raw_n = d.get("ring_size_equals")
+    raw_ez = d.get("enforce_ez_geometry")
+    ez_map: dict[str, str] | None
+    if isinstance(raw_ez, dict) and raw_ez:
+        # Normalise keys to str and values to upper-case "E"/"Z";
+        # anything else raises so misconfigured YAML fails loud.
+        ez_map = {}
+        for k, v in raw_ez.items():
+            tok = str(v).strip().upper()
+            if tok not in ("E", "Z"):
+                raise ValueError(
+                    f"enforce_ez_geometry[{k!r}]={v!r}; expected 'E' or 'Z'"
+                )
+            ez_map[str(k)] = tok
+    else:
+        ez_map = None
+
+    # Phase-3 discriminator predicates. Each is a per-rule_id bool map;
+    # mis-typed YAML (e.g. string instead of bool) fails loud at load
+    # time so RunSpecs don't silently bypass the gate.
+    def _parse_bool_map(raw: Any, name: str) -> dict[str, bool] | None:
+        if raw is None:
+            return None
+        if not isinstance(raw, dict) or not raw:
+            return None
+        out: dict[str, bool] = {}
+        for k, v in raw.items():
+            if not isinstance(v, bool):
+                raise ValueError(
+                    f"{name}[{k!r}]={v!r}; expected bool (true/false)"
+                )
+            out[str(k)] = v
+        return out
+
+    aromatic_map = _parse_bool_map(
+        d.get("alcohol_partner_C_must_be_aromatic"),
+        "alcohol_partner_C_must_be_aromatic",
+    )
+    sp3_map = _parse_bool_map(
+        d.get("alcohol_partner_C_must_be_sp3"),
+        "alcohol_partner_C_must_be_sp3",
+    )
+
+    return PredicateSpec(
+        is_intramolecular=bool(d.get("is_intramolecular", False)),
+        ring_size_equals=int(raw_n) if raw_n is not None else None,
+        enforce_ez_geometry=ez_map,
+        alcohol_partner_C_must_be_aromatic=aromatic_map,
+        alcohol_partner_C_must_be_sp3=sp3_map,
     )
 
 

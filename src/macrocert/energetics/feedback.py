@@ -23,7 +23,7 @@ from typing import Literal
 
 from ..kernel.ir import HyperFlowIR, Solution, Witness
 from ..kernel.scip_backend import ScipSolveResult, solve as scip_solve
-from .cache import CacheEntry, EnergeticsCache, Tier
+from .cache import CacheEntry, EnergeticsCache, Tier, VACUUM_SOLVENT
 from .qm import reaction_dG
 
 
@@ -56,7 +56,11 @@ def run_with_energetics(
     cache: EnergeticsCache | None = None,
     max_iter: int = 3,
     time_budget_s: int = 60,
+    solvent_name: str = VACUUM_SOLVENT,
 ) -> FeedbackResult:
+    # Workstream E (Marks Vandezande Gomes 2026, arXiv:2604.00405) found
+    # collision risk via solvent omission — pass solvent_name into the
+    # cache key so DMF / DCM / vacuum never collide on the same SMILES.
     cache = cache or EnergeticsCache()
     deps = EnergeticsDeps()
     blacklist: set[str] = set()
@@ -79,9 +83,14 @@ def run_with_energetics(
             if eid in deps.entries:
                 continue
             edge = ir.edge_by_id(eid)
+            method = _method_for_tier(initial_tier)
+            method_id = _method_id_for_tier(initial_tier, solvent_name)
             entry, was_miss = cache.lookup_or_compute(
-                key_args=(edge.rule_id, edge.sources, edge.targets, initial_tier, _method_for_tier(initial_tier)),
-                compute=lambda r=edge: _compute(r, initial_tier),
+                key_args=(
+                    edge.rule_id, edge.sources, edge.targets,
+                    initial_tier, method, method_id, solvent_name,
+                ),
+                compute=lambda r=edge: _compute(r, initial_tier, solvent_name),
             )
             deps.entries[eid] = {
                 "tier": entry.tier,
@@ -134,19 +143,44 @@ def _method_for_tier(tier: Tier) -> str:
     return {"mlip": "MACE-OFF/small", "xtb": "GFN2-xTB", "dft": "SCF/STO-3G"}[tier]
 
 
-def _compute(edge, tier: Tier) -> tuple[float, float | None, str]:
+def _method_id_for_tier(tier: Tier, solvent_name: str) -> str:
+    """Compose functional + basis + dispersion + solver into a canonical
+    method-id string used in the cache key (Workstream E fix).
+
+    Examples:
+      ("dft",  "DMF")      → "B3LYP-D3BJ_def2-SVP_PCM-DMF"
+      ("xtb",  "DMF")      → "GFN2-xTB_ALPB-DMF"
+      ("mlip", "vacuum")   → "MACE-OMol25_vacuum"
+    """
+    solv = solvent_name or VACUUM_SOLVENT
+    if tier == "dft":
+        # v0 SCF/STO-3G is the cheap CI default — replace with the
+        # production B3LYP-D3BJ/def2-SVP stack once Psi4 wiring is in M5;
+        # the *id* still discriminates because solvent is part of the key.
+        return f"SCF_STO-3G_PCM-{solv}"
+    if tier == "xtb":
+        return f"GFN2-xTB_ALPB-{solv}"
+    if tier == "mlip":
+        return f"MACE-OFF_small_{solv}"
+    raise ValueError(f"unknown tier {tier!r}")
+
+
+def _compute(edge, tier: Tier, solvent_name: str) -> tuple[float, float | None, str]:
+    solv = None if solvent_name == VACUUM_SOLVENT else solvent_name
     if tier == "xtb":
         dG, _method, prov = reaction_dG(
-            edge.sources, edge.targets, method="xtb",
+            edge.sources, edge.targets, method="xtb", solvent_name=solv,
         )
         return dG, None, prov
     if tier == "mlip":
         from .mlip import mace_reaction_dG
-        dG, _method, prov = mace_reaction_dG(edge.sources, edge.targets)
+        dG, _method, prov = mace_reaction_dG(
+            edge.sources, edge.targets, solvent_name=solv,
+        )
         return dG, None, prov
     if tier == "dft":
         dG, _method, prov = reaction_dG(
-            edge.sources, edge.targets, method="psi4",
+            edge.sources, edge.targets, method="psi4", solvent_name=solv,
         )
         return dG, None, prov
     raise ValueError(f"unknown tier {tier!r}")

@@ -31,13 +31,28 @@ def mlip_available() -> bool:
         return False
 
 
-def mace_off_single_point(smiles: str, *, model: str = "small", device: str = "mps") -> EnergyResult:
+def mace_off_single_point(
+    smiles: str,
+    *,
+    model: str = "small",
+    device: str = "mps",
+    solvent_name: str | None = None,
+) -> EnergyResult:
+    """MACE-OFF single-point energy.
+
+    MACE-OFF itself is a gas-phase MLIP, but we still flow ``solvent_name``
+    through so the result's ``method`` label is solvent-stamped. Downstream
+    the energetics cache key (Workstream E fix) requires the solvent to
+    be part of the key — if a future MACE-Solv model lands here, the
+    label will already be correct.
+    """
     atoms = smiles_to_atoms(smiles)
     atoms.calc = _calc(model, device)
     e_ev = atoms.get_potential_energy()
+    solvent_tag = solvent_name or "vacuum"
     return EnergyResult(
         e_kcal_per_mol=e_ev * EV_TO_KCAL,
-        method=f"MACE-OFF/{model}",
+        method=f"MACE-OFF/{model}_{solvent_tag}",
         provenance=f"mace-torch on {device}; MMFF-pre-optimized geometry from SMILES",
     )
 
@@ -48,18 +63,19 @@ def mace_reaction_dG(
     *,
     model: str = "small",
     device: str = "mps",
+    solvent_name: str | None = None,
 ) -> tuple[float, str, str]:
     method_label = ""
     parts: list[str] = []
     e_react = 0.0
     for smi in reactant_smiles:
-        r = mace_off_single_point(smi, model=model, device=device)
+        r = mace_off_single_point(smi, model=model, device=device, solvent_name=solvent_name)
         e_react += r.e_kcal_per_mol
         method_label = r.method
         parts.append(f"R[{smi}]={r.e_kcal_per_mol:.3f}")
     e_prod = 0.0
     for smi in product_smiles:
-        r = mace_off_single_point(smi, model=model, device=device)
+        r = mace_off_single_point(smi, model=model, device=device, solvent_name=solvent_name)
         e_prod += r.e_kcal_per_mol
         parts.append(f"P[{smi}]={r.e_kcal_per_mol:.3f}")
     return e_prod - e_react, method_label, "; ".join(parts)

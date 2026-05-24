@@ -11,7 +11,12 @@ if TYPE_CHECKING:
 
 import mod  # noqa: E402
 
-from .strategies import add_blocks, apply_rules_up_to
+from .strategies import (
+    PredicateSpec,
+    add_blocks,
+    apply_rules_up_to,
+    apply_rules_up_to_with_predicates,
+)
 
 
 @dataclass
@@ -56,11 +61,80 @@ def build_dg_for_runspec(
     if not block_graphs:
         raise ValueError(f"RunSpec {spec.name!r} resolved to zero building blocks")
 
-    dg = mod.DG(graphDatabase=block_graphs)
-    with dg.build() as builder:
-        strat = add_blocks(block_graphs) >> apply_rules_up_to(
-            rule_defs, steps=spec.strategy.max_steps
+    # Workstream F (Component 1): wire MØD stereo enforcement through
+    # ``LabelSettings``. The default 2-arg constructor leaves
+    # ``withStereo=false`` — stereo annotations on rule vertices parse
+    # but are never checked at match time
+    # (external/mod/libs/libmod/src/mod/Config.hpp:82-118). The 3-arg
+    # form ``LabelSettings(LabelType.Term, LabelRelation.Specialisation,
+    # LabelRelation.Specialisation)`` flips ``withStereo=true`` and
+    # selects the specialisation comparator for stereo (pattern
+    # ``Sym``/free matches substrate ``Fixed``, but not vice versa).
+    # Mirrors external/mod/examples/py/030_stereo/320_aconitase.py:54-58
+    # and …/330_tartaric.py:27-30.
+    #
+    # Workstream F (α-C overlay follow-up): we use ``LabelType.Term``
+    # unconditionally so that rule-side wildcard labels (``label "*"``)
+    # work as unification variables for the α-C neighbour-degree shim in
+    # ``macrolactamization.gml`` / ``macrolactonization.gml``. Under the
+    # default ``LabelType.String`` mode, ``"*"`` would be a literal label
+    # the substrate cannot satisfy, and the rule would fail to match
+    # (verified empirically against the lactam_*/lactone_* panel cases —
+    # see docs/workstream_f_alpha_c_overlays.md §"Regression handled").
+    # Term mode treats element labels (``"C"``, ``"O"``, ``"N"``) as
+    # constants, so all other rules (which use only element labels)
+    # continue to match exactly as they did under String mode. This is
+    # the same mode the canonical stereo examples use
+    # (external/mod/examples/py/030_stereo/{320_aconitase, 330_tartaric}.py).
+    dg_kwargs: dict[str, object] = {"graphDatabase": block_graphs}
+    if spec.strategy.stereo_enforcement:
+        dg_kwargs["labelSettings"] = mod.LabelSettings(
+            mod.LabelType.Term,
+            mod.LabelRelation.Specialisation,
+            mod.LabelRelation.Specialisation,
         )
+    else:
+        dg_kwargs["labelSettings"] = mod.LabelSettings(
+            mod.LabelType.Term,
+            mod.LabelRelation.Specialisation,
+        )
+    dg = mod.DG(**dg_kwargs)
+    with dg.build() as builder:
+        spec_preds = spec.strategy.predicates
+        gen_preds = PredicateSpec(
+            is_intramolecular=spec_preds.is_intramolecular,
+            ring_size_equals=spec_preds.ring_size_equals,
+            enforce_ez_geometry=(
+                dict(spec_preds.enforce_ez_geometry)
+                if spec_preds.enforce_ez_geometry
+                else None
+            ),
+            # Workstream D phase-3 discriminators forwarded as dict
+            # copies so the generate-layer PredicateSpec stays
+            # independent of the spec-layer one (the strategies factory
+            # mutates internally via `tuple(rule_to_bool)`).
+            alcohol_partner_C_must_be_aromatic=(
+                dict(spec_preds.alcohol_partner_C_must_be_aromatic)
+                if spec_preds.alcohol_partner_C_must_be_aromatic
+                else None
+            ),
+            alcohol_partner_C_must_be_sp3=(
+                dict(spec_preds.alcohol_partner_C_must_be_sp3)
+                if spec_preds.alcohol_partner_C_must_be_sp3
+                else None
+            ),
+        )
+        if gen_preds.is_empty():
+            inner_strat = apply_rules_up_to(
+                rule_defs, steps=spec.strategy.max_steps
+            )
+        else:
+            inner_strat = apply_rules_up_to_with_predicates(
+                rule_defs,
+                steps=spec.strategy.max_steps,
+                predicates=gen_preds,
+            )
+        strat = add_blocks(block_graphs) >> inner_strat
         builder.execute(strat)
 
     return GenerationResult(

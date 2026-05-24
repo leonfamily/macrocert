@@ -23,6 +23,36 @@ import yaml
 
 
 @dataclass(frozen=True)
+class ReagentAlternative:
+    """A non-canonical activator/reagent option for a rule.
+
+    Some rules — notably macrolactonization — have several substantially
+    different activator systems (Yamaguchi, Shiina, Corey–Nicolaou, ...)
+    that all close the same bond at the bond level but carry different
+    process-level reagent and byproduct masses. The canonical activator
+    is recorded by ``reagent_mass_g_per_mol``; the alternatives are
+    listed here. RunSpec.solver.extra may select an alternative by name.
+    """
+    name: str
+    reagent_mass_g_per_mol: float
+    additional_byproduct_mass_g_per_mol: float = 0.0
+    description: str = ""
+    refs: tuple[str, ...] = ()
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "ReagentAlternative":
+        return cls(
+            name=str(d.get("name", "")),
+            reagent_mass_g_per_mol=float(d.get("reagent_mass_g_per_mol", 0.0)),
+            additional_byproduct_mass_g_per_mol=float(
+                d.get("additional_byproduct_mass_g_per_mol", 0.0)
+            ),
+            description=str(d.get("description", "")),
+            refs=tuple(d.get("refs", ())),
+        )
+
+
+@dataclass(frozen=True)
 class RuleMeta:
     reagent_mass_g_per_mol: float
     byproduct_mass_g_per_mol: float
@@ -31,6 +61,7 @@ class RuleMeta:
     stereo_flags: tuple[str, ...]
     refs: tuple[str, ...]
     notes: str
+    reagent_mass_alternatives: tuple[ReagentAlternative, ...] = ()
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> "RuleMeta":
@@ -42,7 +73,17 @@ class RuleMeta:
             stereo_flags=tuple(d.get("stereo_flags", ())),
             refs=tuple(d.get("refs", ())),
             notes=str(d.get("notes", "")),
+            reagent_mass_alternatives=tuple(
+                ReagentAlternative.from_dict(alt)
+                for alt in (d.get("reagent_mass_alternatives") or ())
+            ),
         )
+
+    def get_alternative(self, name: str) -> ReagentAlternative | None:
+        for alt in self.reagent_mass_alternatives:
+            if alt.name == name:
+                return alt
+        return None
 
 
 @dataclass(frozen=True)

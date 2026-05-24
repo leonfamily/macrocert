@@ -45,25 +45,40 @@ def smiles_to_atoms(smiles: str, *, random_seed: int = 0xC0FFEE):
     return Atoms(symbols=symbols, positions=positions)
 
 
-def xtb_single_point(smiles: str) -> EnergyResult:
-    """GFN2-xTB single-point energy in kcal/mol."""
+def xtb_single_point(smiles: str, *, solvent_name: str | None = None) -> EnergyResult:
+    """GFN2-xTB single-point energy in kcal/mol.
+
+    ``solvent_name`` (e.g. ``"DMF"``, ``"DCM"``) enables the GFN2-xTB
+    ALPB implicit solvent and becomes part of the result's ``method``
+    label so downstream cache keys (Workstream E fix) discriminate runs
+    across solvents.
+    """
     from xtb.ase.calculator import XTB
 
     atoms = smiles_to_atoms(smiles)
-    atoms.calc = XTB(method="GFN2-xTB")
+    if solvent_name:
+        atoms.calc = XTB(method="GFN2-xTB", solvent=solvent_name)
+        method_label = f"GFN2-xTB_ALPB-{solvent_name}"
+    else:
+        atoms.calc = XTB(method="GFN2-xTB")
+        method_label = "GFN2-xTB"
     e_ev = atoms.get_potential_energy()
     return EnergyResult(
         e_kcal_per_mol=e_ev * EV_TO_KCAL,
-        method="GFN2-xTB",
+        method=method_label,
         provenance="xtb-python ASE calculator; MMFF-pre-optimized from SMILES",
     )
 
 
-def psi4_single_point(smiles: str, basis: str = "STO-3G") -> EnergyResult:
+def psi4_single_point(
+    smiles: str, basis: str = "STO-3G", *, solvent_name: str | None = None
+) -> EnergyResult:
     """Psi4 SCF single-point energy in kcal/mol.
 
     STO-3G default for cheap CI runs; production runs override to e.g.
     'b3lyp/def2-svp' via the RunSpec.energetics.extra dict in M5.
+    ``solvent_name`` is recorded in the method label so the energetics
+    cache key (Workstream E fix) tells DMF / DCM / vacuum runs apart.
     """
     import psi4
 
@@ -75,10 +90,19 @@ def psi4_single_point(smiles: str, basis: str = "STO-3G") -> EnergyResult:
         for a in atoms
     )
     psi4.geometry(psi4_xyz)
+    if solvent_name:
+        psi4.set_options({"pcm": True, "pcm_scf_type": "total"})
+        psi4.pcm_helper(
+            f"Units = Angstrom\nMedium {{ SolverType = IEFPCM; Solvent = {solvent_name} }}\n"
+            "Cavity { Type = GePol; Area = 0.3 }"
+        )
+        method_label = f"SCF/{basis}_PCM-{solvent_name}"
+    else:
+        method_label = f"SCF/{basis}"
     e_eh = psi4.energy(f"scf/{basis}")
     return EnergyResult(
         e_kcal_per_mol=float(e_eh) * HARTREE_TO_KCAL,
-        method=f"SCF/{basis}",
+        method=method_label,
         provenance="Psi4 single-point; MMFF-pre-optimized geometry from SMILES",
     )
 
@@ -88,10 +112,15 @@ def reaction_dG(
     product_smiles: tuple[str, ...],
     *,
     method: str = "xtb",
+    solvent_name: str | None = None,
 ) -> tuple[float, str, str]:
     """Compute ΔG_rxn = ΣE(products) − ΣE(reactants) in kcal/mol.
 
-    Returns (dG, method_label, provenance_blob).
+    Returns (dG, method_label, provenance_blob). ``solvent_name`` (e.g.
+    ``"DMF"``) is forwarded to the underlying single-point driver and
+    encoded into ``method_label``; the cache key (Workstream E fix)
+    includes the solvent name as a first-class field so DMF/DCM never
+    collide silently.
     """
     sp = xtb_single_point if method == "xtb" else psi4_single_point
 
@@ -99,13 +128,13 @@ def reaction_dG(
     provenance_parts = []
     e_react = 0.0
     for smi in reactant_smiles:
-        r = sp(smi)
+        r = sp(smi, solvent_name=solvent_name)
         e_react += r.e_kcal_per_mol
         method_label = r.method
         provenance_parts.append(f"R[{smi}]={r.e_kcal_per_mol:.3f}")
     e_prod = 0.0
     for smi in product_smiles:
-        r = sp(smi)
+        r = sp(smi, solvent_name=solvent_name)
         e_prod += r.e_kcal_per_mol
         provenance_parts.append(f"P[{smi}]={r.e_kcal_per_mol:.3f}")
 

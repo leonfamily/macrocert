@@ -6,13 +6,24 @@ target:
 blocks:
   - aminododecanoic_acid
 
-rules: all_macrocyclization
+# Pin to the single rule under test; the toy assertion is "this DG has
+# the 4 vertices that macrolactamization alone produces (seco + water +
+# macrolactam + linear dimer)". Adding macrolactonization to
+# all_macrocyclization (Workstream C, 2026-05-24) introduced a 5th
+# vertex via a stray ester intermediate involving expelled water — fine
+# chemistry-wise, but defeats the focused-test intent. Sibling target
+# `toy_macrolactam_predicated` uses the full set with predicates active.
+rules: macrolactamization
 
 strategy:
   # v0 strategy is one rule firing. Intramolecularity / ring-size
   # predicates land in M2 — without them, repeated firings produce
   # oligomeric chains rather than ring closures (the "in-principle-
   # infinite space" of proposal §3.2).
+  #
+  # Workstream D predicates are validated by a sibling target,
+  # ``toy_macrolactam_predicated``, which sets is_intramolecular: true
+  # and ring_size_equals: 13 and produces a 3-vertex DG.
   max_steps: 1
   ring_close_only: true
 
