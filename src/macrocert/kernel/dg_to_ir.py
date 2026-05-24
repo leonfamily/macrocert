@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ..spec.canonical import canonical_smiles
 from ..spec.rules import RuleLibrary
 from .ir import Constraint, HyperEdge, HyperFlowIR, LinearObjective, Vertex, make_edge_id
 from .objective import bond_level_objective
@@ -37,29 +38,56 @@ def build_ir(
     """Walk dg.vertices / dg.edges → IR."""
     from rdkit import Chem
 
-    vertices_list = [
-        Vertex(id=v.graph.smiles, label=getattr(v.graph, "name", "") or "")
-        for v in dg.vertices
-    ]
-    vid_set = {v.id for v in vertices_list}
-    if sink_smiles not in vid_set:
+    # Normalize the sink + sources to the same canonical form used for
+    # DG vertex identity. Without this, the M5 ascomylactam run produced
+    # an infeasibility certificate because MØD emitted both aromatic
+    # (``c-O-c``) and Kekulé (``C=CC``) forms of the same cyclized
+    # product as two distinct vertices, neither matching the target's
+    # encoded canonical form. See spec.canonical for the rationale.
+    sink_smiles = canonical_smiles(sink_smiles)
+    sources = [canonical_smiles(s) for s in sources]
+
+    # Build vertex list, collapsing duplicate molecules (e.g. aromatic
+    # vs Kekulé perception of the same product) to a single canonical
+    # vertex. Preserve first-seen order so the cert is deterministic.
+    seen_vids: set[str] = set()
+    vertices_list: list[Vertex] = []
+    for v in dg.vertices:
+        vid = canonical_smiles(v.graph.smiles)
+        if vid in seen_vids:
+            continue
+        seen_vids.add(vid)
+        vertices_list.append(Vertex(id=vid, label=getattr(v.graph, "name", "") or ""))
+
+    if sink_smiles not in seen_vids:
         # Sink absent from DG → the rule set + strategy never produced the
         # target. Inject it so the solver sees an infeasibility (sink must
         # be produced = 1, no edges produce it) rather than crashing.
         vertices_list.append(Vertex(id=sink_smiles, label="target (unreachable in DG)"))
+        seen_vids.add(sink_smiles)
     for s in sources:
-        if s not in vid_set and s != sink_smiles:
+        if s not in seen_vids and s != sink_smiles:
             raise ValueError(f"source SMILES {s!r} not found among the DG vertices")
     vertices = tuple(vertices_list)
 
     hyperedges: list[HyperEdge] = []
+    seen_edge_ids: set[str] = set()
     macro_class_rule_ids = {r.id for r in library.in_class("macrocyclization")}
 
     for he in dg.edges:
         rule = next(iter(he.rules))
         rule_id = _find_rule_id(rule, library)
-        srcs = tuple(sorted(v.graph.smiles for v in he.sources))
-        tgts = tuple(sorted(v.graph.smiles for v in he.targets))
+        srcs = tuple(sorted(canonical_smiles(v.graph.smiles) for v in he.sources))
+        tgts = tuple(sorted(canonical_smiles(v.graph.smiles) for v in he.targets))
+        edge_id = make_edge_id(rule_id, srcs, tgts)
+
+        # Two MØD edges that collapse to the same (rule, srcs, tgts)
+        # after canonicalization (e.g. aromatic + Kekulé pair) are
+        # treated as one. Deduplicate to keep the IR clean — both edges
+        # carry identical mass + rule semantics.
+        if edge_id in seen_edge_ids:
+            continue
+        seen_edge_ids.add(edge_id)
 
         rule_def = library.get(rule_id) if rule_id in library.rules else None
         bond_mass = rule_def.meta.byproduct_mass_g_per_mol if rule_def else 0.0
@@ -71,7 +99,7 @@ def build_ir(
 
         hyperedges.append(
             HyperEdge(
-                id=make_edge_id(rule_id, srcs, tgts),
+                id=edge_id,
                 rule_id=rule_id,
                 sources=srcs,
                 targets=tgts,
@@ -130,8 +158,21 @@ def build_ir(
 
 def _find_rule_id(mod_rule: "mod.Rule", library: RuleLibrary) -> str:
     name = mod_rule.name
+    # Exact match on full ruleID string (preferred): the GML body contains
+    # the literal ruleID "<full string>". Match in two passes so that
+    # specific matches win over loose-prefix matches — without this,
+    # iteration order lets e.g. "aryl_etherification" claim a rule that
+    # actually compiled from biaryl_etherification.gml (the rdef.id is a
+    # substring of biaryl_etherification's full mod_rule.name).
+    # Pass 1: exact ruleID in GML body or exact id == name.
     for rid, rdef in library.rules.items():
-        if rdef.gml.find(f'ruleID "{name}"') >= 0 or rdef.id == name or rdef.id in name:
+        if rdef.gml.find(f'ruleID "{name}"') >= 0 or rdef.id == name:
+            return rid
+    # Pass 2: id matches the leading token of mod_rule.name (delimited by
+    # space or '(' or end-of-string). This handles GMLs whose ruleID was
+    # rewritten in MØD or differs in spacing from the disk literal.
+    for rid, rdef in library.rules.items():
+        if name == rdef.id or name.startswith(rdef.id + " ") or name.startswith(rdef.id + "("):
             return rid
     return mod_rule.name  # fallback
 

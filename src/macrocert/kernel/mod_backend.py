@@ -40,7 +40,16 @@ def solve_top_n(
     obj = objective or ir.objective
     model = mod.hyperflow.Model(dg)
 
-    smiles_to_vertex = {v.graph.smiles: v for v in dg.vertices}
+    # Use canonical SMILES (matching dg_to_ir) so IR vertex ids resolve
+    # to MØD vertices even when MØD emitted duplicate (aromatic +
+    # Kekulé) perceptions for the same molecule. The IR has one entry
+    # per canonical id; the map below picks the first MØD vertex with
+    # that canonical form.
+    from ..spec.canonical import canonical_smiles
+    smiles_to_vertex: dict[str, Any] = {}
+    for v in dg.vertices:
+        key = canonical_smiles(v.graph.smiles)
+        smiles_to_vertex.setdefault(key, v)
 
     for src in ir.sources:
         if src in smiles_to_vertex:
@@ -89,7 +98,12 @@ def solve_top_n(
     witnesses: list[Witness] = []
     bond = bond_level_objective(ir)
     proc = process_level_objective(ir)
-    smiles_to_id = {v.graph.smiles: v.id for v in dg.vertices}
+
+    # Use canonical SMILES for round-trip lookup as well.
+    smiles_to_id: dict[str, str] = {}
+    for v in dg.vertices:
+        key = canonical_smiles(v.graph.smiles)
+        smiles_to_id.setdefault(key, v.id)
     for s in model.solutions:
         flow_dict: dict[str, int] = {}
         for dg_edge in dg.edges:
