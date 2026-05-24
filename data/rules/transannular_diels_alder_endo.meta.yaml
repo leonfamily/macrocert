@@ -1,0 +1,64 @@
+# Stereo-aware endo sibling of transannular_diels_alder.
+# Same chemistry as the base rule: thermal or Lewis-acid mediated [4+2]
+# cycloaddition with zero bond-level byproduct. Endo face of approach.
+# See docs/workstream_f_tda_stereo.md for the design rationale.
+
+reagent_mass_g_per_mol: 10.0  # Lewis-acid catalyst, same as base rule
+
+# Zero bond-level byproduct (pericyclic [4+2]).
+byproduct_mass_g_per_mol: 0.0
+
+# Retained root: any ring carbon, pick C(1) as anchor (same as base).
+retained_root_atom: 1
+
+classes:
+  - macrocyclization
+  - cc_closure
+  - high_atom_economy_bond
+  - biomimetic
+  - stereo_aware             # opt-in: only selected by stereo-aware runspecs
+  - tda_endo                 # face-of-approach flag
+
+stereo_flags:
+  - sets_four_sp3_stereocenters
+  - endo                     # face-of-approach: endo
+  - stereo_treatment_match_enforced  # rule R-side bracket lists are TetrahedralFixed
+  - endo_exo_pair            # paired with transannular_diels_alder_exo (Workstream F #36)
+
+refs:
+  - "Lamothe, Ndibwami, Deslongchamps. Tetrahedron Lett. 1988, 29, 1639 (theory, DOI:10.1016/S0040-4039(00)82005-5)"
+  - "Lamothe, Ndibwami, Deslongchamps. Tetrahedron Lett. 1988, 29, 1641 (experimental, DOI:10.1016/S0040-4039(00)82006-7)"
+  - "Phoenix, Reddy, Deslongchamps. J. Am. Chem. Soc. 2008, 130, 13989-13995 (DOI:10.1021/ja805097s) -- (+)-cassaine TDA, endo product"
+  - "Phoenix, Bourque, Deslongchamps. Org. Lett. 2000, 2, 4149-4152 (DOI:10.1021/ol006670r) -- earlier communication"
+  - "Scherlach 2010, Nat. Prod. Rep. 27:869 (cytochalasan biosynthesis)"
+  - "Andersen, Flamm, Merkle, Stadler. ICGT 2017, DOI:10.1007/978-3-319-61470-0_4 (DPO-with-stereo algebra)"
+
+notes: |
+  Sibling of transannular_diels_alder_exo. The DPO body is identical
+  to the base rule transannular_diels_alder.gml; the only addition is
+  tetrahedral fixed chirality on the four new sp3 centres (atoms
+  1, 4, 5, 6 on R) plus eight wildcard substituent nodes (11/12/41/42/
+  51/52/61/62) on context to satisfy MØD's degree-4 requirement at
+  rule-load time (Stereo/Inference.hpp::finalizeVertex).
+
+  Bracket-list convention: ascending real-neighbour IDs followed by
+  ascending substituent-wildcard IDs (docs/stereo_encoding_procedure.md
+  §2.c). This is the "canonical even-permutation" form for the endo
+  face. The exo sibling swaps the two substituent wildcards on every
+  centre -- one transposition per centre, odd permutation, enantiomer
+  face. Both rules produce mutually consistent face-of-approach
+  encodings (the suprafacial-suprafacial concerted [4+2] forces the
+  four chiralities to be coupled; we encode them per-centre but
+  generate the pair from one rotational choice).
+
+  The cassaine product per Phoenix-Reddy-Deslongchamps 2008 is the
+  endo isomer (macrocyclic preorganisation favours endo TS via
+  secondary-orbital stabilisation on the alpha,beta-unsaturated ester
+  dienophile). This is the empirically-validated outcome for the
+  cassaine M5 panel case.
+
+# Stereo policy (Workstream F #36):
+#   match_enforced — the R-side bracket lists are TetrahedralFixed and
+#   MØD enforces the cyclohexene adduct's four sp³ stereocenters at
+#   match time. See docs/workstream_f_alpha_c_overlays.md.
+stereo_treatment: match_enforced

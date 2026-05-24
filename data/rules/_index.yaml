@@ -63,6 +63,20 @@ sets:
     - aryl_etherification
     - biaryl_etherification
 
+  # Workstream F task #35 (2026-05): stereo-aware sibling rules for the
+  # transannular Diels-Alder. The base ``transannular_diels_alder``
+  # rule is symmetric (no stereo annotations) and stays in
+  # ``all_macrocyclization`` for backward-compat M5 campaigns. The
+  # endo/exo siblings carry tetrahedral fixed chirality on the 4 new
+  # sp3 centres and are opt-in via a stereo-aware RunSpec selecting
+  # this set. They are NOT in ``all_macrocyclization`` to avoid
+  # double-counting in M5 (each cassaine seco would otherwise produce
+  # three TDA legs: symmetric, endo, exo).
+  # See docs/workstream_f_tda_stereo.md.
+  tda_stereo_aware:
+    - transannular_diels_alder_endo
+    - transannular_diels_alder_exo
+
   # Workstream C addition (2026-05): all five cross-coupling tactics
   # share the cross_coupling class. Stille is gated by the
   # toxic_byproduct class flag -- a RunSpec selecting this set must

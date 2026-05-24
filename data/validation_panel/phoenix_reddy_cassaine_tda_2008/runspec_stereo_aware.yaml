@@ -1,0 +1,78 @@
+name: phoenix_reddy_cassaine_tda_2008_stereo_aware
+
+# Optional stereo-aware variant of the cassaine TDA RunSpec.
+#
+# WHY A SIBLING FILE: the default ``runspec.yaml`` keeps
+# ``rules: all_macrocyclization`` (12 tactics, base TDA rule) so the
+# legacy M5 cert remains byte-identical and the panel test continues
+# to assert against the literature outcome. This sibling opts in to
+# the stereo-aware variant (Workstream F task #35) -- ``rules:
+# tda_stereo_aware`` selects the endo + exo sibling rules only, plus
+# turns on MØD's 3-arg LabelSettings so the tetrahedral fixed
+# chirality on the new sp3 centres is enforced at match time.
+#
+# Expected outcome: the endo rule (transannular_diels_alder_endo)
+# fires on the cassaine seco substrate (cassaine product per Phoenix-
+# Reddy-Deslongchamps 2008 is the endo isomer -- macrocyclic
+# preorganization plus secondary-orbital stabilisation from the
+# alpha,beta-unsaturated ester dienophile). The exo rule
+# (transannular_diels_alder_exo) yields an infeasibility witness on
+# the same substrate.
+#
+# Reference: Phoenix, Reddy, Deslongchamps. J. Am. Chem. Soc. 2008,
+# 130, 13989-13995, DOI:10.1021/ja805097s -- compound 5 (the TDA-
+# immediate tricycle) has the trans-decalin endo geometry.
+
+target:
+  structure_path: structure.mol
+  ring_size: 6
+
+blocks:
+  - cassaine_seco
+
+# Workstream F #35: stereo-aware rule set. Selects endo + exo TDA
+# siblings only. Other macrocyclization tactics are excluded -- this
+# variant is for stereo validation, not the full M5 shortlist.
+rules: tda_stereo_aware
+
+strategy:
+  max_steps: 1
+  ring_close_only: true
+  # Workstream F Component 1: turn on MØD's 3-arg LabelSettings so the
+  # rule's tetrahedral[...]! annotations are honoured at match time.
+  # See docs/mod_stereo_reference.md §2.3.
+  stereo_enforcement: true
+  predicates:
+    is_intramolecular: true
+    ring_size_equals: 6
+    # The stereo-aware sibling rules don't carry alcohol-partner
+    # predicates (no ether tactics in the set), but the schema still
+    # accepts the fields; omit for clarity.
+
+energetics:
+  enabled: false
+
+solver:
+  backend: scip
+  top_n: 10
+  time_budget_s: 120
+  request_infeasibility_cert: true
+
+notes: |
+  Stereo-aware sibling of runspec.yaml -- see that file for the full
+  cassaine M5 narrative. This variant validates the Workstream F #35
+  encoding: the endo rule's tetrahedral[2,6,11,12]! / [3,5,41,42]! /
+  [4,6,51,52]! / [1,5,61,62]! bracket lists on R-side atoms 1/4/5/6
+  match the suprafacial-suprafacial endo face of the
+  Phoenix-Reddy-Deslongchamps 2008 TDA. Open question: if the cassaine
+  paper actually reports an exo product (paywalled access prevented
+  direct verification at encoding time), swap the two sibling rules'
+  outcomes -- the symmetry of the encoding makes this a one-line edit
+  in expected.yaml. See docs/workstream_f_tda_stereo.md §3.
+
+  Primary references:
+    Phoenix, S.; Reddy, M. S.; Deslongchamps, P. J. Am. Chem. Soc.
+      2008, 130, 13989-13995. DOI: 10.1021/ja805097s.
+    Lamothe, S.; Ndibwami, A.; Deslongchamps, P. Tetrahedron Lett.
+      1988, 29, 1639 (DOI:10.1016/S0040-4039(00)82005-5) and 1641
+      (DOI:10.1016/S0040-4039(00)82006-7).
