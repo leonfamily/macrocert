@@ -1,0 +1,31 @@
+name: toy_macrolactam
+target:
+  structure_path: structure.mol
+  ring_size: 13
+
+blocks:
+  - aminododecanoic_acid
+
+rules: all_macrocyclization
+
+strategy:
+  # v0 strategy is one rule firing. Intramolecularity / ring-size
+  # predicates land in M2 — without them, repeated firings produce
+  # oligomeric chains rather than ring closures (the "in-principle-
+  # infinite space" of proposal §3.2).
+  max_steps: 1
+  ring_close_only: true
+
+solver:
+  backend: mod
+  top_n: 5
+  time_budget_s: 30
+  request_infeasibility_cert: false
+
+energetics:
+  enabled: false
+
+notes: |
+  Toy target — exercises the spec → generate → kernel chain without
+  depending on the gated ascomylactam A crystal structure. Used as
+  the M1 exit case and as a fast smoke run in CI.

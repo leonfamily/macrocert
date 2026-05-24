@@ -1,0 +1,12 @@
+name: Phenylalanine-derived amine arm (cytochalasan north)
+smiles: NC(Cc1ccccc1)C(=O)O
+provenance: |
+  L-phenylalanine. Provides the aryl-amino unit characteristic of the
+  cytochalasan PKS-NRPS amino-acid building block (Skellam 2017 NPR).
+  In the real cytochalasan biosynthesis, Phe is loaded onto the NRPS
+  module, condensed with the polyketide chain, and released reductively
+  before cyclization.
+notes: |
+  Provenance note: the cytochalasan family selects different amino acids
+  per series (Trp for chaetoglobosins, Phe for cytochalasins/ascomylactams,
+  Leu/Ala for other variants). Ascomylactams are aryl-bearing → Phe.

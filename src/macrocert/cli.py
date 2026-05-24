@@ -56,6 +56,39 @@ def _cmd_encode_target(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_generate(args: argparse.Namespace) -> int:
+    from macrocert.generate import build_dg_for_runspec
+    from macrocert.spec.rules import load_rule_library
+    from macrocert.spec.runspec import load_runspec
+
+    target_dir = Path(args.target_dir)
+    spec = load_runspec(target_dir)
+    library = load_rule_library(args.rules_dir)
+    result = build_dg_for_runspec(
+        spec,
+        library=library,
+        blocks_dir=args.blocks_dir,
+        target_dir=target_dir,
+    )
+    n_v = result.dg.numVertices
+    n_e = result.dg.numEdges
+    print(
+        f"DG for {spec.name!r}: {n_v} molecules, {n_e} reactions  "
+        f"(rules: {list(result.rules_used)}; blocks: {list(spec.blocks)})"
+    )
+    if args.dump_smiles:
+        for v in result.dg.vertices:
+            try:
+                smi = v.graph.smiles
+            except Exception:
+                smi = "<no-smiles>"
+            print(f"  v{v.id}: {smi}")
+    if args.print_dg:
+        result.dg.print()
+        print(f"DG TeX/dot artifacts written under ./out/ (compile with `pixi run mod-shell mod_post`)")
+    return 0
+
+
 def _cmd_run(args: argparse.Namespace) -> int:
     print("pipeline.run is not yet implemented (M2)", file=sys.stderr)
     return 2
@@ -72,6 +105,15 @@ def main(argv: list[str] | None = None) -> int:
     p_et = sub.add_parser("encode-target", help="encode target + emit perimeter audit")
     p_et.add_argument("target_dir")
     p_et.set_defaults(func=_cmd_encode_target)
+
+    p_gen = sub.add_parser("generate", help="Layer B: build the DG only")
+    p_gen.add_argument("target_dir")
+    p_gen.add_argument("--rules-dir", default="data/rules")
+    p_gen.add_argument("--blocks-dir", default="data/building_blocks")
+    p_gen.add_argument("--dump-smiles", action="store_true")
+    p_gen.add_argument("--print-dg", action="store_true",
+                       help="emit dg/graph/rule TeX+dot under out/ (uses MØD's printing)")
+    p_gen.set_defaults(func=_cmd_generate)
 
     p_run = sub.add_parser("run", help="run the pipeline (M2+)")
     p_run.add_argument("runspec")

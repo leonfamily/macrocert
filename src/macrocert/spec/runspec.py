@@ -78,8 +78,8 @@ def load_runspec(path: str | Path) -> RunSpec:
             ring_size=int(target["ring_size"]),
             expected_ring_atoms=tuple(target.get("expected_ring_atoms", ())),
         ),
-        blocks=tuple(data.get("blocks", ())),
-        rules=tuple(data.get("rules", ())),
+        blocks=_as_tuple(data.get("blocks", ())),
+        rules=_as_tuple(data.get("rules", ())),
         strategy=StrategySpec(
             max_steps=int(strategy.get("max_steps", 6)),
             ring_close_only=bool(strategy.get("ring_close_only", True)),
@@ -100,6 +100,12 @@ def load_runspec(path: str | Path) -> RunSpec:
         ),
         notes=str(data.get("notes", "")),
     )
+
+
+def _as_tuple(v: Any) -> tuple[str, ...]:
+    if isinstance(v, str):
+        return (v,)
+    return tuple(v or ())
 
 
 def _to_jsonable(obj: Any) -> Any:

@@ -1,0 +1,11 @@
+name: Polyketide-derived carboxylic-acid arm (cytochalasan south, placeholder)
+smiles: CC(=O)CC(C)CC(C)CC(=O)O
+provenance: |
+  Placeholder representative of the polyketide chain (mixed methyl/keto
+  decoration) that condenses with the amino-acid arm in the cytochalasan
+  PKS-NRPS pathway. Real ascomylactam A polyketide arm has additional
+  unsaturation and methyl decoration — refine in M5 once the crystal
+  structure pins the exact substitution pattern.
+notes: |
+  v0 building block. The point at M1 is to exercise the strategy, not
+  to claim chemical correctness against the ascomylactam target.
