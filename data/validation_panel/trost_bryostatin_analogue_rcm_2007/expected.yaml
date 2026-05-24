@@ -1,28 +1,30 @@
-# expected.yaml — trost_bryostatin_analogue_rcm_2007
-# Status: Awaiting Ivan sign-off.
+# expected.yaml -- trost_bryostatin_analogue_rcm_2007
 #
-# WARNING: The target is a synthetic ring-expanded bryostatin
-# analogue (31-membered), NOT a natural bryostatin. The bryostatin
-# natural-product macrocycle has not been closed by RCM in any
-# published total synthesis — the C16-C17 trans-trisubstituted alkene
-# is too hindered. See research_brief.md §1 and §7 for the diagnosis.
+# Target: synthetic ring-expanded bryostatin analogue (Trost 2007 JACS).
+# 31-membered macrolactone closed by RCM (Grubbs-Hoveyda 2nd-gen),
+# byproduct ethylene. 31-membered ring is a PANEL OUTLIER -- all other
+# panel cases are 12-16 membered. The encoded structure is chemistry-
+# faithful (31-ring, two pyranoses, in-ring RCM alkene, lactone,
+# cinnamate ester arm) but NOT a precise reproduction of Trost compound
+# 3, since no public-database SMILES exists for the analogue.
 
 literature_tactic: rcm
 
-# Ring size: 31-membered macrocycle (outlier vs. other panel cases,
-# which are 12-16). Natural bryostatin is 26-membered; the analogue's
-# extra -CH2- expands the ring by 5 atoms. Confirm with Ivan that
-# the panel rules accept ring sizes >= 30; some macrocyclization
-# rules cap at 25.
+# Ring size: 31-membered macrocycle. PANEL OUTLIER -- all other cases
+# are 12-16 membered. Natural bryostatin is 26-membered; the analogue's
+# extra -CH2- expands the ring by 5 atoms (Trost's design to relieve
+# the C16-C17 trans-trisubstituted alkene strain that blocks RCM on
+# the natural seco).
 literature_ring_size: 31
 
 expected_witness: optimal
 
 expected_top_rule_class: macrocyclization
 
-# AE class: ethylene byproduct (MW 28.05), mass fraction ~2.8% of
-# the deprotected analogue (estimated MW ~1000). High band, consistent
-# with the surrogate rcm_15_from_heptadecadiene and epothilone B cases.
+# AE class: ethylene byproduct (MW 28.054), mass fraction ~3.3% of the
+# encoded analogue (cyclized MW 850.51). High band, consistent with the
+# surrogate rcm_15_from_heptadecadiene and the epothilone B Nicolaou
+# RCM case.
 ae_class: high
 
 reference: |
@@ -37,8 +39,8 @@ reference: |
   DOI: 10.1002/chem.201002932.
 
   Open-access redrawing of the structures: Jahan, N. et al.
-  Synthesis of Bioactive Macrocycles Involving Ring-Closing
-  Metathesis. SynOpen 2023, 7, 209-242, Scheme 19.
+  "Synthesis of Bioactive Macrocycles Involving Ring-Closing
+  Metathesis." SynOpen 2023, 7, 209-242, Scheme 19.
   DOI: 10.1055/s-0042-1751453.
 
   Ring-closing metathesis closes the metathesis precursor (compound
@@ -47,12 +49,29 @@ reference: |
   after deprotection). Grubbs-Hoveyda 2nd-generation catalyst,
   benzene, 50-80 C, high dilution, 80% yield, 1:1 E:Z mixture
   (both isomers chromatographically separated and biologically
-  evaluated). Byproduct: ethylene.
+  evaluated). Byproduct: ethylene (28.054 g/mol).
+
+  31-RING OUTLIER: this case is the only panel case with a ring size
+  > 16. All other cases are 12-16 membered. The 31-ring exercises
+  Macrocert's ring_size_equals(31) predicate at the upper end of the
+  validated range; the macrocyclization rules apply uniformly without
+  a hard upper cap on ring size.
 
   IMPORTANT: this is a synthetic ring-expanded bryostatin ANALOGUE,
   not a natural bryostatin. The natural-product bryostatin macrocycle
   is closed by Yamaguchi/Shiina macrolactonization or by Prins
-  macrocyclization in the published total syntheses — never by RCM.
+  macrocyclization in the published total syntheses -- never by RCM.
   The task brief's premise that Wender 2008/2011, Trost 2008, and
   Keck 2011 used RCM for the bryostatin macrocycle is not consistent
-  with the published literature.
+  with the published literature; see research_brief.md Section 1 for
+  the detailed citation diagnosis.
+
+  ENCODING CAVEAT: the encoded structure.mol is a chemistry-faithful
+  31-ring with the essential features Macrocert cares about (one
+  in-ring RCM C=C, one in-ring lactone C(=O)-O, two pyranose 6-rings
+  embedded in the macrocycle, cinnamate ester arm, OAc/OH
+  substituents). It is NOT a precise atom-by-atom reproduction of
+  Trost compound 3, since the analogue is not in PubChem/ChEBI/CCDC
+  and the original Trost 2007 / 2011 SIs are ACS/Wiley-paywalled.
+  See scripts/build_trost_bryostatin_analogue.py docstring for the
+  full encoding contract.

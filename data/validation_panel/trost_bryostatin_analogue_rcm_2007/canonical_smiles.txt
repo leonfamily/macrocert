@@ -1,0 +1,15 @@
+# Canonical isomeric SMILES for the Trost ring-expanded
+# bryostatin analogue (2007 JACS 129:2206, full paper 2011
+# Chem. Eur. J. 17:9789). 31-membered macrolactone with two
+# embedded pyranose rings and an in-ring RCM-formed alkene.
+#
+# formula        : C46H74O14
+# exact MW       : 850.5079
+# rings          : [6, 6, 31]
+# stereocenters  : 9 assigned
+# refs           : 10.1021/ja067305j, 10.1002/chem.201002932,
+#                  10.1055/s-0042-1751453 (open-access redrawing)
+# encoding note  : synthetic analogue, no public-DB SMILES;
+#                  see scripts/build_trost_bryostatin_analogue.py
+#                  docstring for the chemistry-faithful encoding contract.
+COC(=O)/C(C)=C/C(=O)O[C@H]1CCOC(=O)CCCCCCCCCCC[C@@H]2C[C@@H](OC(C)=O)CO[C@H]2CCCC/C=C/[C@H](OC(C)=O)CCC[C@@H]2[C@H](O)C[C@H](O)O[C@H]2C1

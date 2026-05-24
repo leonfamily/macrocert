@@ -1,0 +1,64 @@
+name: Trost bryostatin analogue seco-diene (RCM precursor)
+smiles: C=CCCCC[C@@H]1OC[C@H](OC(C)=O)C[C@H]1CCCCCCCCCCCC(=O)OCC[C@@H](C[C@@H]1O[C@@H](O)C[C@@H](O)[C@H]1CCC[C@H](C=C)OC(C)=O)OC(=O)/C=C(\C)C(=O)OC
+provenance: |
+  Seco-precursor for the Trost-Yang-Thiel-Frontier-Brindle 2007
+  RCM closure of the ring-expanded bryostatin analogue
+  (J. Am. Chem. Soc. 129, 2206-2207, DOI 10.1021/ja067305j;
+  full paper Chem. Eur. J. 2011, 17, 9789-9805, DOI
+  10.1002/chem.201002932; open-access redrawing in Jahan 2023
+  SynOpen 7, 209-242 Scheme 19, DOI 10.1055/s-0042-1751453).
+  Derived programmatically from the cyclized 31-membered
+  macrolactone (formula C46H74O14, MW 850.51) by breaking the
+  in-ring C=C alkene of the macrocycle and capping each side
+  with a terminal CH2= group.
+
+  The macrolactone ester (C(=O)-O) is RETAINED in the seco --
+  Trost's actual route runs macrolactonization (Shiina or
+  Yamaguchi) BEFORE the RCM step. The two terminal alkenes
+  at former-C16 and former-C17 are the dienes consumed by
+  Grubbs-Hoveyda 2nd-generation catalyst in benzene at
+  50-80 C and high dilution, expelling ethylene as the RCM
+  byproduct (80% yield, 1:1 E:Z mixture chromatographically
+  separated downstream).
+notes: |
+  Mass balance verified by build script:
+    cyclized MW         = 850.5079
+    seco MW             = 878.5392
+    delta MW            = 28.0313
+    ethylene (C2H4) MW  = 28.0313
+
+  31-MEMBERED RING OUTLIER: this case exercises Macrocert's
+  ring_size_equals(31) predicate at the upper end of the
+  panel's ring-size range. All other panel cases are 12-16
+  membered; the bryostatin natural macrocycle is 26-membered.
+  Trost's seco-precursor inserts one extra -CH2- versus the
+  natural seco, relocating the RCM alkene to a less-strained
+  position and expanding the ring to 31 members. The RDKit
+  SSSR perimeter walk recovers exactly 31 atoms in the macro-
+  cycle of the cyclized form.
+
+  E/Z selectivity caveat: Trost reports 1:1 E:Z; both isomers
+  were chromatographically separated and biologically evaluated
+  (compounds 178/179 in Jahan 2023 numbering). The panel rule
+  rcm is selectivity-agnostic in v0; the encoded cyclized
+  structure carries E geometry on the new alkene by convention
+  (the E isomer happens to be the more abundant in many bryo-
+  family RCMs; either is a valid panel target).
+
+  ENCODING CAVEAT: the analogue is NOT in PubChem/ChEBI/CCDC.
+  The cyclized structure is a chemistry-faithful encoding
+  capturing the essential macrocyclic features that Macrocert
+  cares about (31-ring, RCM C=C, lactone, two pyranoses,
+  characteristic OAc/OH/cinnamate substituents). It is NOT a
+  precise atom-by-atom reproduction of Trost compound 3 --
+  see scripts/build_trost_bryostatin_analogue.py docstring for
+  the full encoding contract.
+
+  Topology check: the seco retains the two pyranose 6-rings
+  (ring inventory [6, 6]) and is acyclic at
+  the macrocycle level; the macrolactone tether keeps the
+  molecule connected after breaking the alkene.
+refs:
+  - "Trost, B. M.; Yang, H.; Thiel, O. R.; Frontier, A. J.; Brindle, C. S. J. Am. Chem. Soc. 2007, 129, 2206-2207 (DOI:10.1021/ja067305j) -- primary"
+  - "Trost, B. M.; Yang, H.; Dong, G. Chem. Eur. J. 2011, 17, 9789-9805 (DOI:10.1002/chem.201002932) -- full paper"
+  - "Jahan, N. et al. SynOpen 2023, 7, 209-242, Scheme 19 (DOI:10.1055/s-0042-1751453) -- open-access redrawing"
