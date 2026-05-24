@@ -1,0 +1,28 @@
+name: toy_infeasible
+target:
+  structure_path: ../toy_macrolactam/structure.mol
+  ring_size: 13
+
+blocks:
+  - aminododecanoic_acid
+
+rules:
+  - transannular_diels_alder    # cannot match the saturated precursor
+
+strategy:
+  max_steps: 1
+  ring_close_only: true
+
+solver:
+  backend: scip
+  top_n: 5
+  time_budget_s: 30
+  request_infeasibility_cert: true
+
+energetics:
+  enabled: false
+
+notes: |
+  No-go demonstration. The proposal §3.3 infeasibility certificate is the
+  whole point: the pipeline tells the chemist that the TDA class is empty
+  for this substrate, with a Farkas/IIS witness backing the claim.

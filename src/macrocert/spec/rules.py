@@ -25,6 +25,8 @@ import yaml
 @dataclass(frozen=True)
 class RuleMeta:
     reagent_mass_g_per_mol: float
+    byproduct_mass_g_per_mol: float
+    retained_root_atom: int
     classes: tuple[str, ...]
     stereo_flags: tuple[str, ...]
     refs: tuple[str, ...]
@@ -34,6 +36,8 @@ class RuleMeta:
     def from_dict(cls, d: dict[str, Any]) -> "RuleMeta":
         return cls(
             reagent_mass_g_per_mol=float(d.get("reagent_mass_g_per_mol", 0.0)),
+            byproduct_mass_g_per_mol=float(d.get("byproduct_mass_g_per_mol", 0.0)),
+            retained_root_atom=int(d.get("retained_root_atom", 1)),
             classes=tuple(d.get("classes", ())),
             stereo_flags=tuple(d.get("stereo_flags", ())),
             refs=tuple(d.get("refs", ())),

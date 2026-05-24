@@ -90,8 +90,20 @@ def _cmd_generate(args: argparse.Namespace) -> int:
 
 
 def _cmd_run(args: argparse.Namespace) -> int:
-    print("pipeline.run is not yet implemented (M2)", file=sys.stderr)
-    return 2
+    from macrocert.pipeline import run
+
+    report = run(
+        args.target_dir,
+        rules_dir=args.rules_dir,
+        blocks_dir=args.blocks_dir,
+        artifacts_dir=args.artifacts_dir,
+    )
+    print(f"{report.spec.name}: witness={report.witness_kind}")
+    if report.witness_kind == "optimal":
+        print(f"  bond-level expelled mass:    {report.bond_level_expelled_mass:.2f} g/mol")
+        print(f"  process-level expelled mass: {report.process_level_expelled_mass:.2f} g/mol")
+    print(f"  certificate: {report.certificate_path}")
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -115,8 +127,11 @@ def main(argv: list[str] | None = None) -> int:
                        help="emit dg/graph/rule TeX+dot under out/ (uses MØD's printing)")
     p_gen.set_defaults(func=_cmd_generate)
 
-    p_run = sub.add_parser("run", help="run the pipeline (M2+)")
-    p_run.add_argument("runspec")
+    p_run = sub.add_parser("run", help="A→B→C end-to-end with certificate emission")
+    p_run.add_argument("target_dir")
+    p_run.add_argument("--rules-dir", default="data/rules")
+    p_run.add_argument("--blocks-dir", default="data/building_blocks")
+    p_run.add_argument("--artifacts-dir", default="artifacts")
     p_run.set_defaults(func=_cmd_run)
 
     args = p.parse_args(argv)
