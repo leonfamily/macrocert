@@ -1,0 +1,10 @@
+literature_tactic: macrolactamization
+literature_ring_size: 14
+expected_witness: optimal
+expected_top_rule_class: macrocyclization
+ae_class: high
+reference: |
+  Surrogate ring-size case (not a literature total synthesis).
+  ω-aminoacid macrolactamization is industrially well-precedented
+  for the polyamide-fiber series; included here to calibrate τ
+  across ring sizes pending the literature panel from panel_TODO.md.

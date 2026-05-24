@@ -1,0 +1,24 @@
+name: rcm_15_from_heptadecadiene
+target:
+  structure_path: structure.mol
+  ring_size: 15
+
+blocks:
+  - heptadecadiene
+
+rules: all_macrocyclization
+
+strategy:
+  max_steps: 1
+  ring_close_only: true
+
+solver:
+  backend: scip
+  top_n: 3
+  time_budget_s: 30
+
+energetics:
+  enabled: false
+
+notes: |
+  Surrogate rcm case (ring size 15).
