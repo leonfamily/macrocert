@@ -114,6 +114,28 @@ def _cmd_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_report(args: argparse.Namespace) -> int:
+    from macrocert.report import render_certificate
+
+    for cert_path in args.certificates:
+        md, html = render_certificate(Path(cert_path))
+        print(f"  {md}")
+        print(f"  {html}")
+    return 0
+
+
+def _cmd_pareto(args: argparse.Namespace) -> int:
+    from macrocert.report import render_pareto
+
+    output = Path(args.output)
+    out = render_pareto([Path(p) for p in args.certificates], output)
+    if out:
+        print(f"  {out}")
+        return 0
+    print("no optimal certificates among inputs; nothing to plot", file=sys.stderr)
+    return 1
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="macrocert")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -141,6 +163,15 @@ def main(argv: list[str] | None = None) -> int:
     p_run.add_argument("--blocks-dir", default="data/building_blocks")
     p_run.add_argument("--artifacts-dir", default="artifacts")
     p_run.set_defaults(func=_cmd_run)
+
+    p_rep = sub.add_parser("report", help="render a certificate as Markdown+HTML")
+    p_rep.add_argument("certificates", nargs="+")
+    p_rep.set_defaults(func=_cmd_report)
+
+    p_par = sub.add_parser("pareto", help="Pareto plot over certificates")
+    p_par.add_argument("certificates", nargs="+")
+    p_par.add_argument("-o", "--output", default="artifacts/pareto.png")
+    p_par.set_defaults(func=_cmd_pareto)
 
     args = p.parse_args(argv)
     return args.func(args)

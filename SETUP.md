@@ -33,6 +33,46 @@ pixi run mod-smoke     # MØD inside container: load rule, build DG
 pixi run -e casp python -c "import aizynthfinder; print(aizynthfinder.__version__)"
 ```
 
+## Workflow — running the proposal
+
+End-to-end on a single target:
+
+```bash
+# Layer A: validate the rule library (conservation re-check)
+pixi run check-rules
+
+# Layer A→B→C→E: run the pipeline, emit a verifiable Certificate
+pixi run python -m macrocert.cli run data/targets/toy_macrolactam
+
+# Independent re-check of the emitted certificate (works on a host without MØD)
+pixi run macrocert-verify artifacts/toy_macrolactam/certificate.json
+
+# Layer E: render a human-readable report
+pixi run python -m macrocert.cli report artifacts/toy_macrolactam/certificate.json
+
+# Bond-vs-process AE Pareto across all certificates
+pixi run python -m macrocert.cli pareto artifacts/**/certificate.json -o artifacts/pareto.png
+```
+
+Full sweep (every target + verify + report + Pareto):
+
+```bash
+bash scripts/run_all.sh
+```
+
+Retrodictive validation panel:
+
+```bash
+pixi run pytest tests/panel/         # asserts each panel case reproduces its expected literature outcome
+pixi run python scripts/calibrate_panel.py   # → data/validation_panel/REPORT.md, τ recomputation
+```
+
+The `data/validation_panel/panel_TODO.md` file lists the literature
+cases (vancomycin, epothilone B, citreoviridin, norzoanthamine,
+erythronolide B, ...) that the chemistry-team member will encode
+before M5's ascomylactam A run; the v0 panel ships only surrogate
+ω-aminoacid and α,ω-diene cases.
+
 ## Known gaps (and why they're acceptable for v1)
 
 - **ORCA** (DFT): closed-source, registration, no arm64. Psi4 covers the
