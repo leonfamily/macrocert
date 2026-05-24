@@ -1,0 +1,36 @@
+# Ascomylactam A run specification. The structure file is not yet in
+# place — see notes.md. This runspec is the eventual M5 entry point.
+name: ascomylactam_a
+target:
+  structure_path: structure.mol      # TODO: drop the CIF-derived Molfile here
+  ring_size: 13
+  # expected_ring_atoms: <to be filled in once ring_perimeter.txt is signed off>
+
+blocks:
+  - phe_amine_arm
+  - pks_acid_arm
+  - dienophile_arm
+
+rules: all_macrocyclization
+
+strategy:
+  max_steps: 8
+  ring_close_only: true
+
+solver:
+  backend: mod
+  top_n: 10
+  time_budget_s: 120
+  request_infeasibility_cert: true
+
+energetics:
+  enabled: true
+  initial_tier: xtb
+  dG_kcal_max: 30.0   # generous barrier ceiling for medium-ring closures
+
+notes: |
+  Full M5 run. Until structure.mol is in place (notes.md), this spec is
+  unloadable; `pixi run encode-target data/targets/ascomylactam_a/`
+  will fail with FileNotFoundError on the missing structure — which is
+  the intended behavior. We do not allow inferring a target structure
+  from the class name.

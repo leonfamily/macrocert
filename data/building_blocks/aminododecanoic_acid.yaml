@@ -1,0 +1,11 @@
+name: 12-aminododecanoic acid
+smiles: OC(=O)CCCCCCCCCCCN
+provenance: |
+  Synthetic surrogate seco precursor for the toy_macrolactam target.
+  Not from a CASP run — chosen because cyclization of this single
+  building block closes a 13-membered macrolactam in one rule firing,
+  exercising the macrolactamization disconnection without any prior
+  coupling steps.
+notes: |
+  Commercially available (CAS 693-57-2). The corresponding macrolactam
+  is not a drug target on its own; used here as a minimal v0 fixture.

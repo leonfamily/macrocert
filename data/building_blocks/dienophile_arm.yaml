@@ -1,0 +1,12 @@
+name: Dienophile arm (cytochalasan transannular DA partner, placeholder)
+smiles: C=CC(=O)OC
+provenance: |
+  Methyl acrylate as a stand-in dienophile fragment. In ascomylactam
+  biosynthesis the dienophile is part of the macrocyclic chain itself,
+  not an external fragment — but for the M1 exercise we model a
+  separate-block view of the [4+2] that the chemist then re-anchors
+  intramolecularly in M5.
+notes: |
+  Placeholder. The transannular-Diels-Alder rule fires intramolecularly
+  in the real target; using this external dienophile is a v0 fixture
+  to demonstrate the rule applies.

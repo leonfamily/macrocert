@@ -1,0 +1,40 @@
+# Macrolactamization rule metadata (consumed by macrocert.spec.rules).
+# See data/rules/macrolactamization.gml for the DPO span. Application
+# conditions (13-ring closure, on a single component, etc.) live in
+# macrocert.generate.strategies, not here.
+
+# Process-level reagent mass: coupling agent + auxiliaries per firing.
+# Typical condensed-phase macrolactamization uses HATU (380.2 g/mol) +
+# 2 eq. base (DIPEA ~129 g/mol each). v0 takes HATU + 2·DIPEA = 638 g/mol
+# as the canonical process penalty. Override per-substrate in the
+# RunSpec.solver.extra if a different activator is intended.
+reagent_mass_g_per_mol: 638.0
+
+# Bond-level expelled mass: water, from the rule's atom-map (atoms 3,4,6
+# form the H2O byproduct on the R side). Recomputed by the verifier in
+# M2 from the composed rule; kept here as a human-checkable ground truth.
+byproduct_mass_g_per_mol: 18.015
+
+# Which atom ID in the rule body anchors the *retained* product side on R.
+# Used by the verifier's bond-level AE recomputation: BFS from this atom
+# through R's edges, everything reachable is target, the rest is byproduct.
+retained_root_atom: 1
+
+classes:
+  - macrocyclization
+  - amide_closure
+  - high_atom_economy_bond  # H2O byproduct only
+  - biomimetic              # cytochalasan lactam series
+
+stereo_flags:
+  - retains_alpha_stereo
+
+refs:
+  - "Trost 1991, Science 254:1471 (atom economy)"
+  - "Acc. Chem. Res. 2021, DOI:10.1021/acs.accounts.0c00759 (macrolactam total syntheses)"
+  - "Marti-Centelles 2015, Chem. Rev. (preorganization)"
+
+notes: |
+  Amide-bond ring closure expelling H2O at the bond level. Process-level AE
+  is docked by the activator (HATU + DIPEA assumed) — this is the
+  proposal §3.3 bond-vs-process AE split materialized.

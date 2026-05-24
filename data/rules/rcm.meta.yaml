@@ -1,0 +1,31 @@
+# Ring-closing metathesis (Grubbs-type) — terminal alkenes → endocyclic
+# alkene + ethylene.
+
+# Process-level: Hoveyda-Grubbs II catalyst is sub-stoichiometric (typical
+# 5-10 mol%) so its mass contribution is small in batch — modeled as
+# 30 g/mol amortized per firing (loose upper bound for cat. + solvent
+# corrections). Refine per substrate via RunSpec override.
+reagent_mass_g_per_mol: 30.0
+
+# Bond-level expelled mass: ethylene C2H4 = 28.054 g/mol.
+byproduct_mass_g_per_mol: 28.054
+
+# Retained-root atom: C(1), an internal alkene carbon on the substrate.
+retained_root_atom: 1
+
+classes:
+  - macrocyclization
+  - cc_closure
+  - high_atom_economy_bond  # ethylene byproduct only
+
+stereo_flags:
+  - sets_alkene_geometry    # E/Z control depends on catalyst + substrate
+  - downstream_semireduction_may_be_required
+
+refs:
+  - "Gradillas & Pérez-Castells 2006, Angew. Chem. Int. Ed. 45:6086"
+  - "Acc. Chem. Res. 2021, DOI:10.1021/acs.accounts.0c00759"
+
+notes: |
+  Classical RCM. E/Z mixture frequent in medium/large rings —
+  Layer D/E should flag downstream E/Z correction cost.
