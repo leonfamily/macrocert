@@ -39,9 +39,20 @@ def check_rule_conservation(gml_text: str) -> ConservationResult:
 
     l_atoms, k_atoms, r_atoms = rule.left.nodes, rule.context.nodes, rule.right.nodes
 
+    # MØD permits a ``left``/``right`` node to omit ``label`` when the
+    # matching ``context`` node supplies it (see
+    # external/mod/examples/py/030_stereo/330_tartaric.py:5-24). Our
+    # reader records the missing label as ``""``; treat ``""`` as a
+    # wildcard for cross-side comparison so that stereo-only side
+    # annotations parse cleanly under Workstream F (Component 2).
+    def _labels_disagree(a: str, b: str) -> bool:
+        return a != "" and b != "" and a != b
+
     for nid, n_l in l_atoms.items():
         n_r = r_atoms.get(nid)
-        if n_r is not None and (n_l.label, n_l.charge) != (n_r.label, n_r.charge):
+        if n_r is not None and (
+            _labels_disagree(n_l.label, n_r.label) or n_l.charge != n_r.charge
+        ):
             return ConservationResult(
                 ok=False,
                 reason=(
@@ -53,7 +64,9 @@ def check_rule_conservation(gml_text: str) -> ConservationResult:
         n_l = l_atoms.get(nid)
         n_r = r_atoms.get(nid)
         for other_name, other in (("L", n_l), ("R", n_r)):
-            if other is not None and (n_k.label, n_k.charge) != (other.label, other.charge):
+            if other is not None and (
+                _labels_disagree(n_k.label, other.label) or n_k.charge != other.charge
+            ):
                 return ConservationResult(
                     ok=False,
                     reason=(
@@ -144,7 +157,18 @@ def expelled_mass_g_per_mol(gml_text: str, retained_root_atom: int | None = None
 def _atom_counter(side: GMLSide, context: GMLSide) -> Counter:
     c: Counter = Counter()
     for nd in side.nodes.values():
-        c[(nd.label, nd.charge)] += 1
+        # Side nodes with empty label inherit from context (see the
+        # cross-side `_labels_disagree` shim above and
+        # external/mod/examples/py/030_stereo/330_tartaric.py for the
+        # syntactic precedent).
+        label = nd.label
+        charge = nd.charge
+        if not label:
+            ctx = context.nodes.get(nd.id)
+            if ctx is not None:
+                label = ctx.label
+                charge = ctx.charge
+        c[(label, charge)] += 1
     for nd in context.nodes.values():
         if nd.id not in side.nodes:
             c[(nd.label, nd.charge)] += 1
@@ -180,6 +204,8 @@ _ATOMIC_MASS: dict[str, float] = {
     "B": 10.81, "Si": 28.085, "Na": 22.990, "K": 39.098, "Mg": 24.305,
     "Ca": 40.078, "Zn": 65.38, "Cu": 63.546, "Fe": 55.845, "Ni": 58.693,
     "Pd": 106.42, "Pt": 195.084, "Ru": 101.07, "Rh": 102.906,
+    # Workstream C cross-coupling rules: Sn for Stille, Li for Negishi/Stille co-add.
+    "Sn": 118.710, "Li": 6.94,
 }
 
 

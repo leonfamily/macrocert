@@ -3,14 +3,61 @@
 sets:
   all_macrocyclization:
     - macrolactamization
+    - macrolactonization
+    - aryl_etherification           # SNAr/Ullmann/Buchwald Ar-O-C(sp3)
+    - biaryl_etherification         # SNAr Ar-O-Ar (vancomycin family)
+    - c_h_dehydrogenative_coupling  # C-H/C-H -> C-C + H2
     - rcm
     - transannular_diels_alder
+    - cross_coupling_suzuki
+    - cross_coupling_negishi
+    - cross_coupling_buchwald
+    - cross_coupling_sonogashira
+    - cross_coupling_stille
 
   high_ae_macrocyclization:  # bond-level AE ≥ threshold
-    - macrolactamization      # H2O byproduct
-    - rcm                     # ethylene byproduct
-    - transannular_diels_alder  # zero byproduct
+    - macrolactamization            # H2O byproduct (18 g/mol)
+    - macrolactonization            # H2O byproduct (same bond-level as lactam)
+    - aryl_etherification           # HF byproduct (20 g/mol) — comparable
+    - biaryl_etherification         # HF byproduct (20 g/mol) — same as aryl_ether
+    - c_h_dehydrogenative_coupling  # H2 byproduct (2 g/mol) — highest AE C-C
+    - rcm                           # ethylene byproduct (28 g/mol)
+    - transannular_diels_alder      # zero byproduct
+    # Cross-couplings deliberately excluded: HBr (Buchwald, Sonogashira)
+    # is small but the activator stack is heavy; Suzuki/Negishi/Stille
+    # all carry > 140 g/mol bond-level byproduct mass. Stille additionally
+    # carries the toxic_byproduct class flag (Workstream C decision,
+    # docs/cross_coupling_research.md §Open questions Q4).
 
   biomimetic_macrocyclization:
     - macrolactamization
     - transannular_diels_alder
+
+  # Heteroatom acyl closures — share atom map (HO–C(=O) + HX → C(=O)X + H2O).
+  # Sibling rules differing only on the X = N (lactam) vs X = O (lactone).
+  heteroatom_acyl_closure:
+    - macrolactamization
+    - macrolactonization
+
+  # Ether closures. Two siblings differing only in the alcohol partner's
+  # hybridization (sp3 alkyl vs sp2 aryl):
+  #   aryl_etherification   : Ar-O-C(sp3)  -- ascomylactam A (Uchiro 2017
+  #                                            SNAr-Cr, DOI:10.1002/asia.201601728)
+  #   biaryl_etherification : Ar-O-Ar      -- vancomycin family (Boger 1999
+  #                                            CD/DE SNAr, DOI:10.1021/ja992577q)
+  # Workstream D needs alcohol_partner_C predicates to discriminate at
+  # the strategy layer (GML can't distinguish phenolic vs aliphatic O).
+  ether_macrocyclization:
+    - aryl_etherification
+    - biaryl_etherification
+
+  # Workstream C addition (2026-05): all five cross-coupling tactics
+  # share the cross_coupling class. Stille is gated by the
+  # toxic_byproduct class flag -- a RunSpec selecting this set must
+  # still opt in to Stille via an explicit allow_toxic_byproducts flag.
+  cross_coupling:
+    - cross_coupling_suzuki
+    - cross_coupling_negishi
+    - cross_coupling_buchwald
+    - cross_coupling_sonogashira
+    - cross_coupling_stille

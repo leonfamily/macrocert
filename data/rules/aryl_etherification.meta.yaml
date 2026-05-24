@@ -1,0 +1,134 @@
+# Aryl etherification (Ar-O-C(sp3)) rule metadata.
+#
+# Bond chemistry:
+#   Ar-F + HO-C(sp3)R-R' -> Ar-O-C(sp3)R-R' + HF
+#
+# This rule covers the closure family that includes Uchiro's
+# (eta6-arene)Cr(CO)3 SNAr macroetherification on the GKK1032A2
+# 13-membered ring (DOI:10.1002/asia.201601728) — the direct
+# precedent for ascomylactam A's 13-ring closure. Sibling rules:
+#   macrolactamization  — amide closure (C-N)
+#   macrolactonization  — ester closure (C-O acyl)
+#   aryl_etherification — Ar-O-C(sp3) ether closure  ** this rule **
+#
+# Scope INCLUDED:  SNAr (Cr-activated and direct on electron-poor arenes),
+#                  Cu Ullmann, Pd/Cu Buchwald aryl-ether coupling.
+# Scope EXCLUDED:  Mitsunobu (inverts C(sp3) stereo — separate rule);
+#                  biaryl-ether (Ar-O-Ar — separate rule needed for
+#                  vancomycin/K-13/bouvardin family).
+#
+# Refs:
+#   - Sugata, Uchiro et al. 2017, Chem. Asian J. 12, 628
+#     DOI:10.1002/asia.201601728 — GKK1032A2 SNAr-Cr macrocyclization,
+#     first 13-ring Ar-O-C(sp3) closure. Direct sibling.
+#   - Zhu 1997, Synlett — SNAr aryl-ether macrocyclization review.
+#     DOI:10.1055/s-1997-722
+#   - Boger, Borzilleri 1995, BMCL — "unusually facile" 14-ring SNAr.
+#     DOI:10.1016/0960-894x(95)00192-v
+
+# Canonical activator: eta6-arene-Cr SNAr per Uchiro 2017.
+# = Cr(CO)6 (220.06) + CAN (548.22) + Cs2CO3 (325.82) = ~1094 g/mol.
+# Alternatives in reagent_mass_alternatives below.
+# DOI:10.1002/asia.201601728
+reagent_mass_g_per_mol: 1094.0
+
+# Bond-level byproduct: HF (atomic masses: F=18.998, H=1.008).
+# For Cl-leaving SNAr: HCl (36.461); Br: HBr (80.912); I: HI (127.912);
+# NO2: HNO2 (47.013). Alternative leaving groups in
+# reagent_mass_alternatives (each carries its own byproduct mass).
+byproduct_mass_g_per_mol: 20.006
+
+# BFS-from-1 anchor: the aromatic carbon (atom 1). The verifier walks
+# R-side edges from this atom; everything reachable is target product,
+# the rest (atoms 2, 6 — HF) is byproduct.
+retained_root_atom: 1
+
+classes:
+  - macrocyclization
+  - ether_closure
+  - aryl_csp3_etherification
+  - high_atom_economy_bond  # HF byproduct, 20 g/mol — small molecule
+  - sn_ar_compatible
+
+# Stereochemistry (per docs/macroetherification_research.md §4):
+# Alcohol C(sp3) stereo is FULLY RETAINED — the rule operates on the
+# aromatic carbon and the O-H bond; the C(sp3)-O bond is off-rule.
+# This is the central stereochemical fact making SNAr/Ullmann/Buchwald
+# the right canonical choice for ascomylactam A (C-14 R must be preserved).
+# Atropisomerism can arise in rigid macrocycles (e.g. para-arene in
+# ascomylactam A's 13-ring); resolved by the substrate's 3D geometry,
+# not by the rule.
+stereo_flags:
+  - retains_alcohol_stereo
+  - retains_arene_substituents
+  - can_generate_atropisomerism
+
+refs:
+  - "Sugata, Uchiro et al. 2017, Chem. Asian J. 12:628 (DOI:10.1002/asia.201601728) — GKK1032A2 SNAr-Cr, direct sibling"
+  - "Uchiro et al. 2011, Org. Lett. 13:6386 (DOI:10.1021/ol202748e) — hirsutellone B Ullmann predecessor"
+  - "Zhu 1997, Synlett 133 (DOI:10.1055/s-1997-722) — SNAr biaryl/aryl-ether macrocyclization review"
+  - "Aranyos, Old, Kiyomori, Wolfe, Sadighi, Buchwald 1999, JACS 121:4369 (DOI:10.1021/ja990324r) — Pd-catalyzed diaryl ethers"
+  - "Palucki, Wolfe, Buchwald 1997, JACS 119:3395 (DOI:10.1021/ja9640152) — first Pd-catalyzed Ar-O"
+  - "Fui et al. 2020, Catalysts 10:1103 (DOI:10.3390/catal10101103) — modern Ullmann C-O review"
+
+# Activator alternatives — selectable per-RunSpec via solver.extra.
+# Each carries its own reagent_mass + additional_byproduct.
+# All mass values cited to source (see docs/macroetherification_research.md §3).
+reagent_mass_alternatives:
+  - name: "SNAr_arene_Cr"
+    reagent_mass_g_per_mol: 1094.0
+    additional_byproduct_mass_g_per_mol: 820.0  # Cr(CO)3·L3 + spent CAN
+    description: "Eta6-arene-Cr(CO)3 SNAr; Cr(CO)6 + CAN + Cs2CO3. Uchiro 2017 GKK1032A2 strained 13-ring."
+    refs: ["10.1002/asia.201601728"]
+  - name: "SNAr_electron_poor_arene"
+    reagent_mass_g_per_mol: 326.0
+    additional_byproduct_mass_g_per_mol: 250.0  # CsF + CsHCO3
+    description: "Direct SNAr on substrate-activated electron-poor arene (NO2, CO2R, CN). Cheapest option. Standard for vancomycin/K-13/bouvardin family."
+    refs: ["10.1055/s-1997-722", "10.1016/0960-894x(95)00192-v"]
+  - name: "Ullmann_Cu"
+    reagent_mass_g_per_mol: 696.0
+    additional_byproduct_mass_g_per_mol: 430.0  # CsX + CsHCO3
+    description: "CuI + 1,10-phenanthroline + Cs2CO3, 100-130 deg C. Worked on hirsutellone B (Uchiro 2011); failed on tighter GKK1032A2 ring."
+    refs: ["10.1021/ol202748e", "10.3390/catal10101103"]
+  - name: "Pd_Buchwald"
+    reagent_mass_g_per_mol: 1714.0  # nominal full-equiv; realistic ~370 with catalytic Pd
+    additional_byproduct_mass_g_per_mol: 407.0  # CsHCO3 + CsBr
+    description: "Pd2(dba)3 + RockPhos/t-BuXPhos + Cs2CO3. Mild, broad scope on Ar-Br/OTf. Underused for macrocyclization; nominal mass overstates real cost (Pd catalytic)."
+    refs: ["10.1021/ja990324r", "10.1021/ja9640152"]
+  # Leaving-group variants for the canonical SNAr (electron-poor arene).
+  # Bond-level byproduct mass changes; activator stack unchanged.
+  - name: "SNAr_LG_Cl"
+    reagent_mass_g_per_mol: 326.0
+    additional_byproduct_mass_g_per_mol: 286.0  # CsCl heavier than CsF
+    description: "SNAr with Cl leaving group (HCl = 36.461 g/mol byproduct in lieu of HF). Override byproduct_mass_g_per_mol to 36.461."
+    refs: ["10.1055/s-1997-722"]
+  - name: "SNAr_LG_NO2"
+    reagent_mass_g_per_mol: 326.0
+    additional_byproduct_mass_g_per_mol: 280.0  # CsNO2
+    description: "SNAr with NO2 leaving group (HNO2 = 47.013 g/mol byproduct). Override byproduct_mass_g_per_mol to 47.013. Heavily activated arenes only."
+    refs: ["10.1055/s-1997-722"]
+
+notes: |
+  Ar-O-C(sp3) ether ring closure. The direct precedent for the
+  ascomylactam A M5 run is Uchiro 2017's GKK1032A2 SNAr-Cr 13-ring
+  closure — same (6/5/6/5) tetracyclic scaffold, same ring size,
+  same bond-forming event.
+
+  The bond-vs-process AE gap is the largest in the heteroatom-closure
+  family (25x-85x). The bond-level byproduct is HF (20 g/mol); the
+  process penalty is 500-1700 g/mol depending on activator. This rule
+  is the showcase for proposal section 3.3's bond-vs-process AE split.
+
+  Vancomycin's macrocyclic closure is biaryl ether SNAr (Ar-O-Ar),
+  NOT Ar-O-C(sp3) — it requires a separate `biaryl_etherification`
+  rule (Workstream C follow-up, task #26). Do NOT route the vancomycin
+  panel case through this rule.
+
+  Mitsunobu macroetherification inverts the alcohol C(sp3) and is
+  excluded from this rule. A separate `mitsunobu_etherification` rule
+  with `inverts_alcohol_stereo` should be added if a target needs it.
+
+  Discrimination from `biaryl_etherification`: set the strategy-level
+  predicate `alcohol_partner_C_must_be_sp3: {aryl_etherification: true}`
+  (Workstream D phase-3) — without it the sibling biaryl rule will also
+  fire on any HO-R substrate. See docs/workstream_d_predicates.md §4.

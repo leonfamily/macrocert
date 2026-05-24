@@ -1,0 +1,107 @@
+# Stille cross-coupling for macrocyclization (opaque-Sn variant).
+# See data/rules/cross_coupling_stille.gml for the DPO span and
+# docs/cross_coupling_research.md (Workstream C brief) for the
+# atom-mapped scheme and mass table.
+#
+# *GATED RULE*: Stille is included in the v0 cross_coupling set but
+# NOT in high_ae_macrocyclization. The toxic_byproduct class flag
+# (below) is the signal to strategy/feedback layers to require an
+# explicit opt-in before firing this rule.
+
+# Process-level reagent mass: Pd(PPh3)4 (MW 1156, ~5 mol% amortized to
+# ~30 g/mol per firing) + CuI (190.45, optional Farina/Liebeskind
+# co-additive) + LiCl (42.39). Total canonical penalty: 30 + 190 +
+# 42 = 263 g/mol (rounded). Refs:
+#   Stille 1986 Angew. Chem. DOI:10.1002/anie.198605081
+#   Farina, Krishnamurthy, Scott 1997 Org. React. DOI:10.1002/0471264180.or050.01
+reagent_mass_g_per_mol: 263.0
+
+reagent_mass_alternatives:
+  - name: Pd_AsPh3_CuI
+    reagent_mass_g_per_mol: 320.0   # 30 + 190 + 100 (CuTC)
+    description: "Pd + AsPh3 + CuTC (Liebeskind modified Stille, faster vinyl-Sn)"
+    refs:
+      - "DOI:10.1002/0471264180.or050.01"
+  - name: Pd_only_no_co_additive
+    reagent_mass_g_per_mol: 30.0
+    description: "Plain Pd(PPh3)4 with no co-catalyst (slower; substrate-dependent)"
+    refs:
+      - "DOI:10.1002/anie.198605081"
+
+# Bond-level expelled mass: Sn + Br (opaque-Sn convention).
+# Computed atom-multiset:
+#   Sn (118.710) + Br (79.904) = 198.614 g/mol
+# This is the STRICT atom-conserving value under the opaque-Sn rule
+# encoding. The chemically realistic Bu3SnBr byproduct is 326.94 g/mol
+# (Stille 1986, Farina 1997); see byproduct_mass_alternatives.
+# Source: Stille 1986 (DOI:10.1002/anie.198605081) for the byproduct
+# identity; PubChem CID 73403 for Bu3SnBr MW (326.94).
+byproduct_mass_g_per_mol: 198.61
+
+byproduct_mass_alternatives:
+  Br_strict:     198.61    # Sn + Br (opaque-Sn, strict-atom)
+  Cl_strict:     154.16    # Sn + Cl
+  I_strict:      245.61    # Sn + I
+  Bu3SnBr_real:  326.94    # chemically realistic Bu3SnBr (n-Bu groups not in rule body)
+  Bu3SnCl_real:  325.49    # Bu3SnCl
+  Bu3SnI_real:   416.93    # Bu3SnI
+  Me3SnBr_real:  243.74    # for Me3Sn variants
+
+# Retained-root atom: ipso C of the organostannane partner. BFS from
+# atom 1 on R follows 1-2 (new C-C); atoms 3,4 form Sn-Br cluster.
+retained_root_atom: 1
+
+classes:
+  - macrocyclization
+  - cc_closure
+  - cross_coupling
+  - palladium_catalyzed
+  - toxic_byproduct                       # Bu3SnBr is the canonical green-chem red flag
+  # *DELIBERATELY NOT in high_ae_macrocyclization* -- see notes below
+  # for the rationale (tin toxicity + 198.6 g/mol strict / 326.9 g/mol
+  # realistic byproduct is the heaviest of the cross_coupling family).
+
+stereo_flags:
+  - retains_sp3_stereo_distal             # sp3 stereocenters away from coupling site untouched
+  - retains_alkene_geometry               # vinyl-Sn retains E/Z on transmetalation (Stille's primary advantage)
+  - tin_residue_toxicity_flag             # organotin impurities in products are a known regulatory concern
+
+# Minimum 3 DOIs: original method paper + a modern macrocyclic example +
+# a recent review.
+refs:
+  - "Milstein, Stille 1978 J. Am. Chem. Soc. 100:3636, DOI:10.1021/ja00479a077 (original)"
+  - "Stille 1986 Angew. Chem. Int. Ed. 25:508, DOI:10.1002/anie.198605081 (canonical review)"
+  - "Farina, Krishnamurthy, Scott 1997 Org. React. 50:1, DOI:10.1002/0471264180.or050.01 (mechanistic + scope review)"
+  - "Brain, Chen, Nelson, Tanikkul, Thomas 2010 Tetrahedron 66:6613, DOI:10.1016/j.tet.2010.04.129 (lankacidin Stille macrocyclization)"
+  - "Pentamycin total synthesis 2023 J. Am. Chem. Soc., DOI:10.1021/jacs.3c03011 (double-Stille trienyl ring closure)"
+
+notes: |
+  Stille cross-coupling is INCLUDED in v0 but GATED. Two reasons:
+
+  1. Organotin toxicity. Bu3Sn* residues are an established regulatory
+     concern in pharmaceutical synthesis (acute toxicity + persistence).
+     The `toxic_byproduct` class flag signals to strategy/feedback
+     layers that this rule should require explicit opt-in
+     (`allow_toxic_byproducts=true` in the RunSpec or equivalent).
+     Stille is the only v0 rule with this flag.
+
+  2. Heaviest byproduct in the cross_coupling family. Under the opaque-Sn
+     encoding the strict bond-level mass is 198.61 g/mol (Sn + Br);
+     the chemically realistic byproduct Bu3SnBr is 326.94 g/mol -- both
+     are well above Buchwald/Sonogashira (HBr, 80.91), Suzuki (B(OH)2O +
+     HBr, 141.73), and Negishi (ZnBr2, 225.19).
+
+  *Opaque-Sn encoding rationale:* the three n-Bu groups on Sn are
+  chemically real but adding 39 atoms (3 * 13: CH2-CH2-CH2-CH3 per
+  group) to the rule body bloats it ~10x and contributes no extra
+  bond-change semantics -- the n-Bu groups stay attached to Sn through
+  the entire reaction. The opaque encoding sacrifices realism in the
+  byproduct mass field (198.61 strict vs 326.94 real) to keep the rule
+  compact and verifier-checkable. The chemically realistic mass is
+  preserved in byproduct_mass_alternatives.Bu3SnBr_real for any
+  downstream cost model that needs it.
+
+  Despite Stille's advantage in vinyl-Sn stereospecific transfer
+  (rapamycin/pentamycin/lankacidin total syntheses), the tin toxicity
+  + heavy-byproduct profile makes it the *last-choice* C-C coupling
+  for green-chemistry-oriented macrocyclic targets.

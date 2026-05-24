@@ -1,0 +1,84 @@
+# Negishi cross-coupling for macrocyclization.
+# See data/rules/cross_coupling_negishi.gml for the DPO span and
+# docs/cross_coupling_research.md (Workstream C brief) for the
+# atom-mapped scheme and mass table.
+
+# Process-level reagent mass: Pd(PPh3)4 (MW 1156, 5 mol%, amortized to
+# ~30 g/mol per firing). Negishi is unusual among cross-couplings in
+# that no external base is required for transmetalation -- the
+# organozinc partner is the activator. Refs:
+#   Negishi 1977 DOI:10.1021/jo00438a041 (no base in original protocol)
+#   Phan & Gallou 2011 Chem. Rev. DOI:10.1021/cr100327p (activator stack survey)
+reagent_mass_g_per_mol: 30.0
+
+reagent_mass_alternatives:
+  - name: Pd_PEPPSI_NMI
+    reagent_mass_g_per_mol: 38.0   # ~38 g/mol amortized PEPPSI-IPr
+    description: "PEPPSI-IPr precatalyst (3 mol%); for sp3-sp2 Negishi"
+    refs:
+      - "DOI:10.1021/cr100327p"
+  - name: Ni_dppf
+    reagent_mass_g_per_mol: 28.0   # Ni catalysts typically cheaper, ~28 amortized
+    description: "Ni(dppf)Cl2 + Zn (stereospecific sp3 Negishi, Jarvo)"
+    refs:
+      - "DOI:10.1021/ja311783k"
+
+# Bond-level expelled mass: ZnBr2, strict atom-conserving.
+# Computed atom-multiset:
+#   Zn (65.38) + 2*Br (79.904) = 225.188 g/mol
+# Source: Negishi 1977 DOI:10.1021/jo00438a041 (byproduct identity);
+# Phan & Gallou 2011 Chem. Rev. DOI:10.1021/cr100327p (process accounting).
+byproduct_mass_g_per_mol: 225.19
+
+byproduct_mass_alternatives:
+  Br2: 225.19    # ZnBr2 (Zn + 2 Br)
+  Cl2: 136.30    # ZnCl2 (Zn + 2 Cl)  35.45*2 + 65.38
+  I2:  319.19    # ZnI2  (Zn + 2 I)   126.904*2 + 65.38
+  BrCl: 180.74   # ZnBrCl mixed (Zn + Br + Cl)
+  BrI:  272.19   # ZnBrI  mixed (Zn + Br + I)
+
+# Retained-root atom: ipso C of the organozinc partner.
+# BFS from atom 1 on R follows 1-2 (new C-C); atoms 3,4,5 form ZnBr2.
+retained_root_atom: 1
+
+classes:
+  - macrocyclization
+  - cc_closure
+  - cross_coupling
+  - palladium_catalyzed
+  # NOT in high_ae_macrocyclization: 225.19 g/mol byproduct, higher than
+  # Suzuki (141.73) and far above macrolactamization (18). Process-level
+  # AE wins (no base needed) but bond-level loses on the heavy Zn salt.
+
+stereo_flags:
+  - retains_sp3_stereo_distal              # sp3 stereocenters away from coupling center untouched
+  - retains_alkene_geometry                # vinyl-Zn retains E/Z on transmetalation
+  - risk_alpha_carbonyl_racemization       # alpha-bromo ester/amide Negishi can racemize via enolate
+  - risk_beta_hydride_elimination_sp3      # sp3 alkyl-Zn -> Pd-alkyl can beta-H eliminate
+  - stereospecific_sp3_with_ni_jarvo       # Ni/bipy or Ni/dppf stereospecific (Jarvo JACS 2013)
+
+# Minimum 3 DOIs: original method paper + a modern macrocyclic example +
+# a recent review.
+refs:
+  - "Negishi, King, Okukado 1977 J. Org. Chem. 42:1821, DOI:10.1021/jo00438a041 (original Pd-catalyzed Negishi)"
+  - "Phan, Gallou 2011 Chem. Rev. 111:7676, DOI:10.1021/cr100327p (Negishi activator-stack review)"
+  - "Marti-Centelles 2015 Chem. Rev. 115:8736, DOI:10.1021/acs.chemrev.5b00056 (macrocyclization tactics survey, includes Negishi)"
+  - "Wisniewska, Swift, Jarvo 2013 J. Am. Chem. Soc. 135:9083, DOI:10.1021/ja311783k (stereospecific Ni-Negishi for sp3 benzylic)"
+
+notes: |
+  Negishi cross-coupling for macrocyclization. Bond-level byproduct is
+  ZnBr2 (225.19 g/mol, strict atom-conserving -- no proton-transfer
+  fiction needed, unlike Suzuki). Process-level mass is the lightest of
+  the cross-couplings in v0 because no external base is required: the
+  organozinc IS the activator.
+
+  Atom map: 5 atoms named (2 context C, 1 Zn, 2 Br). Compact rule.
+  Two bonds break (1-3 C-Zn; 2-5 C-Br); two bonds form (1-2 ring C-C;
+  3-5 Zn-Br completing ZnBr2). Edge 3-4 (Zn-Br) is preserved across
+  L and R -- the zinc keeps its first halide ligand.
+
+  Functional-group tolerance is narrower than Suzuki (organozincs are
+  more nucleophilic and air/water sensitive). sp3 Negishi has been
+  rendered stereospecific via Ni catalysis (Jarvo JACS 2013); v0
+  represents this with the stereo_flag stereospecific_sp3_with_ni_jarvo
+  but the rule body itself does not encode catalyst selection.

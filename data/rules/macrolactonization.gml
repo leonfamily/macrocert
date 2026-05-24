@@ -1,6 +1,7 @@
 rule [
-    ruleID "macrolactamization (amide ring closure, -H2O)"
-    # L: carboxylic acid carbon (1)=O(2)/-O(3)-H(4)  and amine N(5)-H(6)
+    ruleID "macrolactonization (ester ring closure, -H2O)"
+    # L: carboxylic acid carbon (1)=O(2)/-O(3)-H(4)  and alcohol O(5)-H(6)
+    # Structurally identical to macrolactamization with N(5) -> O(5).
     left [
         node [ id 2 label "O" ]
         node [ id 3 label "O" ]
@@ -12,7 +13,7 @@ rule [
     ]
     context [
         node [ id 1 label "C" ]
-        node [ id 5 label "N" ]
+        node [ id 5 label "O" ]
         # α-carbon (id 7): sp3 tetrahedral, symmetric (no brackets, no '!')
         # so the rule matches either chirality on the substrate. Acyl
         # substitution at C(1)=O does not touch the α-C, so identical
@@ -23,11 +24,9 @@ rule [
         # time (Stereo/Inference.hpp::finalizeVertex), so we expose the
         # α-C's three additional neighbours (8, 9, 10) as wildcards. Same
         # pattern as the canonical Tartaric "Change" rule in
-        # external/mod/examples/py/030_stereo/330_tartaric.py and
-        # papers/17_tetra_icgt/code/310_stereoDpo.py (cited in
+        # external/mod/examples/py/030_stereo/330_tartaric.py (cited in
         # docs/mod_stereo_reference.md §1.6.2). retains_alpha_stereo per
-        # meta.yaml — verified by Workstream C macroetherification /
-        # macrolactonization research §4.
+        # meta.yaml — verified by Workstream C macrolactonization research §4.
         node [ id 7 label "C" stereo "tetrahedral" ]
         node [ id 8 label "*" ]
         node [ id 9 label "*" ]
@@ -38,7 +37,7 @@ rule [
         edge [ source 7 target 9 label "-" ]
         edge [ source 7 target 10 label "-" ]
     ]
-    # R: amide C(1)(=O(2))-N(5) plus expelled H2O (atoms 3,4,6)
+    # R: ester C(1)(=O(2))-O(5) plus expelled H2O (atoms 3,4,6)
     right [
         node [ id 2 label "O" ]
         node [ id 3 label "O" ]

@@ -1,0 +1,103 @@
+# Suzuki-Miyaura cross-coupling for macrocyclization (canonical rule).
+# See data/rules/cross_coupling_suzuki.gml for the DPO span and
+# docs/cross_coupling_research.md (Workstream C brief, 2026-05-24)
+# for the atom-mapped scheme and mass table.
+
+# Process-level reagent mass: Pd(PPh3)4 (MW 1156, 5 mol%, amortized to
+# ~30 g/mol per firing) + 2 eq K2CO3 (MW 138.21 each, total 276.42).
+# Total canonical process penalty: 306 g/mol. Convention matches
+# rcm.meta.yaml's 30 g/mol amortized catalyst mass.
+# Refs for activator stack: Miyaura/Suzuki Chem. Rev. 1995
+# (DOI:10.1021/cr00039a007); Lennox/Lloyd-Jones Chem. Soc. Rev. 2014
+# (DOI:10.1039/c3cs60197h).
+reagent_mass_g_per_mol: 306.0
+
+reagent_mass_alternatives:
+  - name: Pd_PPh3_4_K3PO4
+    reagent_mass_g_per_mol: 454.54   # 30 + 2*212.27 (K3PO4 138.21->212.27 typo, K3PO4 = 212.27)
+    description: "Pd(PPh3)4 + 2 eq K3PO4 (Buchwald macrocyclic conditions)"
+    refs:
+      - "DOI:10.1021/ol070889p"
+  - name: Pd_XPhos_Cs2CO3
+    reagent_mass_g_per_mol: 1158.34   # 30 + 476.7 (XPhos) + 2*325.82 (Cs2CO3)
+    description: "Pd + XPhos + Cs2CO3 (heavy-base, electron-rich aryl)"
+    refs:
+      - "DOI:10.1039/c0sc00331j"
+  - name: Pd_SPhos_K3PO4
+    reagent_mass_g_per_mol: 865.04   # 30 + 410.5 + 2*212.27
+    description: "Pd + SPhos + K3PO4 (Buchwald 2nd-gen ligand)"
+    refs:
+      - "DOI:10.1039/c0sc00331j"
+
+# Bond-level expelled mass: strict atom-conserving B(OH)2O (60.82) + HBr
+# (80.91) = 141.73 g/mol. The chemically natural neutralized form
+# B(OH)3 + HBr is 142.74; we take the strict form to match the
+# macrolactamization precedent of expelling a neutral (or here,
+# atom-strict charge-neutral-by-counting) fragment with all atoms
+# accounted for in the rule body. The 1.008 g/mol delta is the H+ that
+# physically comes from base/water at process level (not in the rule).
+# Computed atom-multiset (Workstream C §3, docs/cross_coupling_research.md):
+# B (10.81) + 3*O (15.999) + 2*H (1.008) + Br (79.904) + 1*H (1.008) = 141.73
+# Source: Lennox & Lloyd-Jones Chem. Soc. Rev. 2014 (DOI:10.1039/c3cs60197h);
+# Denmark group JACS 2022 (DOI:10.1021/jacs.1c08283).
+byproduct_mass_g_per_mol: 141.73
+
+byproduct_mass_alternatives:
+  Br: 141.73     # B(OH)2O + HBr (strict atom-conserving)
+  Cl: 97.28      # B(OH)2O + HCl  (Cl = 35.45)
+  I:  188.74     # B(OH)2O + HI   (I  = 126.904)
+  OTf: 210.89    # B(OH)2O + HOTf (CF3SO3H = 150.07); pseudohalide
+
+# Retained-root atom: ipso C of the organoboron partner (atom 1 of the
+# GML body). BFS from atom 1 on R traverses 1-2 (new C-C bond) and
+# nothing else; atoms 3..10 are the byproduct cluster.
+retained_root_atom: 1
+
+classes:
+  - macrocyclization
+  - cc_closure
+  - cross_coupling
+  - palladium_catalyzed
+  # NOT in high_ae_macrocyclization: 141.73 g/mol byproduct >> H2O (18) or
+  # ethylene (28). Higher than macrolactamization but acceptable for
+  # biaryl ring closures where alternative tactics don't exist.
+
+stereo_flags:
+  - retains_sp3_stereo_distal              # sp3 stereocenters far from the C-C site untouched
+  - retains_alkene_geometry                # vinyl-B retains E/Z on transmetalation
+  - may_set_atropisomer                    # biaryl Suzuki sets axial chirality (vancomycin DEFG, Jia 2007)
+  - risk_protodeboronation_on_basic_substrates  # yield risk, not stereo
+  - sp3_coupling_outside_v0_scope          # alkyl-B Suzuki has beta-hydride and racemization issues
+
+# Minimum 3 DOIs: original method paper + a modern macrocyclic example +
+# a recent review. Workstream C research §5.
+refs:
+  - "Miyaura, Yamada, Suzuki 1979, Tetrahedron Lett. 20:3437, DOI:10.1016/S0040-4039(01)95429-2 (original)"
+  - "Miyaura, Suzuki 1995 Chem. Rev. 95:2457, DOI:10.1021/cr00039a007 (canonical review)"
+  - "Jia, Bois-Choussy, Zhu 2007 Org. Lett. 9:2401, DOI:10.1021/ol070889p (atroposelective biaryl macrocycle, vancomycin DEFG)"
+  - "Marti-Centelles 2015 Chem. Rev. 115:8736, DOI:10.1021/acs.chemrev.5b00056 (macrocyclization preorganization review)"
+  - "Lennox, Lloyd-Jones 2014 Chem. Soc. Rev., DOI:10.1039/c3cs60197h (boronate-mechanism evidence)"
+  - "Denmark group 2022 JACS, DOI:10.1021/jacs.1c08283 (anhydrous boronate mechanism)"
+
+notes: |
+  Suzuki-Miyaura macrocyclization. Bond-level byproduct is the strict
+  atom-conserving B(OH)2O + HBr (141.73 g/mol); the chemically natural
+  neutral B(OH)3 + HBr (142.74) is 1.008 g/mol heavier -- that H+ comes
+  from base/water and is accounted at the process level via the K2CO3
+  mass in reagent_mass_g_per_mol. Convention matches macrolactamization
+  (which expels strict-atom-conserving neutral H2O).
+
+  Atom map: 10 atoms on L. Boronate drawn as tetrahedral R-B(OH)3
+  (atoms 3-9 around B(3) with three OH's: 4-5, 6-7, 8-9), halide as
+  C-Br (atom 10). Two bonds break (1-3, 2-10), one O-H bond breaks
+  (8-9), two bonds form (1-2 ring C-C, 9-10 HBr). The H(9) migration
+  from boronate-O(8) to halide(10) is the strict-atom-conserving
+  "neutral expulsion" representation -- this is a chemical fiction
+  (in reality H comes from base) but it is mass-balanced and matches
+  the macrolactamization precedent of "neutral byproduct on the rule
+  body, activator/base mass at the process level".
+
+  Stereo: sp3 distal centers are retained; vinyl-B retains E/Z;
+  biaryl Suzuki sets atropisomeric axes (vancomycin DEFG, Jia 2007).
+  Alkyl-B (sp3 coupling carbon) is outside v0 scope due to
+  beta-hydride elimination.

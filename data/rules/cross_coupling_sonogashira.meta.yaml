@@ -1,0 +1,84 @@
+# Sonogashira terminal-alkyne / aryl-halide cross-coupling for macrocyclization.
+# See data/rules/cross_coupling_sonogashira.gml for the DPO span and
+# docs/cross_coupling_research.md (Workstream C brief) for the
+# atom-mapped scheme and mass table.
+
+# Process-level reagent mass: Pd(PPh3)2Cl2 (MW 701.9, 5 mol% amortized
+# to ~35 g/mol per firing) + CuI (190.45) + 2 eq Et3N (101.19 each =
+# 202.38). Total canonical penalty: 35 + 190 + 202 = 427 g/mol.
+# Refs:
+#   Sonogashira 1975 Tetrahedron Lett., DOI:10.1016/S0040-4039(00)91094-3
+#   Chinchilla & Najera 2007 Chem. Rev., DOI:10.1021/cr050992x
+reagent_mass_g_per_mol: 427.0
+
+reagent_mass_alternatives:
+  - name: Pd_PPh3_Cl2_CuI_iPr2NH
+    reagent_mass_g_per_mol: 427.45   # 35 + 190 + 2*101.19 (i-Pr2NH MW 101.19)
+    description: "Pd(PPh3)2Cl2 + CuI + diisopropylamine (alternative amine)"
+    refs:
+      - "DOI:10.1021/cr050992x"
+  - name: Cu_free_Pd_XPhos
+    reagent_mass_g_per_mol: 540.0   # ~35 Pd + ~476 XPhos + ~28 base
+    description: "Copper-free Sonogashira (avoids Glaser homocoupling)"
+    refs:
+      - "DOI:10.1038/s41467-018-07081-5"
+
+# Bond-level expelled mass: HBr, strict atom-conserving.
+# Computed atom-multiset:
+#   H (1.008) + Br (79.904) = 80.912 g/mol
+# Source: Sonogashira 1975 (DOI:10.1016/S0040-4039(00)91094-3) for the
+# byproduct identity (HX absorbed by amine base).
+byproduct_mass_g_per_mol: 80.91
+
+byproduct_mass_alternatives:
+  Br: 80.91     # HBr
+  Cl: 36.46     # HCl
+  I:  127.91    # HI (cheapest Sonogashira halide -- most reactive)
+  OTf: 150.07   # HOTf, pseudohalide
+
+# Retained-root atom: internal sp C of the alkyne. BFS from atom 1 on R
+# follows 1#2 (preserved triple bond, in context) and 2-4 (new C-C);
+# atoms 3,5 form HBr byproduct cluster.
+retained_root_atom: 1
+
+classes:
+  - macrocyclization
+  - cc_closure
+  - cross_coupling
+  - palladium_catalyzed
+  - copper_co_catalyzed                  # CuI co-catalyst is standard
+  - high_atom_economy_bond               # 80.91 g/mol byproduct
+
+stereo_flags:
+  - retains_sp3_stereo_distal            # sp3 stereocenters away from coupling site untouched
+  - retains_alkyne_linearity             # sp hybridization at C(1)#C(2) preserved
+  - risk_glaser_homocoupling_byproduct   # CuI promotes O2-mediated Cu-acetylide dimerization (alkyne-alkyne)
+
+# Minimum 3 DOIs: original method paper + a modern macrocyclic example +
+# a recent review.
+refs:
+  - "Sonogashira, Tohda, Hagihara 1975 Tetrahedron Lett. 16:4467, DOI:10.1016/S0040-4039(00)91094-3 (original Pd/Cu protocol)"
+  - "Chinchilla, Najera 2007 Chem. Rev. 107:874, DOI:10.1021/cr050992x (Sonogashira mechanism + scope review)"
+  - "Chinchilla, Najera 2011 Chem. Soc. Rev. 40:5084, DOI:10.1039/c1cs15071e (Sonogashira applications review)"
+  - "Pigge, Ghasedi, Rath 2002 J. Org. Chem. 67:4547, DOI:10.1021/jo0256181 (macrocyclic Sonogashira cyclophane)"
+  - "Garcia-Melchor et al. 2018 Nat. Commun. 9:4541, DOI:10.1038/s41467-018-07081-5 (copper-free Sonogashira mechanism)"
+  - "Evano, Theunissen, Pradal 2013 Nat. Prod. Rep. 30:1467, DOI:10.1039/c3np70071b (Cu-catalyzed coupling in NPS)"
+
+notes: |
+  Sonogashira sp-sp2 cross-coupling. Smallest rule body after Buchwald:
+  5 atoms named (3 context C, 1 terminal H, 1 halide Br). The alkyne
+  triple bond 1#2 is preserved in context. Strict atom conservation
+  is exact: terminal-H migrates directly from C(2) to Br(5).
+
+  Bond-level AE is among the highest in v0 (HBr at 80.91 g/mol matches
+  Buchwald-Hartwig); process-level mass is higher than Negishi/Suzuki
+  due to the Cu co-catalyst and amine base (~427 g/mol canonical).
+  Copper-free variants (Garcia-Melchor 2018) trade the Glaser-homocoupling
+  risk for a heavier ligand stack; flagged via the Cu_free alternative.
+
+  Stereo: sp3 distal centers retained; the alkyne sp-hybridization at
+  the coupling carbon is preserved (alkyne C-C bond stays in K). The
+  dominant side-reaction concern is Glaser homocoupling -- two terminal
+  alkynes dimerize via Cu-acetylide intermediates under aerobic
+  conditions -- but that is a *separate* off-target rule, not a stereo
+  issue on the desired pathway.

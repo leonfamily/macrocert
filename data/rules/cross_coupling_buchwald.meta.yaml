@@ -1,0 +1,88 @@
+# Buchwald-Hartwig C-N cross-coupling for macrocyclization.
+# See data/rules/cross_coupling_buchwald.gml for the DPO span and
+# docs/cross_coupling_research.md (Workstream C brief) for the
+# atom-mapped scheme and mass table.
+
+# Process-level reagent mass: Pd2(dba)3 (MW 915.7, ~5 mol% amortized to
+# ~92 g/mol per firing) + XPhos ligand (MW 476.7) + Cs2CO3 (MW 325.82).
+# v0 uses a loose amortized 300 g/mol as the canonical lower bound.
+# Refs:
+#   Hartwig 1998 Acc. Chem. Res. DOI:10.1021/ar970282g
+#   Surry & Buchwald 2011 Chem. Sci. DOI:10.1039/c0sc00331j
+reagent_mass_g_per_mol: 300.0
+
+reagent_mass_alternatives:
+  - name: Pd2_dba_3_XPhos_Cs2CO3
+    reagent_mass_g_per_mol: 894.34   # 92 + 476.7 + 325.82 (single Cs2CO3 eq)
+    description: "Canonical Buchwald conditions (Pd2(dba)3 + XPhos + Cs2CO3)"
+    refs:
+      - "DOI:10.1039/c0sc00331j"
+  - name: Pd_RuPhos_NaOtBu
+    reagent_mass_g_per_mol: 575.0   # ~ amortized
+    description: "RuPhos + NaOtBu for sterically hindered amines"
+    refs:
+      - "DOI:10.1039/c0sc00331j"
+  - name: Pd_BINAP_Cs2CO3
+    reagent_mass_g_per_mol: 1040.0   # 92 + 622.7 (BINAP) + 325.82
+    description: "Canonical first-gen Buchwald (BINAP + Cs2CO3)"
+    refs:
+      - "DOI:10.1002/anie.199513481"
+
+# Bond-level expelled mass: HBr, strict atom-conserving.
+# Computed atom-multiset:
+#   H (1.008) + Br (79.904) = 80.912 g/mol
+# Source: Hartwig 1998 (DOI:10.1021/ar970282g); the HX byproduct is
+# absorbed by the base at process level (counted in reagent_mass).
+byproduct_mass_g_per_mol: 80.91
+
+byproduct_mass_alternatives:
+  Br: 80.91     # HBr
+  Cl: 36.46     # HCl
+  I:  127.91    # HI
+  OTf: 150.07   # HOTf (CF3SO3H, pseudohalide)
+
+# Retained-root atom: ipso aryl C of the halide partner. BFS from atom 1
+# on R follows 1-2 (new C-N bond); atoms 3,4 form HBr byproduct cluster.
+retained_root_atom: 1
+
+classes:
+  - macrocyclization
+  - cn_closure                            # C-N, not C-C
+  - cross_coupling
+  - palladium_catalyzed
+  - high_atom_economy_bond                # 80.91 g/mol byproduct, comparable to RCM ethylene scale
+
+stereo_flags:
+  - retains_sp3_stereo_distal             # sp3 stereocenters away from coupling center untouched
+  - risk_alpha_acidic_racemization        # Cs2CO3 / K3PO4 mild but warm; alpha-acidic C-H next to C-X can lose configuration
+  - aryl_amine_only_v0                    # v0 focuses on aryl-N bond formation (not aryl-O or aryl-S Hartwig variants)
+
+# Minimum 3 DOIs: original method paper + a modern macrocyclic example +
+# a recent review.
+refs:
+  - "Guram, Rennels, Buchwald 1995 Angew. Chem. Int. Ed. 34:1348, DOI:10.1002/anie.199513481 (original Buchwald)"
+  - "Louie, Hartwig 1995 Tetrahedron Lett. 36:3609, DOI:10.1016/0040-4039(95)00605-C (parallel Hartwig discovery)"
+  - "Surry, Buchwald 2011 Chem. Sci. 2:27, DOI:10.1039/c0sc00331j (modern Buchwald review)"
+  - "Hesp, Genovino 2016 Synthetic Methods in Drug Discovery Ch. 6, DOI:10.1039/9781782622086-00170 (macrocyclic drug-discovery Buchwald)"
+  - "Marti-Centelles 2015 Chem. Rev. 115:8736, DOI:10.1021/acs.chemrev.5b00056 (macrocyclization preorganization)"
+
+notes: |
+  Buchwald-Hartwig C-N coupling. Smallest cross-coupling rule body in
+  the library: 4 atoms named (1 C context, 1 N context, 1 Br, 1 H),
+  one HBr byproduct fragment. Strict atom conservation is exact: H+
+  migrates directly from N-H to halide; no proton-transfer fiction
+  required.
+
+  At the bond level this is by far the most atom-economical C-N
+  cross-coupling (HBr at 80.91 g/mol). At the process level, however,
+  the activator stack is heavy (Pd2(dba)3 + bulky biaryl phosphine
+  + Cs2CO3) -- v0 amortizes to 300 g/mol; override per-substrate via
+  RunSpec.solver.extra for lighter Pd sources or smaller ligands.
+
+  Stereo: aryl C-N formation, sp3 distal centers retained. The dominant
+  stereo concern is alpha-acidic racemization under Cs2CO3/K3PO4 on
+  warm reactions (phenacyl-type substrates).
+
+  Out of v0 scope: aryl-O (Buchwald etherification) and aryl-S
+  (thioether) variants -- same family but require a different
+  protic-fragment atom map. Flagged via aryl_amine_only_v0.

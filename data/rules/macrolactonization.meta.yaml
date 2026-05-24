@@ -1,0 +1,111 @@
+# Macrolactonization rule metadata (consumed by macrocert.spec.rules).
+# See data/rules/macrolactonization.gml for the DPO span. Application
+# conditions (ring-size, intramolecular gating) live in
+# macrocert.generate.strategies, not here.
+#
+# Sibling rule: macrolactamization.{gml,meta.yaml}. The bond-level
+# chemistry (HO–C(=O) + HX → C(=O)X + H2O) is identical with X = N or O;
+# both rules use the same atom IDs and the same retained_root_atom.
+# Process-level reagent mass differs substantially — macrolactonization
+# uses a more varied activator family with no single dominant reagent.
+#
+# Canonical activator: Yamaguchi (TCBC + 2 Et3N + DMAP, ~568 g/mol).
+# Chosen for three reasons (per docs/macrolactonization_research.md):
+#   (1) most-used method in modern total synthesis
+#   (2) mass parity with macrolactamization HATU+2*DIPEA (~638 g/mol)
+#   (3) covers the Hikota–Yonemitsu modified-Yamaguchi erythronolide A
+#       panel case without per-RunSpec override.
+# Alternatives (Shiina, Corey–Nicolaou, Mukaiyama, EDC/DMAP, T3P) live
+# in `reagent_mass_alternatives` and are selectable per-RunSpec.
+
+# Process-level reagent mass: TCBC (243.9) + 2 Et3N (~202) + DMAP (122).
+reagent_mass_g_per_mol: 568.0
+
+# Bond-level expelled mass: water, from the rule's atom-map (atoms 3,4,6
+# form the H2O byproduct on the R side). Identical to macrolactamization.
+byproduct_mass_g_per_mol: 18.015
+
+# Which atom ID anchors the *retained* product side on R. Same as
+# macrolactamization: the carbonyl C is the anchor for BFS-based AE
+# recomputation.
+retained_root_atom: 1
+
+classes:
+  - macrocyclization
+  - ester_closure
+  - high_atom_economy_bond  # H2O byproduct only
+  - polyketide_macrolide    # erythronolide family panel coverage
+
+# Stereochemical behaviour (per docs/macrolactonization_research.md §4):
+#   - retains_alpha_stereo: the acid's alpha-carbon stereo is preserved
+#     in clean Yamaguchi/Shiina conditions, with a mild epimerization
+#     risk on enolizable substrates (Yamaguchi worse than Shiina).
+#   - retains_alcohol_stereo: alcohol carbon is not touched; full
+#     retention.
+#   - mild_alpha_epimerization_risk: documented for Yamaguchi on
+#     base-sensitive substrates (Parenty 2013 review). Use Shiina if
+#     this is a concern.
+# Note: Mitsunobu (alcohol activation, SN2 inversion) is explicitly
+# excluded from this rule and should be a separate future rule, because
+# the stereo behaviour is fundamentally different (inversion at the
+# alcohol carbon).
+stereo_flags:
+  - retains_alpha_stereo
+  - retains_alcohol_stereo
+  - mild_alpha_epimerization_risk
+
+refs:
+  - "Inanaga, Yamaguchi 1979, BCSJ 52:1989 — DOI:10.1246/bcsj.52.1989 (original Yamaguchi)"
+  - "Shiina, Kubota, Ibuka 2002, Tetrahedron Lett. 43:7535 — DOI:10.1016/s0040-4039(02)01819-1 (MNBA)"
+  - "Corey, Nicolaou 1974, JACS 96:5614 — DOI:10.1021/ja00824a073 (PySSPy/PPh3)"
+  - "Mukaiyama, Usui, Saigo 1976, Chem. Lett. — DOI:10.1246/cl.1976.49 (CMPI)"
+  - "Parenty, Moreau, Niel, Campagne 2006/2013, Chem. Rev. — macrolactonization survey"
+  - "Hikota, Tone, Horita, Yonemitsu 1990 — Erythronolide A under modified Yamaguchi (panel case)"
+
+# Activator alternatives — selectable per-RunSpec via solver.extra.
+# Each entry's reagent_mass_g_per_mol replaces the canonical
+# reagent_mass_g_per_mol; additional_byproduct_mass_g_per_mol is debited
+# against process-level AE *in addition* to the 18.015 g/mol of H2O
+# expelled by the rule itself.
+reagent_mass_alternatives:
+  - name: "Yamaguchi"
+    reagent_mass_g_per_mol: 568.0
+    additional_byproduct_mass_g_per_mol: 362.0  # 2,4,6-Cl3-C6H2-COOH + Et3N·HCl
+    description: "TCBC + 2 Et3N + DMAP. Workhorse; modern default."
+    refs: ["10.1246/bcsj.52.1989"]
+  - name: "Shiina_MNBA"
+    reagent_mass_g_per_mol: 466.0
+    additional_byproduct_mass_g_per_mol: 362.0  # 2 × 2-Me-6-NO2-C6H3-COOH
+    description: "MNBA + DMAP (catalytic). Mild; preferred for base-sensitive substrates."
+    refs: ["10.1016/s0040-4039(02)01819-1"]
+  - name: "Corey_Nicolaou"
+    reagent_mass_g_per_mol: 482.0
+    additional_byproduct_mass_g_per_mol: 389.0  # 2-mercaptopyridine + Ph3P=O
+    description: "PySSPy + PPh3, refluxing xylene. Historic; erythronolide B."
+    refs: ["10.1021/ja00824a073"]
+  - name: "Mukaiyama_CMPI"
+    reagent_mass_g_per_mol: 458.0
+    additional_byproduct_mass_g_per_mol: 339.0  # 1-Me-2-pyridone + Et3N·HI
+    description: "Mukaiyama's salt + 2 Et3N. Largely historical; narrow scope."
+    refs: ["10.1246/cl.1976.49"]
+  - name: "EDC_DMAP"
+    reagent_mass_g_per_mol: 473.0
+    additional_byproduct_mass_g_per_mol: 173.0  # EDU urea
+    description: "EDC·HCl + DMAP + DMAP·HCl. Mild; oligomerization risk on long chains."
+    refs: ["10.1021/jo00213a044"]
+  - name: "T3P"
+    reagent_mass_g_per_mol: 541.0
+    additional_byproduct_mass_g_per_mol: 372.0  # ring-opened T3P (water-soluble)
+    description: "Propanephosphonic anhydride + Et3N. Modern, green-chemistry option."
+    refs: ["10.1016/j.tetlet.2013.08.082"]
+
+notes: |
+  Ester-bond ring closure expelling H2O at the bond level. Structurally
+  the sibling of macrolactamization (N -> O on the heteroatom).
+  Process-level AE varies substantially with activator choice; the
+  alternatives table makes the bond-vs-process AE split (proposal §3.3)
+  most visible on this rule. For panel coverage:
+    - Erythronolide A (Hikota–Yonemitsu modified Yamaguchi) — runs
+      under the canonical Yamaguchi defaults without override.
+    - Erythronolide B (Corey 1978) — select Corey_Nicolaou via
+      RunSpec.solver.extra.activator = "Corey_Nicolaou".

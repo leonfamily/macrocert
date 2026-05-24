@@ -1,0 +1,149 @@
+# C-H dehydrogenative coupling rule metadata (consumed by macrocert.spec.rules).
+# See data/rules/c_h_dehydrogenative_coupling.gml for the DPO span.
+# Application conditions (intramolecular, ring-size, directing-group within
+# 4 bonds, forbidden contexts from Workstream D) live in
+# macrocert.generate.strategies, not here.
+#
+# Canonical encoding: ACCEPTORLESS dehydrogenative C-H/C-H -> C-C closure
+# with H2 (2.016 g/mol) as the only bond-level byproduct. This is the cleanest
+# atom-economy case in the rule library — see notes below for the bond-vs-
+# process AE gap that this rule exposes.
+#
+# Variants that differ only in the stoichiometric oxidant (PIDA, AgOAc,
+# Cu(OAc)2, K2S2O8, O2) live in `reagent_mass_alternatives`. The bond-level
+# DPO is the same in all those variants at the substrate atom map level;
+# what changes is process-level mass debited against AE.
+#
+# Decarbonylative variants (acyl C-H -> CO + ...) are a DIFFERENT rule and
+# are NOT bundled here — see future ticket for decarbonylative_coupling.gml.
+
+# Process-level reagent mass: amortized transition-metal catalyst load for
+# the canonical acceptorless case. Typical Ru/Ir/Co-pincer catalysts run at
+# 5-10 mol% (Huang/Kang/Li/Li 2019, DOI:10.1021/acs.joc.9b01704;
+# Sengupta & Mehta 2020, DOI:10.1039/c9ob02765c). v0 takes 50 g/mol as a
+# loose amortized upper bound for the catalyst + ligand + base correction.
+# Override per-substrate via RunSpec.solver.extra.activator if an oxidative
+# variant is intended (see reagent_mass_alternatives).
+reagent_mass_g_per_mol: 50.0
+
+# Bond-level expelled mass: dihydrogen H2 = 2 * 1.008 = 2.016 g/mol.
+# Recomputed by the verifier from the composed rule via BFS from
+# retained_root_atom = 1; kept here as a human-checkable ground truth.
+byproduct_mass_g_per_mol: 2.016
+
+# Which atom ID anchors the *retained* product side on R. Used by the
+# verifier's bond-level AE recomputation: BFS from this atom through R's
+# edges, everything reachable is target (C1-C2 backbone), the rest (H7-H8)
+# is the byproduct.
+retained_root_atom: 1
+
+classes:
+  - macrocyclization
+  - cc_closure
+  - dehydrogenative
+  - highest_atom_economy_cc  # H2 byproduct -- the highest-AE C-C closure in the library
+
+# Stereo behaviour (per docs/c_h_dehydrogenative_research.md §5):
+#   - forms_csp2_csp2_bond: canonical biaryl case; the forming bond is
+#     planar and sets no new sp3 stereocenter.
+#   - may_set_atropisomerism: ortho-substituted biaryl macrocycles install
+#     rotational atropisomerism on closure (vancomycin, complestatin,
+#     biphenomycin family). The atropisomer is set by the macrocyclic
+#     constraint, not by the catalyst.
+#   - alpha_carbonyl_csp3_racemization_risk: under basic CDC conditions,
+#     alpha-acidic C(sp3)-H sites near a carbonyl can enolize. Documented
+#     for peptide CDC (Duengo et al. 2023, DOI:10.3390/molecules28248017).
+#     Workstream D should flag substrates with alpha-C(sp3)-H within two
+#     bonds of an enolizable carbonyl as epimerization_risk.
+stereo_flags:
+  - forms_csp2_csp2_bond
+  - may_set_atropisomerism
+  - alpha_carbonyl_csp3_racemization_risk
+
+refs:
+  - "Saridakis, Kaiser & Maulide 2020, ACS Cent. Sci. 6:1869 -- DOI:10.1021/acscentsci.0c00599 (unconventional macrocyclizations review; cited by MacroCert proposal)"
+  - "Sengupta & Mehta 2020, Org. Biomol. Chem. 18:1851 -- DOI:10.1039/c9ob02765c (macrocyclization via C-H functionalization, dedicated review)"
+  - "Bai, Bai & Wang 2019, Org. Lett. 21:7967 -- DOI:10.1021/acs.orglett.9b02945 (canonical macrocyclic Pd(II)/PIDA biaryl peptide closure)"
+  - "Huang, Kang, Li & Li 2019, J. Org. Chem. 84:12705 -- DOI:10.1021/acs.joc.9b01704 (CDC mechanistic categorization; modern review)"
+  - "Tian, Li & Li 2021, Green Chem. 23:6789 -- DOI:10.1039/D1GC01871J (CDC sustainability / oxidative-vs-dehydrogenative comparison)"
+  - "Bai, Cai, Yu & Wang 2018, Angew. Chem. Int. Ed. 57:13912 -- DOI:10.1002/anie.201807953 (directional peptide macrocyclization via Pd/AgOAc)"
+  - "Duengo et al. 2023, Molecules 28:8017 -- DOI:10.3390/molecules28248017 (alpha-C(sp3) racemization mechanisms; stereo flag basis)"
+
+# Process-level alternatives -- selectable per-RunSpec via solver.extra.
+# Each alternative shares the same bond-level DPO (the rule body is
+# unchanged) but the stoichiometric oxidant donates the oxygen that ends up
+# in H2O, and the reduced oxidant skeleton is debited against process-level
+# AE. additional_byproduct_mass_g_per_mol is in ADDITION to the H2O (18.015
+# g/mol) that takes the place of the H2 in the bond-level byproduct.
+#
+# When an alternative is selected, the verifier should use
+# byproduct_mass_g_per_mol = 18.015 (H2O) in place of 2.016 (H2), because
+# the two C-H hydrogens are abstracted by the oxidant rather than evolved
+# as H2. The bond-level rule body remains the same DPO.
+reagent_mass_alternatives:
+  - name: "PIDA"
+    reagent_mass_g_per_mol: 322.1                # PhI(OAc)2
+    additional_byproduct_mass_g_per_mol: 248.07  # PhI (204.01) + 2 AcOH (60.05 -> 2*60.05 - 2*1.008 implicit; uses 2*22.0 for AcO transfer accounting -- here the reduced oxidant = PhI + 2 AcOH = 204.01 + 2*60.05 = 324.11; minus 2 H absorbed from substrate = 322.09; rounded)
+    description: "Pd(II)/Pd(IV) cycle with PhI(OAc)2 (PIDA). Canonical for peptide biaryl macrocyclization (Bai/Wang 2019)."
+    refs:
+      - "10.1021/acs.orglett.9b02945"
+      - "10.1039/c9ob02765c"
+  - name: "AgOAc_2eq"
+    reagent_mass_g_per_mol: 333.8                # 2 x AgOAc (166.9)
+    additional_byproduct_mass_g_per_mol: 333.8   # 2 Ag(0) + 2 AcOH conceptual; reduced oxidant mass debited
+    description: "Pd(II)/Pd(0) with 2 eq AgOAc as terminal oxidant. C(sp3)-H/C(sp2)-H peptide olefination + macrocyclization (Bai/Wang 2018 Angew)."
+    refs:
+      - "10.1002/anie.201807953"
+  - name: "K2S2O8_1eq"
+    reagent_mass_g_per_mol: 270.3                # potassium persulfate
+    additional_byproduct_mass_g_per_mol: 272.3   # 2 KHSO4 reduced form
+    description: "Persulfate oxidant (1 eq). Metal-free or photocatalytic CDC; radical-prone, used for N-heterocycle macrocyclic CDC."
+    refs:
+      - "10.1039/D1GC01871J"
+      - "10.1021/acs.joc.9b01704"
+  - name: "O2_aerobic"
+    reagent_mass_g_per_mol: 32.0                 # O2 from air; effectively mass-free at process scale
+    additional_byproduct_mass_g_per_mol: 0.0     # H2O is already accounted for as the bond-level byproduct of the oxidative variant
+    description: "Aerobic oxidation. Greenest oxidant; Pd/Cu(II) cooperative systems or photoredox. Mass cost dominated by co-oxidant or solvent."
+    refs:
+      - "10.1039/D1GC01871J"
+  - name: "Cu_OAc_2_2eq"
+    reagent_mass_g_per_mol: 363.2                # 2 x Cu(OAc)2 (181.6)
+    additional_byproduct_mass_g_per_mol: 247.1   # 2 Cu(OAc) reduced form + AcOH balance
+    description: "Pd/Cu cooperative oxidant (2 eq Cu(OAc)2). Older Pd/Cu cross-CDC; common for indole/heteroarene biaryl coupling."
+    refs:
+      - "10.1021/acs.joc.9b01704"
+
+notes: |
+  C-H/C-H coupling is the highest-AE C-C closure at the *bond level* because
+  the only byproduct is H2 (acceptorless case; this rule's canonical
+  encoding) or H2O (oxidative variants with the oxidant carrying away the
+  redox burden). The bond-vs-process AE split is starker here than for any
+  other rule in the library:
+
+    - Acceptorless H2 case: ~99% bond AE on a ~300 g/mol substrate (only
+      2.016 g/mol expelled), but mechanistically rare in macrocyclic
+      settings -- the catalyst must re-oxidize itself by extruding H2 from
+      a metal-hydride intermediate.
+    - Oxidative PIDA-mediated case (canonical practice, Bai/Wang 2019):
+      same bond AE if scored at the substrate atom map, but process-level
+      AE drops to ~45-50% on a ~300 g/mol substrate because of the 322
+      g/mol PIDA oxidant skeleton.
+
+  This is exactly the situation proposal §3.3 (bond-vs-process AE split)
+  flags as the most chemistry-informative. Encoding the H2 case as
+  canonical preserves the headline "highest-AE C-C closure" claim;
+  variants live in reagent_mass_alternatives.
+
+  Workstream D forbidden-context predicates are critical for this rule --
+  without them it fires on every aromatic C-H bond in the substrate, which
+  is combinatorially catastrophic on peptide substrates. Of the eight
+  forbidden contexts in the research doc §6, the most important single
+  filter is `no_directing_group_within_4_bonds` for the C(sp3)-H variants;
+  for the canonical biaryl case, `benzylic_competes_with_aryl` and
+  `ortho_to_protic_NH` matter most.
+
+  Decarbonylative variants (acyl C-H -> CO + C-C) are NOT bundled here.
+  Their byproduct (CO, 28.01 g/mol) is fundamentally different from H2 and
+  the atom map loses a heavy atom -- they belong in a separate
+  decarbonylative_coupling.gml (deferred to a future ticket).

@@ -1,0 +1,147 @@
+# Biaryl etherification (Ar-O-Ar) rule metadata.
+#
+# Bond chemistry: Ar1-F + Ar2-OH -> Ar1-O-Ar2 + HF
+#                 (both partners aromatic; phenolic OH attacks the
+#                  aryl-F under Meisenheimer / SNAr conditions)
+#
+# This rule covers the closure family that includes Boger's vancomycin
+# CD and DE rings (DOI:10.1021/ja992577q), Janetka-Rich K-13/OF4949
+# (DOI:10.1021/ja970614c), bouvardin/RA-VII (Boger 1993/1995), and
+# teicoplanin F-O-G ring (Zhu 1995). Sibling of aryl_etherification:
+#
+#   macrolactamization      C(=O)-N closure
+#   macrolactonization      C(=O)-O closure (sp3 ROH partner)
+#   aryl_etherification     Ar-O-C(sp3) closure (alcohol partner)
+#   biaryl_etherification   Ar-O-Ar closure (phenol partner)  ** this rule **
+#
+# Scope INCLUDED:  SNAr with intrinsic ortho-NO2 activation
+#                  (workhorse for vancomycin family); eta6-arene-Cr/Ru
+#                  SNAr (Janetka-Rich Ru variant); Cu Ullmann; Pd
+#                  Buchwald diaryl ether.
+# Scope EXCLUDED:  chloropeptin and complestatin (Boger 2009 closes via
+#                  macrolactamization, NOT biaryl ether — corrected
+#                  from earlier classification, see Garfunkle/Boger 2009
+#                  DOI:10.1021/ja907193b).
+
+# Canonical activator: SNAr at intrinsic ortho-NO2 activated arene
+# (no Cr/Ru/Cu/Pd needed). The vancomycin family workhorse.
+# Reagent mass = Cs2CO3 alone, since substrate carries activation.
+# DOIs: 10.1055/s-1997-722 (Zhu review), 10.1021/jo00098a010 (Beugelmans 1994).
+reagent_mass_g_per_mol: 326.0
+
+# Bond-level byproduct: HF (atomic masses F=18.998, H=1.008). Same as
+# aryl_etherification. For Cl-leaving: HCl (36.461); Br: HBr (80.912);
+# I: HI (127.912); NO2: HNO2 (47.013). Variants in
+# reagent_mass_alternatives.
+byproduct_mass_g_per_mol: 20.006
+
+# BFS-from-1 anchor: the aromatic carbon (atom 1). Verifier walks
+# R-side edges from this atom; atoms 2 and 6 (HF) are byproduct.
+retained_root_atom: 1
+
+classes:
+  - macrocyclization
+  - ether_closure
+  - biaryl_etherification
+  - high_atom_economy_bond  # HF byproduct, 20 g/mol — small molecule
+  - sn_ar_compatible
+  - vancomycin_family       # taxonomic marker for the natural-product family
+
+# Stereochemistry (per docs/biaryl_etherification_research.md §4):
+# Biaryl ether bridge is (sp2)-O-(sp2). No sp3 stereocenter created or
+# destroyed at the bridge. Atropisomerism is the load-bearing chirality
+# element — the Ar-O-Ar bridge has hindered rotation when ortho
+# substituents are bulky enough (Cl, NO2, peptide side chains).
+#
+# Boger 1999 reports "ordered atropisomer equilibrations" — close CD
+# ring first (kinetic preference), thermally equilibrate to natural
+# atropisomer at 130-180 deg C in refluxing chlorobenzene or o-DCB,
+# then close DE ring and equilibrate. See DOIs:
+#   10.1021/ja990189i (atropisomer equilibrations, JACS 121:3226)
+#   10.1021/ja992577q (full vancomycin aglycon)
+#   10.1021/jo980880o (CD/DE detailed equilibration report)
+stereo_flags:
+  - generates_atropisomerism
+  - equilibrates_atropisomer_thermally
+  - retains_arene_substituents
+  - no_sp3_stereocenter_at_bridge
+
+refs:
+  - "Boger, Miyazaki, Kim, Wu, Castle, Loiseleur, Jin 1999, JACS 121:10004 (DOI:10.1021/ja992577q) — vancomycin aglycon CD+DE; primary biaryl-ether macrocyclization reference"
+  - "Boger, Miyazaki, Kim, Wu, Loiseleur, Castle 1999, JACS 121:3226 (DOI:10.1021/ja990189i) — ordered atropisomer equilibrations"
+  - "Boger, Castle, Miyazaki, Wu, Beresis, Loiseleur 1999, JOC 64:70 (DOI:10.1021/jo980880o) — CD/DE detailed report"
+  - "Beugelmans et al. 1994, JOC 59:5535 (DOI:10.1021/jo00098a010) — earliest SNAr vancomycin model with intrinsic ortho-NO2 (not Cr-arene as some sources state)"
+  - "Zhu 1997, Synlett 133 (DOI:10.1055/s-1997-722) — SNAr biaryl/aryl-ether macrocyclization review"
+  - "Janetka, Rich 1997, JACS 119:6488 (DOI:10.1021/ja970614c) — Cp*Ru(MeCN)3 PF6 eta6-Ru SNAr for K-13/OF4949"
+  - "Boger, Borzilleri 1995, BMCL 5:1187 (DOI:10.1016/0960-894x(95)00192-v) — bouvardin SNAr 14-ring"
+  - "Aranyos, Old, Kiyomori, Wolfe, Sadighi, Buchwald 1999, JACS 121:4369 (DOI:10.1021/ja990324r) — Pd-catalyzed diaryl ethers"
+
+# Activator alternatives — selectable per-RunSpec via solver.extra.
+reagent_mass_alternatives:
+  - name: "SNAr_intrinsic_NO2"
+    reagent_mass_g_per_mol: 326.0
+    additional_byproduct_mass_g_per_mol: 346.0  # CsF + CsHCO3
+    description: "SNAr at intrinsic ortho-NO2 activated arene; Cs2CO3 base; DMF/DMSO. Vancomycin family canonical (Boger 1999, Beugelmans 1994). NO2 removed post-closure (reductive: NO2 -> H or NO2 -> Cl)."
+    refs: ["10.1021/ja992577q", "10.1021/jo00098a010", "10.1055/s-1997-722"]
+  - name: "SNAr_arene_Ru"
+    reagent_mass_g_per_mol: 831.0  # Cp*Ru(MeCN)3 PF6 (~505) + Cs2CO3 (326)
+    additional_byproduct_mass_g_per_mol: 500.0  # RuCp* + PF6 byproducts
+    description: "Cp*Ru(MeCN)3 PF6 eta6-Ru complex on the way in (Janetka-Rich 1997 K-13/OF4949). Photolytic or ligand-exchange decomplexation."
+    refs: ["10.1021/ja970614c"]
+  - name: "SNAr_arene_Cr"
+    reagent_mass_g_per_mol: 1094.0
+    additional_byproduct_mass_g_per_mol: 820.0  # Cr(CO)3·L3 + spent CAN
+    description: "Eta6-arene-Cr(CO)3 SNAr (Cr(CO)6 in, CAN out). Strongest activator; used by Uchiro 2017 for alkyl-aryl GKK1032A2 — applicable here for biaryl substrates without intrinsic NO2."
+    refs: ["10.1002/asia.201601728"]
+  - name: "Ullmann_Cu"
+    reagent_mass_g_per_mol: 696.0
+    additional_byproduct_mass_g_per_mol: 430.0  # CsX + CsHCO3
+    description: "CuI + 1,10-phen + Cs2CO3, 100-130 deg C. Broader scope than SNAr (electron-rich arenes accessible). Not the literature-canonical choice for vancomycin family."
+    refs: ["10.3390/catal10101103"]
+  - name: "Pd_Buchwald"
+    reagent_mass_g_per_mol: 1714.0  # nominal full-equiv; realistic ~370 with catalytic Pd
+    additional_byproduct_mass_g_per_mol: 407.0  # CsHCO3 + CsBr
+    description: "Pd2(dba)3 + RockPhos/t-BuXPhos + Cs2CO3. Mild, modern; Ar-OH + Ar-Br/OTf. Rarely used for natural-product macrocyclization."
+    refs: ["10.1021/ja990324r"]
+  # Leaving-group variants for the canonical SNAr (intrinsic NO2).
+  - name: "SNAr_LG_Cl"
+    reagent_mass_g_per_mol: 326.0
+    additional_byproduct_mass_g_per_mol: 380.0  # CsCl heavier than CsF
+    description: "Cl leaving group: override byproduct_mass_g_per_mol to 36.461 (HCl) in panel runspec."
+    refs: ["10.1055/s-1997-722"]
+  - name: "SNAr_LG_NO2_disp"
+    reagent_mass_g_per_mol: 326.0
+    additional_byproduct_mass_g_per_mol: 374.0  # CsNO2 + CsHCO3
+    description: "NO2 as leaving group (heavily activated arenes only): override byproduct_mass_g_per_mol to 47.013 (HNO2)."
+    refs: ["10.1055/s-1997-722"]
+
+notes: |
+  Ar-O-Ar biaryl ether closure. The vancomycin family CD/DE rings,
+  K-13/OF4949, bouvardin/RA-VII, and teicoplanin F-O-G all close by
+  this rule. Distinct from aryl_etherification (alkyl-aryl Ar-O-C(sp3))
+  because: (1) the alcohol partner is phenolic, not aliphatic;
+  (2) atropisomerism is structurally guaranteed at any ring size where
+  rotation around the Ar-O-Ar axis is hindered.
+
+  IMPORTANT: chloropeptin and complestatin do NOT close via this rule.
+  Per Garfunkle/Boger 2009 (DOI:10.1021/ja907193b), the macrocyclic
+  closure is macrolactamization with the biaryl C-C and indole-aryl
+  bonds installed pre-cyclization. They should NOT be routed to the
+  biaryl_etherification panel.
+
+  The MØD GML body is structurally a near-copy of aryl_etherification.gml
+  with only the rule ID changed. The phenolic-vs-aliphatic distinction
+  cannot be enforced in the GML; Workstream D's strategy layer must
+  add the `alcohol_partner_C_must_be_aromatic` predicate to discriminate.
+  Without it, both rules will fire indiscriminately on overlapping
+  substrates and the panel runner cannot tell them apart.
+
+  Required RunSpec opt-in (Workstream D phase-3 landed):
+  `alcohol_partner_C_must_be_aromatic: {biaryl_etherification: true}`.
+  See docs/workstream_d_predicates.md §4.
+
+  Boger's "ordered atropisomer equilibrations" (the post-closure
+  thermal equilibration of CD before DE closure, then DE equilibration)
+  is a substrate-side tactic — the rule itself doesn't pin atropisomer
+  configuration. Workstream F's stereo machinery may want to encode
+  this via the `equilibrates_atropisomer_thermally` flag at panel time.
