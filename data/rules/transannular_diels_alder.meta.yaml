@@ -1,0 +1,33 @@
+# Intramolecular / transannular Diels-Alder — [4+2] cycloaddition with
+# zero byproduct. Maximal bond-level atom economy and biomimetic for the
+# cytochalasan core.
+
+# Process-level: thermal or Lewis-acid mediated. Lewis acid (e.g., BF3·OEt2)
+# is catalytic; assume modest amortized mass.
+reagent_mass_g_per_mol: 10.0
+
+# Bond-level expelled mass: NONE. Zero byproduct.
+byproduct_mass_g_per_mol: 0.0
+
+# Retained-root atom: any ring carbon — pick C(1) as anchor.
+retained_root_atom: 1
+
+classes:
+  - macrocyclization        # when intramolecular
+  - cc_closure
+  - high_atom_economy_bond  # zero byproduct
+  - biomimetic              # cytochalasan core forging step
+
+stereo_flags:
+  - sets_four_stereocenters
+  - endo_exo_selectivity_substrate_dependent
+
+refs:
+  - "Scherlach 2010, Nat. Prod. Rep. 27:869 (cytochalasan biosynthesis)"
+  - "Skellam 2017, Nat. Prod. Rep. 34:1252"
+  - "ACS Cent. Sci. 2020, DOI:10.1021/acscentsci.0c00599 (unconventional macrocyclizations)"
+
+notes: |
+  Zero byproduct → maximum bond-level AE. Layer D must check the diene
+  and dienophile are geometrically able to meet on the medium ring;
+  classic case where AE-optimal does not imply feasibility-optimal.

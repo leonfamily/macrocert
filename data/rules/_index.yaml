@@ -1,0 +1,16 @@
+# Named rule-set algebra. Referenced by RunSpec.rules — a RunSpec entry
+# may name either an individual rule ID or one of these sets.
+sets:
+  all_macrocyclization:
+    - macrolactamization
+    - rcm
+    - transannular_diels_alder
+
+  high_ae_macrocyclization:  # bond-level AE ≥ threshold
+    - macrolactamization      # H2O byproduct
+    - rcm                     # ethylene byproduct
+    - transannular_diels_alder  # zero byproduct
+
+  biomimetic_macrocyclization:
+    - macrolactamization
+    - transannular_diels_alder
