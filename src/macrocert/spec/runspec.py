@@ -94,6 +94,24 @@ class SolverSpec:
     top_n: int = 10
     time_budget_s: int = 60
     request_infeasibility_cert: bool = False
+    # Per-rule activator overrides. Keys are rule_ids; values are
+    # ``ReagentAlternative.name`` strings listed in the rule's
+    # ``reagent_mass_alternatives``. When a rule_id is present here,
+    # ``dg_to_ir.build_ir`` substitutes the named alternative's
+    # ``reagent_mass_g_per_mol`` into the per-edge process-level penalty
+    # in place of the canonical ``meta.reagent_mass_g_per_mol``. A rule
+    # absent from this map keeps its canonical activator mass (current
+    # default behaviour, preserved for backward compatibility).
+    # Example YAML:
+    #   solver:
+    #     extra:
+    #       activators:
+    #         macrolactonization: Corey_Nicolaou
+    # Validation against the loaded RuleLibrary happens in
+    # ``pipeline.run`` via ``validate_activators`` so an unknown
+    # alternative name (or unknown rule_id) fails loud before any
+    # generation or solver work is done.
+    extra: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -161,6 +179,7 @@ def load_runspec(path: str | Path) -> RunSpec:
             request_infeasibility_cert=bool(
                 solver.get("request_infeasibility_cert", False)
             ),
+            extra=_parse_solver_extra(solver.get("extra")),
         ),
         energetics=EnergeticsSpec(
             enabled=bool(energetics.get("enabled", False)),
@@ -233,10 +252,105 @@ def _parse_predicates(d: Any) -> PredicateSpec:
     )
 
 
+def _parse_solver_extra(raw: Any) -> dict[str, Any]:
+    """Normalise ``solver.extra`` and validate the shape of known keys.
+
+    Currently the only known key is ``activators``: a ``dict[str, str]``
+    mapping rule_id → ``ReagentAlternative.name``. Unknown keys are
+    preserved verbatim so future solver-level toggles can be added
+    without churning this parser.
+
+    A bare ``activator: <name>`` (singular, no per-rule scoping) is
+    rejected with a pointer to the new key — the original Workstream-C
+    runspecs used that shape before this wiring landed, and silently
+    dropping it (the previous behaviour) is the bug this whole change
+    is fixing. Per
+    ``data/validation_panel/corey_erythronolide_b_macrolactonization_1978``
+    history.
+    """
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise ValueError(
+            f"solver.extra must be a mapping, got {type(raw).__name__}"
+        )
+    out: dict[str, Any] = {}
+    for k, v in raw.items():
+        key = str(k)
+        if key == "activator":
+            raise ValueError(
+                "solver.extra.activator is no longer supported; use "
+                "solver.extra.activators: {<rule_id>: <activator_name>} "
+                "for per-rule activator selection"
+            )
+        if key == "activators":
+            if not isinstance(v, dict) or not v:
+                raise ValueError(
+                    "solver.extra.activators must be a non-empty mapping "
+                    "of rule_id -> activator_name"
+                )
+            norm: dict[str, str] = {}
+            for rule_id, alt_name in v.items():
+                if not isinstance(alt_name, str) or not alt_name:
+                    raise ValueError(
+                        f"solver.extra.activators[{rule_id!r}]={alt_name!r}; "
+                        f"expected non-empty string (activator name)"
+                    )
+                norm[str(rule_id)] = alt_name
+            out[key] = norm
+        else:
+            out[key] = v
+    return out
+
+
 def _as_tuple(v: Any) -> tuple[str, ...]:
     if isinstance(v, str):
         return (v,)
     return tuple(v or ())
+
+
+def resolve_activators(
+    spec: "RunSpec", library: Any
+) -> dict[str, float]:
+    """Resolve ``solver.extra.activators`` against the RuleLibrary.
+
+    Returns a ``dict[rule_id -> reagent_mass_g_per_mol]`` ready to be
+    consumed by ``dg_to_ir.build_ir``. Raises ``ValueError`` on:
+
+      * ``rule_id`` not present in the loaded library
+      * activator name not listed in the rule's
+        ``reagent_mass_alternatives`` (i.e. ``RuleMeta.get_alternative``
+        returns ``None``)
+
+    A rule absent from the map is *not* an error — the caller falls
+    back to the rule's canonical ``meta.reagent_mass_g_per_mol``.
+
+    This is the surface where a typo in ``solver.extra.activators``
+    becomes a loud failure *before* MØD generation or solving runs.
+    Called from ``pipeline.run``; tests may call it directly.
+    """
+    activators = spec.solver.extra.get("activators") if spec.solver.extra else None
+    if not activators:
+        return {}
+    out: dict[str, float] = {}
+    for rule_id, alt_name in activators.items():
+        if rule_id not in library.rules:
+            raise ValueError(
+                f"solver.extra.activators[{rule_id!r}]={alt_name!r}: rule "
+                f"{rule_id!r} is not present in the loaded RuleLibrary "
+                f"(known: {sorted(library.rules)!r})"
+            )
+        rule_def = library.rules[rule_id]
+        alt = rule_def.meta.get_alternative(alt_name)
+        if alt is None:
+            known = [a.name for a in rule_def.meta.reagent_mass_alternatives]
+            raise ValueError(
+                f"solver.extra.activators[{rule_id!r}]={alt_name!r}: no such "
+                f"reagent_mass_alternative on rule {rule_id!r} "
+                f"(known: {known!r})"
+            )
+        out[rule_id] = alt.reagent_mass_g_per_mol
+    return out
 
 
 def _to_jsonable(obj: Any) -> Any:

@@ -14,7 +14,7 @@ from .energetics.feedback import EnergeticsDeps, run_with_energetics
 from .generate import build_dg_for_runspec
 from .kernel import certify, compose, dg_to_ir, scip_backend
 from .spec.rules import load_rule_library
-from .spec.runspec import RunSpec, load_runspec
+from .spec.runspec import RunSpec, load_runspec, resolve_activators
 from .spec.target import encode_target
 
 
@@ -43,6 +43,11 @@ def run(
 
     spec = load_runspec(target_dir)
     library = load_rule_library(rules_dir)
+    # Resolve solver.extra.activators against the library before any
+    # generation or solver work, so unknown rule_ids / unknown activator
+    # names surface as a clean ValueError early. Empty map = canonical
+    # reagent_mass for every rule (backward-compatible default).
+    activator_reagent_masses = resolve_activators(spec, library)
     encoded = encode_target(
         target_dir / spec.target.structure_path,
         ring_size=spec.target.ring_size,
@@ -60,6 +65,7 @@ def run(
         sink_smiles=sink_smiles,
         ring_size=spec.target.ring_size,
         max_steps=spec.strategy.max_steps,
+        activator_reagent_masses=activator_reagent_masses,
     )
 
     energetics_deps: EnergeticsDeps | None = None

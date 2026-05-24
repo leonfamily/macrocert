@@ -33,19 +33,17 @@ solver:
   top_n: 10
   time_budget_s: 60
   extra:
-    # NOTE / TODO: the Corey-Nicolaou activator override is *not yet
-    # wired through the macrocert pipeline*. The ReagentAlternative
-    # dataclass exists (src/macrocert/spec/rules.py) and the
-    # macrolactonization rule's reagent_mass_alternatives table includes
-    # the Corey_Nicolaou entry (482 g/mol activator, 389 g/mol
-    # additional byproduct), but no call site reads
-    # `solver.extra.activator` and threads it into the objective
-    # calculation. Documented as TODO; this leg of the M5 campaign will
-    # run under the default Yamaguchi process-level mass (568 g/mol)
-    # until the override path lands. Bond-level chemistry (H2O byproduct,
-    # 18.015 g/mol) is identical, so the optimal *bond-level* objective
-    # is unchanged.
-    activator: Corey_Nicolaou
+    # Corey-Nicolaou activator override (per-rule). pipeline.run reads
+    # this map via runspec.resolve_activators and substitutes the named
+    # alternative's reagent_mass_g_per_mol (482 g/mol Corey_Nicolaou =
+    # PySSPy + PPh3) into the per-edge process-level penalty in place
+    # of the canonical Yamaguchi mass (568 g/mol = TCBC + 2 Et3N + DMAP).
+    # See data/rules/macrolactonization.meta.yaml reagent_mass_alternatives.
+    # Bond-level chemistry (H2O byproduct, 18.015 g/mol) is identical
+    # across every activator on this rule, so the optimal *bond-level*
+    # objective is unchanged; only process-level expelled mass differs.
+    activators:
+      macrolactonization: Corey_Nicolaou
 
 notes: |
   Erythronolide B (Corey 1978; PubChem CID 441113, C21H38O7, MW 402.5).
@@ -57,10 +55,10 @@ notes: |
   Byproduct (bond level): H2O. Ring size: 14.
 
   This case is the literature anchor for the surrogate
-  lactone_14_from_13_hydroxytridecanoic_acid case and is intended to
-  exercise the Corey_Nicolaou alternative in
-  data/rules/macrolactonization.meta.yaml reagent_mass_alternatives.
-  See solver.extra.activator above and notes.md for the wiring gap.
+  lactone_14_from_13_hydroxytridecanoic_acid case and exercises the
+  Corey_Nicolaou alternative in
+  data/rules/macrolactonization.meta.yaml reagent_mass_alternatives via
+  solver.extra.activators above.
 
   Citation correction (vs. proposal/panel_TODO): the proposal cited
   DOI 10.1021/ja00482a075 which CrossRef cannot resolve. The correct

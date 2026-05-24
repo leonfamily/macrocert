@@ -34,9 +34,23 @@ def build_ir(
     sink_smiles: str,
     ring_size: int,
     max_steps: int,
+    activator_reagent_masses: dict[str, float] | None = None,
 ) -> HyperFlowIR:
-    """Walk dg.vertices / dg.edges → IR."""
+    """Walk dg.vertices / dg.edges → IR.
+
+    ``activator_reagent_masses`` (optional) is a ``dict[rule_id -> mass]``
+    produced by ``spec.runspec.resolve_activators``. When a rule_id is
+    present here, the per-edge ``reagent_mass_g_per_mol`` uses this
+    overridden mass in place of the rule's canonical
+    ``meta.reagent_mass_g_per_mol``. This is how
+    ``solver.extra.activators`` is realised in the process-level
+    objective (kernel.objective.process_level_objective reads this
+    field per edge). A rule absent from the map keeps its canonical
+    reagent mass.
+    """
     from rdkit import Chem
+
+    activator_reagent_masses = activator_reagent_masses or {}
 
     # Normalize the sink + sources to the same canonical form used for
     # DG vertex identity. Without this, the M5 ascomylactam run produced
@@ -91,7 +105,15 @@ def build_ir(
 
         rule_def = library.get(rule_id) if rule_id in library.rules else None
         bond_mass = rule_def.meta.byproduct_mass_g_per_mol if rule_def else 0.0
-        reagent_mass = rule_def.meta.reagent_mass_g_per_mol if rule_def else 0.0
+        # Activator override: if the RunSpec selected an alternative
+        # activator for this rule, its mass replaces the canonical
+        # reagent_mass_g_per_mol for this edge. Validation that the
+        # alternative exists has already happened in
+        # ``runspec.resolve_activators``; we trust the map here.
+        if rule_id in activator_reagent_masses:
+            reagent_mass = activator_reagent_masses[rule_id]
+        else:
+            reagent_mass = rule_def.meta.reagent_mass_g_per_mol if rule_def else 0.0
         is_macro = (
             rule_id in macro_class_rule_ids
             and _produces_ring_of_size(tgts, ring_size, Chem)
