@@ -1,6 +1,7 @@
 """Build a MØD derivation graph from a RunSpec — Layer B orchestrator."""
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -19,6 +20,41 @@ from .strategies import (
 )
 
 
+# Workstream F (#43) — byte-deterministic certificates.
+#
+# MØD's RNG (``mod::lib::Random::Random()`` in
+# external/mod/libs/libmod/src/mod/lib/Random.cpp) seeds itself from
+# ``std::random_device`` on first use, so DG construction can differ
+# run-to-run in ways that ripple into the certificate (vertex ordering,
+# rule-application ordering, geometry-finalization choices). MØD exposes
+# the seed via the C++ entry point ``mod::rngReseed(seed)`` and the
+# Python binding ``mod.rngReseed(seed)`` (see
+# external/mod/libs/libmod/src/mod/Misc.cpp:31 and
+# external/mod/libs/pymod/src/mod/py/Misc.cpp:85), so we can pin it
+# without patching MØD.
+#
+# The default ``0xC0FFEE`` matches the RDKit seed used in
+# ``macrocert.energetics.qm.smiles_to_atoms`` for consistency. Override
+# via the ``MACROCERT_MOD_SEED`` env var (parsed as base-0 so ``0x...``
+# / ``0o...`` literals work).
+_DEFAULT_MOD_SEED = 0xC0FFEE
+
+
+def _resolve_mod_seed() -> int:
+    raw = os.environ.get("MACROCERT_MOD_SEED")
+    if raw is None or raw == "":
+        return _DEFAULT_MOD_SEED
+    try:
+        return int(raw, 0)
+    except ValueError as exc:
+        raise ValueError(
+            f"MACROCERT_MOD_SEED={raw!r} is not a valid integer literal"
+        ) from exc
+
+
+MOD_SEED = _resolve_mod_seed()
+
+
 @dataclass
 class GenerationResult:
     dg: "mod.DG"
@@ -35,6 +71,26 @@ def build_dg_for_runspec(
 ) -> GenerationResult:
     blocks_dir = Path(blocks_dir)
     target_dir = Path(target_dir)
+
+    # Workstream F (#43): pin MØD's PRNG before any DG construction so
+    # rule-application ordering, vertex ordering, and geometry
+    # finalization are byte-deterministic. Re-read the env var on every
+    # call (rather than relying on the import-time ``MOD_SEED``) so
+    # tests can vary the seed within a single process.
+    seed = _resolve_mod_seed()
+    mod.rngReseed(seed)
+    # Also seed Python's ``random`` module and NumPy. RDKit calls that
+    # accept ``randomSeed=`` (notably ``AllChem.EmbedMolecule`` in
+    # ``macrocert.energetics.qm``) already pin their own seed; this
+    # covers the rest (any third-party code reaching for the global
+    # PRNG during DG construction).
+    import random as _random
+    _random.seed(seed)
+    try:
+        import numpy as _np  # noqa: WPS433
+        _np.random.seed(seed & 0xFFFFFFFF)
+    except ImportError:  # pragma: no cover - numpy is a hard dep in pixi
+        pass
 
     from ..spec.blocks import load_blocks
 

@@ -92,9 +92,19 @@ def _run_one_rule(
         str(work.relative_to(REPO)),
         "--artifacts-dir", str((campaign_dir / rule_id).relative_to(REPO)),
     ]
+    # Workstream F (#43): pin MØD's RNG + Python hash randomization so
+    # the same runspec always yields a byte-identical certificate. The
+    # subprocess inherits the parent env, then we override the two
+    # determinism knobs. Callers can override the MØD seed by exporting
+    # MACROCERT_MOD_SEED before invoking this script.
+    env = dict(os.environ)
+    env.setdefault("MACROCERT_MOD_SEED", "0xC0FFEE")
+    env["PYTHONHASHSEED"] = "0"
+
     try:
         proc = subprocess.run(
             cmd, cwd=REPO, capture_output=True, text=True, timeout=180,
+            env=env,
         )
         result["stdout_tail"] = "\n".join(proc.stdout.splitlines()[-6:])
         result["stderr_tail"] = "\n".join(proc.stderr.splitlines()[-3:])

@@ -188,7 +188,18 @@ def check_adversarial_verifier(lock: dict) -> bool:
 
 
 def check_reproducibility_hash(lock: dict) -> bool:
-    """Two consecutive runs of toy_macrolactam must produce identical certificate hashes."""
+    """Two consecutive runs of toy_macrolactam must produce identical certificate hashes.
+
+    Since Workstream F #43 this check is backed by deterministic
+    seed-pinning: ``macrocert.generate.build_dg.build_dg_for_runspec``
+    calls ``mod.rngReseed(MACROCERT_MOD_SEED or 0xC0FFEE)`` at the start
+    of every invocation, plus seeds Python's ``random`` + NumPy globals.
+    The check is considerably more robust on larger campaigns
+    (lactam_12/14/16, ascomylactam, vancomycin) than it used to be when
+    only the toy fixture happened to be deterministic by accident.
+    Detailed regression coverage lives in
+    ``tests/integration/test_campaign_reproducibility.py``.
+    """
     cmd = ["pixi", "run", "python", "-m", "macrocert.cli", "run",
            "data/targets/toy_macrolactam"]
     cert_path = REPO_ROOT / "artifacts" / "toy_macrolactam" / "certificate.json"
