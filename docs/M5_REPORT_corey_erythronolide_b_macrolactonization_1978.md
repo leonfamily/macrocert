@@ -1,6 +1,6 @@
 # M5 Campaign Report — corey_erythronolide_b_macrolactonization_1978
 
-_Auto-generated 2026-05-24T17:04:02.060289+00:00 by `scripts/build_m5_campaign.py`._
+_Auto-generated 2026-05-24T17:33:08.549234+00:00 by `scripts/build_m5_campaign.py`._
 
 Proposal §5 deliverable: per-tactic certificates for `data/targets/corey_erythronolide_b_macrolactonization_1978/` across all macrocyclization rules.
 
@@ -17,6 +17,7 @@ Proposal §5 deliverable: per-tactic certificates for `data/targets/corey_erythr
 | `cross_coupling_sonogashira` | **infeasible** | — | OK | `artifacts/corey_erythronolide_b_macrolactonization_1978/campaign/cross_coupling_sonogashira/corey_erythronolide_b_macrolactonization_1978__cross_coupling_sonogashira/certificate.json` |
 | `cross_coupling_stille` | **infeasible** | — | OK | `artifacts/corey_erythronolide_b_macrolactonization_1978/campaign/cross_coupling_stille/corey_erythronolide_b_macrolactonization_1978__cross_coupling_stille/certificate.json` |
 | `cross_coupling_suzuki` | **infeasible** | — | OK | `artifacts/corey_erythronolide_b_macrolactonization_1978/campaign/cross_coupling_suzuki/corey_erythronolide_b_macrolactonization_1978__cross_coupling_suzuki/certificate.json` |
+| `hwe_olefination` | **infeasible** | — | OK | `artifacts/corey_erythronolide_b_macrolactonization_1978/campaign/hwe_olefination/corey_erythronolide_b_macrolactonization_1978__hwe_olefination/certificate.json` |
 | `macrolactamization` | **infeasible** | — | OK | `artifacts/corey_erythronolide_b_macrolactonization_1978/campaign/macrolactamization/corey_erythronolide_b_macrolactonization_1978__macrolactamization/certificate.json` |
 | `rcm` | **infeasible** | — | OK | `artifacts/corey_erythronolide_b_macrolactonization_1978/campaign/rcm/corey_erythronolide_b_macrolactonization_1978__rcm/certificate.json` |
 | `transannular_diels_alder` | **infeasible** | — | OK | `artifacts/corey_erythronolide_b_macrolactonization_1978/campaign/transannular_diels_alder/corey_erythronolide_b_macrolactonization_1978__transannular_diels_alder/certificate.json` |
@@ -29,7 +30,7 @@ Ordered by bond-level expelled mass (lower = better AE):
 
 1. **`macrolactonization`** — objective 18.015 g/mol; certificate verifier-clean: True
 
-### No-go certificates (11 ruled-out tactics)
+### No-go certificates (12 ruled-out tactics)
 
 - **`macrolactamization`** — IIS (first 3): `exactly_one_macrocyclization`, `flow_balance:CCC(O)C(C)C(O)C(C)C(=O)C(C)CC(C)(O)C(…`, `flow_balance:CCC1OC(=O)C(C)C(O)C(C)C(O)C(C)(O)CC(C…`
 - **`aryl_etherification`** — IIS (first 3): `exactly_one_macrocyclization`, `flow_balance:CCC(O)C(C)C(O)C(C)C(=O)C(C)CC(C)(O)C(…`, `flow_balance:CCC1OC(=O)C(C)C(O)C(C)C(O)C(C)(O)CC(C…`
@@ -42,6 +43,7 @@ Ordered by bond-level expelled mass (lower = better AE):
 - **`cross_coupling_buchwald`** — IIS (first 3): `exactly_one_macrocyclization`, `flow_balance:CCC(O)C(C)C(O)C(C)C(=O)C(C)CC(C)(O)C(…`, `flow_balance:CCC1OC(=O)C(C)C(O)C(C)C(O)C(C)(O)CC(C…`
 - **`cross_coupling_sonogashira`** — IIS (first 3): `exactly_one_macrocyclization`, `flow_balance:CCC(O)C(C)C(O)C(C)C(=O)C(C)CC(C)(O)C(…`, `flow_balance:CCC1OC(=O)C(C)C(O)C(C)C(O)C(C)(O)CC(C…`
 - **`cross_coupling_stille`** — IIS (first 3): `exactly_one_macrocyclization`, `flow_balance:CCC(O)C(C)C(O)C(C)C(=O)C(C)CC(C)(O)C(…`, `flow_balance:CCC1OC(=O)C(C)C(O)C(C)C(O)C(C)(O)CC(C…`
+- **`hwe_olefination`** — IIS (first 3): `exactly_one_macrocyclization`, `flow_balance:CCC(O)C(C)C(O)C(C)C(=O)C(C)CC(C)(O)C(…`, `flow_balance:CCC1OC(=O)C(C)C(O)C(C)C(O)C(C)(O)CC(C…`
 
 Each no-go certificate is independently verifier-clean — the verifier confirms that the rule cannot produce the target from the seco-precursor under the runspec's constraints.
 
