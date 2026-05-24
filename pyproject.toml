@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "macrocert"
+version = "0.1.0"
+description = "Constraint-certified macrocyclization design (MØD-MacroCert)"
+requires-python = ">=3.11"
+readme = "SETUP.md"
+authors = [{ name = "Ivan Leon", email = "ivan@sharpe.com" }]
+
+# Runtime dependencies are managed by pixi (see pixi.toml). Listing them
+# here would create a second source of truth that drifts. The package
+# expects to be installed editable into the pixi env.
+dependencies = []
+
+[project.scripts]
+macrocert = "macrocert.cli:main"
+macrocert-verify = "macrocert.verifier.verify:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+macrocert = ["py.typed"]
+"macrocert.verifier" = ["schema/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = ["-ra", "--strict-markers"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+

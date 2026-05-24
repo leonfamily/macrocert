@@ -18,6 +18,14 @@ smoke = "python scripts/smoke_host.py"
 build-mod = "bash scripts/build_mod.sh"
 install-aimnet2 = "bash scripts/install_aimnet2.sh"
 
+# Layer A development checks (M1)
+check-rules = "python -m macrocert.cli check-rules data/rules"
+encode-target = "python -m macrocert.cli encode-target"
+# Layer C verifier — re-checks a certificate from scratch (no MØD import)
+verify = "macrocert-verify"
+# Tests
+test = "pytest tests/"
+
 # ----------------------------------------------------------------------------
 # Default env: Layer A-C certifying core + Layer D energetics
 # ----------------------------------------------------------------------------
@@ -60,8 +68,11 @@ coincbc = "*"
 parse = "*"
 typing_extensions = "*"
 ipython = "*"
+pytest = ">=8"
 
 [pypi-dependencies]
+# The project itself, editable so src/macrocert/ edits land without reinstall.
+macrocert = { path = ".", editable = true }
 # Layer D MLIP — MACE-OFF transferable organic force field (Kovács 2025)
 mace-torch = ">=0.3"
 # Note: AIMNet2 has no PyPI release; install from GitHub on demand.
