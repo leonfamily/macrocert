@@ -52,6 +52,25 @@ class ReagentAlternative:
         )
 
 
+# Stereo policy taxonomy. See docs/workstream_f_stereo_policy.md.
+#
+#   match_enforced   — the rule body carries tetrahedral stereo annotations
+#                      and MØD enforces them at match-time. The pre-M5 gate
+#                      requires the GML body to contain the "stereo" token.
+#   n_a_sp2_only     — the bond-forming atoms are sp²; there is no sp³
+#                      stereocenter at the bond site to enforce. Off-rule
+#                      sp³ stereo (e.g. the alcohol C in aryl_etherification)
+#                      is preserved automatically by graph-isomorphism.
+#   advisory_only    — the rule's stereo outcome is documented in the
+#                      certificate's provenance but cannot be enforced by
+#                      MØD (e.g. atropisomerism, E/Z trigonalPlanar abort
+#                      per docs/workstream_f_harness.md §5.2). Requires a
+#                      non-empty ``stereo_advisory`` message.
+STEREO_TREATMENTS: frozenset[str] = frozenset(
+    {"match_enforced", "n_a_sp2_only", "advisory_only"}
+)
+
+
 @dataclass(frozen=True)
 class RuleMeta:
     reagent_mass_g_per_mol: float
@@ -62,9 +81,33 @@ class RuleMeta:
     refs: tuple[str, ...]
     notes: str
     reagent_mass_alternatives: tuple[ReagentAlternative, ...] = ()
+    # Chemistry-aware stereo policy. Default ``match_enforced`` preserves
+    # backward compatibility: the existing macrolactam/macrolactone rules
+    # carry tetrahedral α-C stereo and must keep "stereo" in their GML.
+    stereo_treatment: str = "match_enforced"
+    # Free-text advisory message that flows into the certificate's
+    # provenance when ``stereo_treatment == 'advisory_only'``. Required
+    # in that case; empty otherwise.
+    stereo_advisory: str = ""
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> "RuleMeta":
+        treatment = str(d.get("stereo_treatment", "match_enforced"))
+        if treatment not in STEREO_TREATMENTS:
+            raise ValueError(
+                f"unknown stereo_treatment {treatment!r}; "
+                f"expected one of {sorted(STEREO_TREATMENTS)}"
+            )
+        advisory = str(d.get("stereo_advisory", ""))
+        if treatment == "advisory_only" and not advisory.strip():
+            raise ValueError(
+                "stereo_treatment == 'advisory_only' requires a non-empty "
+                "stereo_advisory field"
+            )
+        if treatment != "advisory_only" and advisory.strip():
+            # Non-fatal: tolerate, but the gate will only forward advisories
+            # for advisory_only rules. Keep the text for documentation.
+            pass
         return cls(
             reagent_mass_g_per_mol=float(d.get("reagent_mass_g_per_mol", 0.0)),
             byproduct_mass_g_per_mol=float(d.get("byproduct_mass_g_per_mol", 0.0)),
@@ -77,6 +120,8 @@ class RuleMeta:
                 ReagentAlternative.from_dict(alt)
                 for alt in (d.get("reagent_mass_alternatives") or ())
             ),
+            stereo_treatment=treatment,
+            stereo_advisory=advisory,
         )
 
     def get_alternative(self, name: str) -> ReagentAlternative | None:

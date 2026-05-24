@@ -82,3 +82,9 @@ notes: |
   rendered stereospecific via Ni catalysis (Jarvo JACS 2013); v0
   represents this with the stereo_flag stereospecific_sp3_with_ni_jarvo
   but the rule body itself does not encode catalyst selection.
+
+# Stereo policy (Workstream F #36):
+#   n_a_sp2_only — sp²-sp² C-C coupling at the bond site.
+#   (Jarvo Ni-catalyzed sp³ Negishi is a future stereospecific
+#   variant; out of v0 rule scope.)
+stereo_treatment: n_a_sp2_only

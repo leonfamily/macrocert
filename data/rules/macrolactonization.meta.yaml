@@ -109,3 +109,8 @@ notes: |
       under the canonical Yamaguchi defaults without override.
     - Erythronolide B (Corey 1978) — select Corey_Nicolaou via
       RunSpec.solver.extra.activator = "Corey_Nicolaou".
+
+# Stereo policy (Workstream F #36):
+#   match_enforced — α-C tetrahedral stereo carried in GML body;
+#   sibling of macrolactamization. See docs/workstream_f_alpha_c_overlays.md.
+stereo_treatment: match_enforced

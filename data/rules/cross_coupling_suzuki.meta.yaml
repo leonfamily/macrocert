@@ -101,3 +101,10 @@ notes: |
   biaryl Suzuki sets atropisomeric axes (vancomycin DEFG, Jia 2007).
   Alkyl-B (sp3 coupling carbon) is outside v0 scope due to
   beta-hydride elimination.
+
+# Stereo policy (Workstream F #36):
+#   n_a_sp2_only — sp²-sp² biaryl C-C coupling at the bond site.
+#   Atropisomerism (vancomycin DEFG, Jia 2007) is a 3D-geometric
+#   downstream effect, not a match-time stereo constraint on the
+#   rule body.
+stereo_treatment: n_a_sp2_only

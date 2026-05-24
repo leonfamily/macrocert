@@ -147,3 +147,7 @@ notes: |
   Their byproduct (CO, 28.01 g/mol) is fundamentally different from H2 and
   the atom map loses a heavy atom -- they belong in a separate
   decarbonylative_coupling.gml (deferred to a future ticket).
+
+# Stereo policy (Workstream F #36):
+#   n_a_sp2_only — Ar-C(sp²) bond; no sp³ stereocenter at site.
+stereo_treatment: n_a_sp2_only

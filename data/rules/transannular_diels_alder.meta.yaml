@@ -31,3 +31,10 @@ notes: |
   Zero byproduct → maximum bond-level AE. Layer D must check the diene
   and dienophile are geometrically able to meet on the medium ring;
   classic case where AE-optimal does not imply feasibility-optimal.
+
+# Stereo policy (Workstream F #36):
+#   n_a_sp2_only — base TDA rule forms two C-C bonds between
+#   sp² diene/dienophile carbons. The endo/exo siblings
+#   (Workstream F #35) will be match_enforced — they pin the
+#   resulting sp³ stereocenters in the cyclohexene adduct.
+stereo_treatment: n_a_sp2_only

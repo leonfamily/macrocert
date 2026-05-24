@@ -89,6 +89,7 @@ def run(
     cert = certify.emit(
         spec, ir, composed, result.solution, result.witness,
         energetics_deps=energetics_deps,
+        library=library,
     )
     cert_path = certify.write(cert, artifacts_dir / spec.name / "certificate.json")
 

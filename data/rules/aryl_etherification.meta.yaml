@@ -132,3 +132,10 @@ notes: |
   predicate `alcohol_partner_C_must_be_sp3: {aryl_etherification: true}`
   (Workstream D phase-3) — without it the sibling biaryl rule will also
   fire on any HO-R substrate. See docs/workstream_d_predicates.md §4.
+
+# Stereo policy (Workstream F #36):
+#   n_a_sp2_only — bond is Ar(sp²)-O; the alcohol C(sp³) partner
+#   is off-rule (in substrate context) and its stereo is preserved
+#   automatically by DPO graph-isomorphism. No match-time stereo
+#   enforcement applies to the rule body itself.
+stereo_treatment: n_a_sp2_only

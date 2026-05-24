@@ -86,3 +86,8 @@ notes: |
   Out of v0 scope: aryl-O (Buchwald etherification) and aryl-S
   (thioether) variants -- same family but require a different
   protic-fragment atom map. Flagged via aryl_amine_only_v0.
+
+# Stereo policy (Workstream F #36):
+#   n_a_sp2_only — Ar(sp²)-N coupling; no sp³ stereocenter at
+#   the bond site. (Aryl-amine v0 scope; alkyl-N future rule.)
+stereo_treatment: n_a_sp2_only

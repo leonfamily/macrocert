@@ -139,18 +139,69 @@ def check_strategy_predicates(lock: dict) -> bool:
 
 
 def check_stereo_annotations(lock: dict) -> bool:
+    """Chemistry-aware stereo policy gate (Workstream F #36).
+
+    Each rule declares ``stereo_treatment`` in its .meta.yaml:
+
+      match_enforced  — rule body MUST contain a ``stereo`` token (tetrahedral
+                        annotation that MØD enforces at match-time).
+      n_a_sp2_only    — bond-forming atoms are sp²; no sp³ stereocenter at the
+                        bond site. Pass without GML grep.
+      advisory_only   — chemistry-dependent (atropisomerism, E/Z, MOD_ABORT on
+                        trigonalPlanar). MUST carry a non-empty
+                        ``stereo_advisory`` message.
+
+    The legacy lockfile flag ``rule_library.stereo_annotations_required``
+    still gates whether this check runs at all (for back-compat with
+    pre-#36 lockfiles).
+    """
     if not lock.get("rule_library", {}).get("stereo_annotations_required", False):
-        return _check("stereo annotations", True, "not required by lockfile")
+        return _check("stereo policy declared", True, "not required by lockfile")
     rules_dir = REPO_ROOT / "data" / "rules"
-    missing = []
-    for gml in rules_dir.glob("*.gml"):
+    failures: list[str] = []
+    per_rule: list[tuple[str, str, str]] = []  # (rule_id, treatment, note)
+    for gml in sorted(rules_dir.glob("*.gml")):
+        rid = gml.stem
+        meta_path = gml.with_suffix(".meta.yaml")
+        if not meta_path.exists():
+            failures.append(f"{rid}: missing meta.yaml")
+            continue
+        try:
+            meta = yaml.safe_load(meta_path.read_text()) or {}
+        except yaml.YAMLError as exc:
+            failures.append(f"{rid}: meta.yaml parse error: {exc}")
+            continue
+        treatment = str(meta.get("stereo_treatment", "match_enforced"))
+        advisory = str(meta.get("stereo_advisory", "")).strip()
         body = gml.read_text()
-        # Heuristic: at least one stereo annotation present
-        if "stereo" not in body:
-            missing.append(gml.name)
-    ok = not missing
-    return _check("stereo annotations present", ok,
-                  f"{', '.join(missing)} lack stereo" if missing else "all rules annotated")
+        if treatment == "match_enforced":
+            if "stereo" not in body:
+                failures.append(f"{rid}: match_enforced but GML lacks 'stereo' token")
+                per_rule.append((rid, treatment, "MISSING stereo in GML"))
+            else:
+                per_rule.append((rid, treatment, "stereo present"))
+        elif treatment == "n_a_sp2_only":
+            per_rule.append((rid, treatment, "sp²-only bond site"))
+        elif treatment == "advisory_only":
+            if not advisory:
+                failures.append(f"{rid}: advisory_only but stereo_advisory empty")
+                per_rule.append((rid, treatment, "MISSING advisory"))
+            else:
+                per_rule.append((rid, treatment, "advisory present"))
+        else:
+            failures.append(f"{rid}: unknown stereo_treatment {treatment!r}")
+            per_rule.append((rid, treatment, "UNKNOWN treatment"))
+    # Per-rule diagnostic — rich, regardless of pass/fail.
+    print("    stereo policy per rule:")
+    for rid, treatment, note in per_rule:
+        print(f"      - {rid:34s} [{treatment:14s}] {note}")
+    ok = not failures
+    detail = (
+        f"{len(per_rule)} rules; {len(failures)} failure(s): {'; '.join(failures)}"
+        if failures
+        else f"{len(per_rule)} rules, policy honored"
+    )
+    return _check("stereo policy declared", ok, detail)
 
 
 def check_energetics_protocol(lock: dict) -> bool:

@@ -38,3 +38,9 @@ notes: |
   Amide-bond ring closure expelling H2O at the bond level. Process-level AE
   is docked by the activator (HATU + DIPEA assumed) — this is the
   proposal §3.3 bond-vs-process AE split materialized.
+
+# Stereo policy (Workstream F #36):
+#   match_enforced — α-C tetrahedral stereo carried in GML body;
+#   MØD enforces at match-time under stereo_enforcement=true.
+#   See docs/workstream_f_alpha_c_overlays.md.
+stereo_treatment: match_enforced

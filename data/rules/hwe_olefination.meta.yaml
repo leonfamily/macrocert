@@ -148,3 +148,10 @@ notes: |
   Panel coverage:
     - haidle_myers_cytochalasin_b_2004 (cytochalasin B 14-ring
       macrolactone via NaOCH2CF3 / dimethyl-phosphonoacetate ester).
+
+# Stereo policy (Workstream F #36):
+#   advisory_only — alkene C=C geometry is not point chirality;
+#   E/Z depends on activator (E-default; Still-Gennari/Ando Z).
+#   Cannot be enforced by MØD's tetrahedral stereo machinery.
+stereo_treatment: advisory_only
+stereo_advisory: "E-selective by default (RDKit Bond.GetStereo can verify post-firing); Still-Gennari (Tetrahedron Lett. 1983, DOI:10.1016/S0040-4039(00)85909-2) and Ando (J. Org. Chem. 1997, DOI:10.1021/jo970057c) phosphonates invert to Z. Alkene C=C geometry is not point chirality and cannot be match-enforced; use Workstream D's enforce_ez_geometry predicate to pin geometry per substrate."

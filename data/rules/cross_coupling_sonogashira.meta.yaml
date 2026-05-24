@@ -82,3 +82,8 @@ notes: |
   alkynes dimerize via Cu-acetylide intermediates under aerobic
   conditions -- but that is a *separate* off-target rule, not a stereo
   issue on the desired pathway.
+
+# Stereo policy (Workstream F #36):
+#   n_a_sp2_only — Ar(sp²)-C(sp) alkyne coupling; no sp³
+#   stereocenter at the bond site.
+stereo_treatment: n_a_sp2_only

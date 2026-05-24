@@ -29,3 +29,11 @@ refs:
 notes: |
   Classical RCM. E/Z mixture frequent in medium/large rings —
   Layer D/E should flag downstream E/Z correction cost.
+
+# Stereo policy (Workstream F #36):
+#   advisory_only — MØD's trigonalPlanar geometry is MOD_ABORT
+#   on morphism check, so alkene E/Z cannot be enforced at
+#   match time. See docs/workstream_f_harness.md §Divergence and
+#   docs/mod_stereo_reference.md §5.2.
+stereo_treatment: advisory_only
+stereo_advisory: "MØD's trigonalPlanar morphism is MOD_ABORT (external/mod/libs/libmod/src/mod/lib/Stereo/Configuration/TrigonalPlanar.cpp:50-54; both morphismIso and morphismSpec abort, per docs/mod_stereo_reference.md §5.2 and docs/workstream_f_harness.md §Divergence). E/Z geometry post-closure is undetermined at match time; certificate cannot enforce. Use the Workstream D enforce_ez_geometry predicate via RDKit if geometry must be pinned per substrate (Gradillas & Pérez-Castells 2006, Angew. Chem. Int. Ed. 45:6086, DOI:10.1002/anie.200600641)."

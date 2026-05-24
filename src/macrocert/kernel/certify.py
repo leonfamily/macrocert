@@ -11,6 +11,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
+from ..spec.rules import RuleLibrary
 from ..spec.runspec import RunSpec
 from .compose import ComposedRule
 from .ir import HyperFlowIR, Witness, Solution
@@ -27,6 +28,7 @@ def emit(
     witness: Witness,
     *,
     energetics_deps: Any = None,
+    library: RuleLibrary | None = None,
 ) -> dict[str, Any]:
     cert: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
@@ -38,8 +40,44 @@ def emit(
         "energetics_dependencies": (
             energetics_deps.to_jsonable() if energetics_deps is not None else None
         ),
+        "provenance": _build_provenance(ir, composed, library),
     }
     return cert
+
+
+def _build_provenance(
+    ir: HyperFlowIR,
+    composed: ComposedRule | None,
+    library: RuleLibrary | None,
+) -> dict[str, Any]:
+    """Assemble cert provenance.
+
+    Currently only carries ``stereo_advisories``: one entry per distinct
+    rule (across composed.rule_ids_traced ∪ ir.hyperedges) whose
+    ``stereo_treatment == 'advisory_only'``. The list is sorted and
+    deduplicated for hash-stable certificates.
+    """
+    advisories: dict[str, str] = {}
+    if library is not None:
+        rule_ids: set[str] = set()
+        if composed is not None:
+            rule_ids.update(composed.rule_ids_traced)
+        for edge in ir.hyperedges:
+            rid = getattr(edge, "rule_id", None)
+            if rid and rid in library.rules:
+                rule_ids.add(rid)
+        for rid in rule_ids:
+            if rid not in library.rules:
+                continue
+            meta = library.rules[rid].meta
+            if meta.stereo_treatment == "advisory_only" and meta.stereo_advisory:
+                advisories[rid] = meta.stereo_advisory
+    return {
+        "stereo_advisories": [
+            {"rule_id": rid, "advisory": advisories[rid]}
+            for rid in sorted(advisories)
+        ],
+    }
 
 
 def write(cert: dict[str, Any], path: str | Path) -> Path:

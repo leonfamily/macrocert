@@ -145,3 +145,9 @@ notes: |
   is a substrate-side tactic — the rule itself doesn't pin atropisomer
   configuration. Workstream F's stereo machinery may want to encode
   this via the `equilibrates_atropisomer_thermally` flag at panel time.
+
+# Stereo policy (Workstream F #36):
+#   advisory_only — atropisomerism is 3D-geometric, not graph-
+#   encodable. MØD cannot enforce; advisory flows into cert.
+stereo_treatment: advisory_only
+stereo_advisory: "Ar-O-Ar bridge has atropisomeric chirality determined by substrate 3D geometry, not graph encoding. Boger 1999 (DOI:10.1021/ja990189i) reports ordered atropisomer equilibrations at 130-180 deg C in chlorobenzene/o-DCB. Encode atropisomer configuration via panel-time 3D geometry, not by the rule."

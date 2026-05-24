@@ -105,3 +105,7 @@ notes: |
   (rapamycin/pentamycin/lankacidin total syntheses), the tin toxicity
   + heavy-byproduct profile makes it the *last-choice* C-C coupling
   for green-chemistry-oriented macrocyclic targets.
+
+# Stereo policy (Workstream F #36):
+#   n_a_sp2_only — sp²-sp² C-C coupling at the bond site.
+stereo_treatment: n_a_sp2_only
