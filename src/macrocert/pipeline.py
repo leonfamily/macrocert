@@ -5,10 +5,12 @@ energetics_dependencies cache and the report.render module.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from .energetics.cache import EnergeticsCache
+from .energetics.feedback import EnergeticsDeps, run_with_energetics
 from .generate import build_dg_for_runspec
 from .kernel import certify, compose, dg_to_ir, scip_backend
 from .spec.rules import load_rule_library
@@ -24,6 +26,7 @@ class RunReport:
     objective_value: float
     bond_level_expelled_mass: float
     process_level_expelled_mass: float
+    energetics_summary: dict[str, Any] | None = None
 
 
 def run(
@@ -59,12 +62,28 @@ def run(
         max_steps=spec.strategy.max_steps,
     )
 
-    result = scip_backend.solve(ir, time_budget_s=spec.solver.time_budget_s)
+    energetics_deps: EnergeticsDeps | None = None
+    if spec.energetics.enabled:
+        fb = run_with_energetics(
+            ir,
+            initial_tier=spec.energetics.initial_tier,
+            dG_max_kcal_per_mol=spec.energetics.dG_kcal_max or 1e9,
+            cache=EnergeticsCache(),
+            time_budget_s=spec.solver.time_budget_s,
+        )
+        result = fb.final
+        energetics_deps = fb.energetics
+    else:
+        result = scip_backend.solve(ir, time_budget_s=spec.solver.time_budget_s)
+
     composed = (
         compose.compose_route(result.solution, ir, library)
         if result.solution else None
     )
-    cert = certify.emit(spec, ir, composed, result.solution, result.witness)
+    cert = certify.emit(
+        spec, ir, composed, result.solution, result.witness,
+        energetics_deps=energetics_deps,
+    )
     cert_path = certify.write(cert, artifacts_dir / spec.name / "certificate.json")
 
     return RunReport(
@@ -76,4 +95,6 @@ def run(
                                   if result.solution else float("nan")),
         process_level_expelled_mass=(result.solution.process_level_expelled_mass
                                      if result.solution else float("nan")),
+        energetics_summary=(energetics_deps.to_jsonable()
+                            if energetics_deps is not None else None),
     )
