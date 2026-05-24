@@ -1,0 +1,8 @@
+name: 19-aminononadecanoic acid
+smiles: OC(=O)CCCCCCCCCCCCCCCCCCN
+provenance: |
+  Surrogate panel building block — 20-membered macrolactam precursor — large ring stress test.
+  Commercially available; not from a CASP run.
+notes: |
+  Linear ω-aminoacid that cyclizes to a 20-membered
+  macrolactam in one rule firing (macrolactamization).

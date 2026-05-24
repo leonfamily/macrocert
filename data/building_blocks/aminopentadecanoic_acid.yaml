@@ -1,0 +1,8 @@
+name: 15-aminopentadecanoic acid
+smiles: OC(=O)CCCCCCCCCCCCCCN
+provenance: |
+  Surrogate panel building block — 16-membered macrolactam precursor.
+  Commercially available; not from a CASP run.
+notes: |
+  Linear ω-aminoacid that cyclizes to a 16-membered
+  macrolactam in one rule firing (macrolactamization).

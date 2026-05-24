@@ -1,0 +1,8 @@
+name: 11-aminoundecanoic acid
+smiles: OC(=O)CCCCCCCCCCN
+provenance: |
+  Surrogate panel building block — laurolactam precursor (CAS 2432-99-7).
+  Commercially available; not from a CASP run.
+notes: |
+  Linear ω-aminoacid that cyclizes to a 12-membered
+  macrolactam in one rule firing (macrolactamization).

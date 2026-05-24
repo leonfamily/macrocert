@@ -1,0 +1,25 @@
+name: lactam_16_from_15_aminopentadecanoic_acid
+target:
+  structure_path: structure.mol
+  ring_size: 16
+
+blocks:
+  - aminopentadecanoic_acid
+
+rules: all_macrocyclization
+
+strategy:
+  max_steps: 1
+  ring_close_only: true
+
+solver:
+  backend: scip
+  top_n: 3
+  time_budget_s: 30
+
+energetics:
+  enabled: false
+
+notes: |
+  Surrogate macrolactamization case (ring size 16).
+  Closes via one firing of the macrolactamization rule.

@@ -1,0 +1,25 @@
+name: lactam_20_from_19_aminononadecanoic_acid
+target:
+  structure_path: structure.mol
+  ring_size: 20
+
+blocks:
+  - aminononadecanoic_acid
+
+rules: all_macrocyclization
+
+strategy:
+  max_steps: 1
+  ring_close_only: true
+
+solver:
+  backend: scip
+  top_n: 3
+  time_budget_s: 30
+
+energetics:
+  enabled: false
+
+notes: |
+  Surrogate macrolactamization case (ring size 20).
+  Closes via one firing of the macrolactamization rule.

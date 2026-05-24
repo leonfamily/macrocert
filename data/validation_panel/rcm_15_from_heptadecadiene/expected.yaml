@@ -1,0 +1,9 @@
+literature_tactic: rcm
+literature_ring_size: 15
+expected_witness: optimal
+expected_top_rule_class: macrocyclization
+ae_class: high
+reference: |
+  Surrogate panel case — generic substrate for the rcm
+  class. Real literature case from the Acc. Chem. Res. 2021 review
+  pending chemistry-team encoding (see panel_TODO.md).
