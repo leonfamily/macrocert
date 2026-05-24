@@ -1,0 +1,23 @@
+diff --git a/libs/pymodutils/CMakeLists.txt b/libs/pymodutils/CMakeLists.txt
+index 9b66bf9..1a7bc09 100644
+--- a/libs/pymodutils/CMakeLists.txt
++++ b/libs/pymodutils/CMakeLists.txt
+@@ -16,7 +16,17 @@ target_include_directories(pymodutils INTERFACE
+ target_link_libraries(pymodutils INTERFACE
+         mod::libmod
+         Boost::${PYTHON_TARGET}
+-        Python3::Python)
++        # On macOS, the python3.11 binary is statically linked to libpython
++        # (links only libSystem). Linking the extension module against
++        # libpython3.11.dylib loads a *second* copy of libpython with an
++        # uninitialized _PyRuntime; flat-lookup Py* symbols from
++        # libboost_python311 then resolve to that copy and crash. Use
++        # Python3::Module on Darwin so Python symbols are dynamic_lookup-ed
++        # from the host interpreter, matching setuptools' Mac convention.
++        $<IF:$<PLATFORM_ID:Darwin>,Python3::Module,Python3::Python>)
++if(APPLE)
++    target_link_options(pymodutils INTERFACE "LINKER:-undefined,dynamic_lookup")
++endif()
+ 
+ install(TARGETS pymodutils
+         EXPORT PROJECT_exports

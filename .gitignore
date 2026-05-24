@@ -1,0 +1,36 @@
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+
+# vendored MØD: tracked in its own git history under external/mod/.git;
+# our build patches are exported to patches/mod/ for audit (see SETUP.md).
+external/mod/
+
+# MØD runtime artifacts
+out/
+summary/
+timer.dat
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# build / packaging
+build/
+dist/
+
+# editors / OS / agent state
+.DS_Store
+.vscode/
+.idea/
+.claude/
+
+# certificate outputs (regenerated; commit by hand when intentional)
+artifacts/
+
+# energetics cache (regenerable; large)
+.cache/energetics/

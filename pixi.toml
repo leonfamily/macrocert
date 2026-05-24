@@ -1,0 +1,86 @@
+[workspace]
+name = "macrocert"
+version = "0.1.0"
+description = "MØD-MacroCert: constraint-certified macrocyclization design"
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tasks]
+# MØD lives in the linux/amd64 Docker image; there is no osx-arm64
+# conda build as of 2026-05. Runs under Rosetta on Apple Silicon.
+# MØD container invocation. Image entrypoint is /bin/bash, so we pass the
+# `mod` CLI explicitly. --platform pin keeps Docker Desktop from warning
+# about arch (we know it's amd64 under Rosetta on arm64).
+mod = "docker run --rm -it --platform linux/amd64 -v $PWD:/workdir -u $(id -u):$(id -g) jakobandersen/mod mod"
+mod-shell = "docker run --rm -it --platform linux/amd64 -v $PWD:/workdir -u $(id -u):$(id -g) jakobandersen/mod"
+mod-smoke = "docker run --rm --platform linux/amd64 -v $PWD:/workdir -u $(id -u):$(id -g) jakobandersen/mod mod -f /workdir/scripts/smoke_mod.py"
+smoke = "python scripts/smoke_host.py"
+build-mod = "bash scripts/build_mod.sh"
+install-aimnet2 = "bash scripts/install_aimnet2.sh"
+
+# ----------------------------------------------------------------------------
+# Default env: Layer A-C certifying core + Layer D energetics
+# ----------------------------------------------------------------------------
+[dependencies]
+python = "3.11.*"
+pip = "*"
+# Cheminformatics
+rdkit = ">=2024.03"
+openbabel = "*"
+# ILP backend for the integer-hyperflow solver (Andersen 2019)
+pyscipopt = ">=5.2"
+# ASE drives MLIP and QM calculators
+ase = ">=3.23"
+# Layer D: GFN2-xTB fast semiempirical
+xtb = ">=6.7"
+xtb-python = "*"
+# Layer D: Psi4 open-source DFT (ORCA skipped: registration-gated, no arm64)
+psi4 = ">=1.9"
+# MLIP host (MACE-OFF / AIMNet2 use PyTorch with MPS on Apple Silicon)
+pytorch = ">=2.4"
+# Utility
+numpy = "*"
+scipy = "*"
+networkx = "*"
+matplotlib = "*"
+pyyaml = "*"
+jupyterlab = "*"
+
+# MØD native build deps (osx-arm64). Compiled into the default env by
+# scripts/build_mod.sh. Coexist with the runtime deps above because all
+# resolve cleanly from conda-forge.
+cxx-compiler = "*"
+cmake = "*"
+make = "*"
+pkg-config = "*"
+libboost-python-devel = "*"
+graphviz = ">=2.46.1"
+pdf2svg = "*"
+coincbc = "*"
+parse = "*"
+typing_extensions = "*"
+ipython = "*"
+
+[pypi-dependencies]
+# Layer D MLIP — MACE-OFF transferable organic force field (Kovács 2025)
+mace-torch = ">=0.3"
+# Note: AIMNet2 has no PyPI release; install from GitHub on demand.
+# Note: SCINE/Chemoton (proposal §3.5) cannot be installed:
+#       scine-database-python has no osx-arm64 conda build as of 2026-05.
+
+# ----------------------------------------------------------------------------
+# CASP env: AiZynthFinder (proposal §2.6 — consulted, not reproduced).
+# Isolated because aizynthfinder pins rdkit<2024.0.0.
+# Activate with:  pixi run -e casp <cmd>
+# ----------------------------------------------------------------------------
+[feature.casp.dependencies]
+python = "3.11.*"
+pip = "*"
+rdkit = ">=2023.9,<2024.0"
+
+[feature.casp.pypi-dependencies]
+aizynthfinder = ">=4.4"
+
+[environments]
+default = { solve-group = "default" }
+casp = { features = ["casp"], no-default-feature = true }

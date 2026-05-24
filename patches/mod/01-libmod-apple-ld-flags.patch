@@ -1,0 +1,49 @@
+diff --git a/libs/libmod/CMakeLists.txt b/libs/libmod/CMakeLists.txt
+index 23e68c4..da672f9 100644
+--- a/libs/libmod/CMakeLists.txt
++++ b/libs/libmod/CMakeLists.txt
+@@ -19,11 +19,11 @@ target_include_directories(libmod
+         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
+-if(ENABLE_DEP_SYMBOL_HIDING)
++if(ENABLE_DEP_SYMBOL_HIDING AND NOT APPLE)
++    # Apple's ld does not support --exclude-libs.
+     target_link_libraries(libmod PRIVATE
+             $<$<CXX_COMPILER_ID:GNU>:-Wl,--exclude-libs,ALL>
+             $<$<CXX_COMPILER_ID:Clang>:-Wl,--exclude-libs,ALL>
+-            #$<$<CXX_COMPILER_ID:AppleClang>:-Wl,--exclude-libs,ALL> # TODO: is a an equivalent?
+             )
+ endif()
+ target_link_libraries(libmod
+@@ -48,16 +48,20 @@ target_link_libraries(libmod
+ # Perhaps fixed in https://gitlab.kitware.com/cmake/cmake/-/merge_requests/3642
+ # TODO: remove the next line with some higher CMAKE version is required?
+ target_link_libraries(libmod PUBLIC Boost::iostreams)
+-target_link_libraries(libmod PRIVATE
+-        $<$<CXX_COMPILER_ID:GNU>:-Wl,--no-undefined>
+-        $<$<CXX_COMPILER_ID:Clang>:-Wl,--no-undefined>
+-        #$<$<CXX_COMPILER_ID:AppleClang>:-Wl,--no-undefined> # TODO: is there an equivalent?
+-        )
+-# https://stackoverflow.com/questions/52018092/how-to-set-rpath-and-runpath-with-gcc-ld
+-target_link_libraries(libmod PRIVATE
+-        $<$<CXX_COMPILER_ID:GNU>:-Wl,--disable-new-dtags>
+-        $<$<CXX_COMPILER_ID:Clang>:-Wl,--disable-new-dtags>
+-        )
++if(APPLE)
++    # Apple's ld: equivalent of --no-undefined is -undefined,error; --disable-new-dtags has no
++    # equivalent (Mach-O uses LC_RPATH, not DT_RUNPATH/DT_RPATH).
++    target_link_libraries(libmod PRIVATE -Wl,-undefined,error)
++else()
++    target_link_libraries(libmod PRIVATE
++            $<$<CXX_COMPILER_ID:GNU>:-Wl,--no-undefined>
++            $<$<CXX_COMPILER_ID:Clang>:-Wl,--no-undefined>
++            )
++    target_link_libraries(libmod PRIVATE
++            $<$<CXX_COMPILER_ID:GNU>:-Wl,--disable-new-dtags>
++            $<$<CXX_COMPILER_ID:Clang>:-Wl,--disable-new-dtags>
++            )
++endif()
+ target_compile_options(libmod PRIVATE -Wall -Wextra -pedantic
+         -Wno-unused-parameter
+         -Wno-comment
