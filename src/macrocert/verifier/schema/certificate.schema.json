@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://macrocert/certificate.schema.json",
+  "title": "MØD-MacroCert Certificate",
+  "type": "object",
+  "required": [
+    "spec_hash",
+    "derivation_graph",
+    "composed_rule",
+    "flow",
+    "solver_witness"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "spec_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "SHA-256 of the RunSpec contents that produced this run."
+    },
+    "derivation_graph": {
+      "type": "object",
+      "required": ["vertices", "hyperedges", "sink", "sources", "max_steps"],
+      "properties": {
+        "vertices": {
+          "type": "array",
+          "items": { "type": "object", "required": ["id"], "properties": { "id": {"type": "string"}, "label": {"type": "string"} } }
+        },
+        "hyperedges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "rule_id", "sources", "targets", "expelled_mass_g_per_mol", "reagent_mass_g_per_mol", "is_macrocyclization"],
+            "properties": {
+              "id": {"type": "string"},
+              "rule_id": {"type": "string"},
+              "sources": {"type": "array", "items": {"type": "string"}},
+              "targets": {"type": "array", "items": {"type": "string"}},
+              "expelled_mass_g_per_mol": {"type": "number", "minimum": 0},
+              "reagent_mass_g_per_mol": {"type": "number", "minimum": 0},
+              "is_macrocyclization": {"type": "boolean"}
+            }
+          }
+        },
+        "sources": { "type": "array", "items": {"type": "string"} },
+        "sink": { "type": "string" },
+        "max_steps": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "composed_rule": {
+      "type": "object",
+      "required": ["gml"],
+      "properties": {
+        "gml": {"type": "string"},
+        "atom_map": {"type": "object", "additionalProperties": {"type": "integer"}},
+        "expelled_mass_g_per_mol": {"type": "number", "minimum": 0},
+        "rule_ids_traced": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "flow": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    },
+    "solver_witness": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "obj_value", "dual_bound"],
+          "properties": {
+            "kind": {"const": "optimal"},
+            "obj_value": {"type": "number"},
+            "dual_bound": {"type": "number"}
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind"],
+          "properties": {
+            "kind": {"const": "infeasible"},
+            "iis_constraint_ids": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+            "farkas_multipliers": {"type": "object", "additionalProperties": {"type": "number"}}
+          },
+          "anyOf": [
+            { "required": ["iis_constraint_ids"] },
+            { "required": ["farkas_multipliers"] }
+          ]
+        }
+      ]
+    },
+    "energetics_dependencies": {
+      "type": ["object", "null"],
+      "description": "Per-edge ΔG provenance for any edge under a ΔG constraint at certification time. Null if Layer D was not applied.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["tier", "dG_kcal_per_mol", "cache_key"],
+        "properties": {
+          "tier": { "enum": ["xtb", "mlip", "dft"] },
+          "dG_kcal_per_mol": { "type": "number" },
+          "cache_key": { "type": "string" },
+          "provenance": { "type": "string" }
+        }
+      }
+    }
+  }
+}
