@@ -114,9 +114,16 @@ def _side_from(block: object) -> GMLSide:
         return GMLSide()
     side = GMLSide()
     for n in block.get("node", []) or []:
+        # MØD permits omitting ``label`` on ``left``/``right`` nodes
+        # whose label is supplied by the matching ``context`` node
+        # (see external/mod/examples/py/030_stereo/330_tartaric.py:5-24
+        # where the ``left`` block carries only ``stereo`` on node 0
+        # and the label lives in ``context``). Workstream F (Component
+        # 2) leans on this so that stereo-only side annotations parse
+        # cleanly without forcing the rule author to duplicate labels.
         nd = GMLNode(
             id=int(n["id"]),
-            label=str(n["label"]),
+            label=str(n.get("label", "")),
             charge=int(n.get("charge", 0)),
             stereo=str(n["stereo"]) if "stereo" in n else None,
         )

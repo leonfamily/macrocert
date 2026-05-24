@@ -1,0 +1,80 @@
+From e1ec8f0244b3ee13239504e6a081963374e2663f Mon Sep 17 00:00:00 2001
+From: Ivan Leon <ivan@sharpe.com>
+Date: Sun, 24 May 2026 02:11:28 -0700
+Subject: [PATCH] Stereo: copy LonePair virtual edges in 'copy unmatched from
+ R1' branch
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The RC::Visitor::Stereo::handleBoth visitor's "second-to-first subgraph"
+case at lines 388-422 walks unmatched virtual edges from R1's stereo
+embedding into the result. The LonePair / Radical branch at lines
+404-407 hits MOD_ABORT unconditionally, but the same file's
+copyAllFromSide lambda at lines 94-101 handles LonePair correctly:
+
+    case lib::Stereo::EmbeddingEdge::Type::LonePair:
+        // offsets should be corrected somewhere else
+        data.edges.emplace_back(-1, ..::LonePair, emb.cat);
+        break;
+
+Mirroring that pattern here unblocks any substrate carrying an amine N
+at degree 3+: Stereo/Inference.hpp:276 calls addLonePairs(v, 1) for
+those, the DG Rule strategy at Rule.cpp:166-172 wraps the substrate as
+a one-sided rule, RC::Super composes it with the user rule under
+LabelSettings.withStereo=true, and finalize reaches the LonePair branch
+on every rule application -- not only under explicit rcParallel/rcSub.
+
+The Radical case keeps its MOD_ABORT (TODO) but now has the dead-code
+emplace_back below it for symmetry with line 100-101.
+
+Reproducer:
+
+    import mod
+    mod.config.io.useLabelSettings = True
+    ls = mod.LabelSettings(mod.LabelType.Term,
+                           mod.LabelRelation.Specialisation,
+                           mod.LabelRelation.Specialisation)
+    g = mod.Graph.fromSMILES("CCN")
+    r = mod.Rule.fromGMLString(open("macrolactamization.gml").read())
+    mod.DG(graphDatabase=[g], labelSettings=ls).build().execute(
+        mod.addSubset(g) >> r)
+
+Without this patch: MOD_ABORT at Stereo.hpp:406.
+With this patch: DG construction completes; LonePair virtual edges
+flow through to the composed rule's stereo conf as expected.
+
+Bug surfaced by MØD-MacroCert Workstream F (ascomylactam A target
+requires stereo enforcement on 12 sp3 centers). Full root-cause
+analysis at docs/mod_abort_investigation.md in the macrocert repo.
+---
+ libs/libmod/src/mod/lib/RC/Visitor/Stereo.hpp | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/libs/libmod/src/mod/lib/RC/Visitor/Stereo.hpp b/libs/libmod/src/mod/lib/RC/Visitor/Stereo.hpp
+index 8eff0ef..3a365fd 100644
+--- a/libs/libmod/src/mod/lib/RC/Visitor/Stereo.hpp
++++ b/libs/libmod/src/mod/lib/RC/Visitor/Stereo.hpp
+@@ -402,8 +402,18 @@ public:
+ 							for(const auto &emb: conf) {
+ 								switch(emb.type) {
+ 								case lib::Stereo::EmbeddingEdge::Type::LonePair:
++									// Copy lone-pair virtual edges through unchanged.
++									// Mirrors the LonePair case in copyAllFromSide above (lines 94-97).
++									// Without this, any substrate with an amine N at degree 3+ aborts
++									// under LabelSettings.withStereo=true via the addLonePairs(v, 1)
++									// injection in Stereo/Inference.hpp.
++									// offsets should be corrected somewhere else
++									data.edges.emplace_back(-1, lib::Stereo::EmbeddingEdge::Type::LonePair, emb.cat);
++									break;
+ 								case lib::Stereo::EmbeddingEdge::Type::Radical:
+-									MOD_ABORT;
++									MOD_ABORT; // TODO (kept from upstream; matches the Radical TODO at line 99)
++									// offsets should be corrected somewhere else
++									data.edges.emplace_back(-1, lib::Stereo::EmbeddingEdge::Type::Radical, emb.cat);
+ 									break;
+ 								case lib::Stereo::EmbeddingEdge::Type::Edge:
+ 									const auto &gInput = get_graph(glSide);
+-- 
+2.54.0
+

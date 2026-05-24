@@ -16,6 +16,13 @@ from pathlib import Path
 def _cmd_check_rules(args: argparse.Namespace) -> int:
     from macrocert.spec import load_rule_library
     from macrocert.verifier.conservation import check_rule_conservation
+    # Workstream F (Component 2): stereo conservation runs alongside
+    # the existing element/charge balance check. See
+    # docs/mod_stereo_reference.md §3.1 and
+    # src/macrocert/verifier/stereo_conservation.py.
+    from macrocert.verifier.stereo_conservation import (
+        check_rule_stereo_conservation,
+    )
 
     lib = load_rule_library(args.directory)
     if not lib.rules:
@@ -23,6 +30,9 @@ def _cmd_check_rules(args: argparse.Namespace) -> int:
         return 1
 
     failures = 0
+    stereo_errors = 0
+    stereo_warnings = 0
+    stereo_infos = 0
     for rid, rule in lib.rules.items():
         result = check_rule_conservation(rule.gml)
         if result.ok:
@@ -30,10 +40,34 @@ def _cmd_check_rules(args: argparse.Namespace) -> int:
         else:
             failures += 1
             print(f"  FAIL {rid:40s}  {result.reason}", file=sys.stderr)
-    if failures:
-        print(f"\n{failures} rule(s) failed conservation re-check", file=sys.stderr)
+        # Stereo pass: orthogonal to mass conservation. Errors are
+        # treated as failures; warnings/infos are reported but do not
+        # flip the exit code.
+        for issue in check_rule_stereo_conservation(rule.gml):
+            tag = {
+                "error": "STEREO-ERROR",
+                "warning": "STEREO-WARN",
+                "info": "STEREO-INFO",
+            }[issue.severity]
+            stream = sys.stderr if issue.severity == "error" else sys.stdout
+            print(f"  {tag} {rid:40s}  [{issue.code}] {issue.message}", file=stream)
+            if issue.severity == "error":
+                stereo_errors += 1
+            elif issue.severity == "warning":
+                stereo_warnings += 1
+            else:
+                stereo_infos += 1
+    if failures or stereo_errors:
+        if failures:
+            print(f"\n{failures} rule(s) failed conservation re-check", file=sys.stderr)
+        if stereo_errors:
+            print(f"{stereo_errors} stereo conservation error(s)", file=sys.stderr)
         return 1
-    print(f"\n{len(lib.rules)} rule(s) pass conservation re-check")
+    summary = (
+        f"\n{len(lib.rules)} rule(s) pass conservation re-check "
+        f"(stereo: {stereo_warnings} warning(s), {stereo_infos} info(s))"
+    )
+    print(summary)
     return 0
 
 
