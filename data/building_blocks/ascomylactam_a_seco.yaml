@@ -1,0 +1,22 @@
+name: ascomylactam_a_seco_precursor
+smiles: CO[C@@H]1C(=C(O)[C@@]23[C@H]4[C@H](O)[C@H]5[C@@H](C[C@H](C)C[C@@H]5C)[C@@H]4C(C)=C[C@]2(C)C=C(C)[C@@H]3C)C(=O)N[C@@]1(O)Cc1ccc(F)cc1
+provenance: |
+  Seco-precursor for ascomylactam A (M5 target). Derived
+  programmatically from the cyclized Chen 2019 structure
+  (CCDC 1515168) by breaking the macrocyclic Ar-O-C(sp3)
+  bond and capping with F on the aromatic side. The
+  resulting substrate carries Ar-F at C-7' and free HO at
+  C-14; aryl_etherification rule fires intramolecularly to
+  close the 13-membered ring + expel HF.
+notes: |
+  Building block for the M5 pipeline run. Stereochemistry
+  preserved on all 12 sp3 centers of the cyclized form
+  (alcohol carbon C-14, which is the only stereocenter
+  directly affected by the closure, retains its R config
+  per the aryl_etherification stereo_flags:
+  retains_alcohol_stereo).
+  Mass balance: seco MW = cyclized MW + HF (verified by
+  build script): 559.3298 + 20.006 = 579.3360.
+refs:
+  - "Chen et al. 2019, J. Nat. Prod. 82:1752 (DOI:10.1021/acs.jnatprod.8b00918) -- cyclized parent"
+  - "Sugata, Uchiro et al. 2017, Chem. Asian J. 12:628 (DOI:10.1002/asia.201601728) -- analogous GKK1032A2 seco-precursor + SNAr closure"

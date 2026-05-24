@@ -1,54 +1,164 @@
-# Ascomylactam A — target encoding (M1 placeholder, full encoding in M5)
+# Ascomylactam A — target encoding (M5)
 
 ## Source
 
-**Primary**: Chen, Y. *et al.* *J. Nat. Prod.* **82**, 1752–1758 (2019).
-DOI: [10.1021/acs.jnatprod.8b00918](https://doi.org/10.1021/acs.jnatprod.8b00918).
+- **Primary literature**: Chen, Y.; Liu, Z.; Huang, Y.; Liu, L.; He, J.; Wang, L.;
+  Yuan, J.; She, Z. "Ascomylactams A–C, Cytotoxic 12- or 13-Membered-Ring
+  Macrocyclic Alkaloids Isolated from the Mangrove Endophytic Fungus
+  *Didymella* sp. CYSK-4, and Structure Revisions of Phomapyrrolidones A and C."
+  *J. Nat. Prod.* **2019**, *82* (7), 1752–1758.
+  DOI: [10.1021/acs.jnatprod.8b00918](https://doi.org/10.1021/acs.jnatprod.8b00918).
+- **CCDC entry**: **1515168** (single-crystal X-ray; Cu Kα, monoclinic *P*2₁,
+  *T* = 150 K, Flack parameter −0.13(9)). Per the primary paper this entry
+  fixes the absolute configuration of all twelve sp³ stereocenters in
+  ascomylactam A.
+- **Triangulated brief**: `research_findings.md` (in this directory), based on
+  open-access congeners (Wijeratne 2013, Ariantari 2020, Faraj 2023).
 
-Per proposal §2.1, the structure (specifically the **exact ring membership of
-the 13-membered perimeter**, including heteroatom positions and absolute
-configuration set by the deposited X-ray) must come from the crystal data,
-not from the cytochalasan class.
+## Encoding approach
 
-## Status
+**SMILES-driven (RDKit) — CCDC CIF was NOT retrieved.**
 
-`structure.mol` is **not yet written**. The ACS supporting-information PDF
-and the deposited CCDC entry are both behind paywalls (verified
-`HTTP 403` on `pubs.acs.org/doi/suppl/.../np8b00918_si_001.pdf` and the
-CCDC search interface gating the actual CIF download). Two paths to
-resolve in time for the M5 ascomylactam run:
+The CCDC web search for entry 1515168 sits behind an interactive captcha
+that is not accessible from this agent harness, and the ACS supporting
+information PDF (which embeds the CIF as ASCII text) returns HTTP 403.
+The structure was therefore built atom-by-atom from the primary-source
+connectivity (Chen 2019 Table 1 + Figure 1 + the explicit ring list in
+`research_findings.md` §2), stereo-tagged per the X-ray absolute
+configuration reported in Chen 2019, and 3D-embedded with RDKit ETKDG.
 
-1. **Institutional access** to the ACS SI PDF: extract the embedded CIF
-   block (Chen 2019 reports single-crystal X-ray and customarily attaches
-   the .cif as ASCII text in the SI). Convert to `structure.mol` via
-   `obabel ascomylactam_a.cif -O structure.mol`.
-2. **CCDC direct request**: the CSD deposition number associated with
-   this paper, once located, can be requested via the CCDC web form
-   even without a subscription (free for "structure on request").
-   Reference: <https://www.ccdc.cam.ac.uk/structures/search?DOI=10.1021/acs.jnatprod.8b00918>.
+Pipeline: `scripts/build_ascomylactam_a.py` →
+`Chem.MolToMolFile` → `obabel … -O structure.mol` (strict V2000), mirroring
+`scripts/build_panel_lactams.py`.
 
-Once `structure.mol` is in place, run
+Verified at build time:
+- Molecular formula: **C₃₅H₄₅NO₅** (matches Chen 2019 HRESIMS 558.3222 [M – H]⁻).
+- Heavy-atom count: **41** (35 C + 5 O + 1 N).
+- Stereocenters: **12 assigned of 12 total** (no ambiguous centers remain).
+- 13-membered macrocycle present (verified via `vlt`'s encoder which uses
+  RDKit SSSR).
+
+**Canonical isomeric SMILES** (RDKit, recorded for round-trip
+auditability):
 
 ```
-pixi run encode-target data/targets/ascomylactam_a
+CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
 ```
 
-which writes `ring_perimeter.txt` listing the 13-ring atoms for the
-synthetic-chemist team member to sign off against Figure 2 / Table 1 of
-the paper.
+## Stereo assignments (Chen 2019 X-ray)
 
-## Why this is a hard block, not a "we'll figure it out"
+All twelve centers as reported in the paper abstract / SI:
 
-A misencoded perimeter (e.g., a 12-ring instead of 13, or an O where N
-sits) will silently corrupt every certificate the pipeline emits for
-this target. The ground-truth structure is the formal "goal" in the
-proposal's Lean analogy — getting it wrong is equivalent to stating the
-wrong theorem.
+| Paper label | CIP | Position |
+| --- | --- | --- |
+| C-1   | *S* | sp³ CH bearing C-20 methyl |
+| C-4   | *R* | sp³ quaternary bearing C-22 methyl |
+| C-7   | *S* | sp³ CH (ring B/D junction) |
+| C-8   | *S* | sp³ CH (ring C/D junction) |
+| C-10  | *R* | sp³ CH bearing C-24 methyl |
+| C-12  | *S* | sp³ CH bearing C-25 methyl |
+| C-13  | *R* | sp³ CH (ring C/D junction) |
+| C-14  | *R* | sp³ oxymethine; bears the macrocyclic ether O |
+| C-15  | *S* | sp³ CH (ring B/D junction) |
+| C-16  | *S* | sp³ CH (ring A/B/E junction) |
+| C-1′  | *R* | sp³ CH bearing OMe |
+| C-2′  | *R* | sp³ quaternary hemiaminal bearing OH and bonded to lactam N–H |
 
-## Surrogate for M1 exit
+The build script (`scripts/build_ascomylactam_a.py`) verifies all twelve
+descriptors via `Chem.AssignStereochemistry`. If any center fails, the
+script aborts.
 
-For the M1 exit criterion ("generated network for one disconnection
-family, visualized"), see `data/targets/toy_macrolactam/`. The toy is a
-13-membered lactam built from one amine arm + one carboxylic-acid arm —
-sufficient for end-to-end DG generation without depending on the gated
-ascomylactam structure.
+## Tautomer
+
+**Enol form at C-17** (per Chen 2019 and the embellicine-E NMR
+correlation in Faraj 2023):
+- C-17 δ_C 172.1 ppm (enol C–OH); ¹H δ 12.11 ppm exchangeable OH.
+- C-17=C-18 double bond conjugated with the C-19 amide carbonyl
+  (vinylogous amide; tetramic-acid-like).
+
+Encoded in `structure.mol` as `C17(-OH)=C18` with single bonds C16–C17
+and C18–C1′, and a single bond C18–C19 to the amide carbonyl. The
+keto tautomer (C-17 carbonyl, C-17/C-18 single bond) is *not* encoded.
+
+## Atropoisomerism caveat — ACTION REQUIRED
+
+**The para-arene inside the 13-membered macrocycle has restricted
+rotation (Chen 2019 X-ray; NMR: H-5′/H-9′ and H-6′/H-8′ are
+chemically inequivalent in all six congeners).**
+
+RDKit's `EmbedMolecule` (ETKDG) **does not enforce this constraint**
+— there is no SMILES-level syntax for arene atropoisomerism, and the
+3D embed selects an arbitrary face. The resulting `structure.mol`
+may therefore encode the wrong atropoisomer relative to the
+published X-ray.
+
+**Action**: Ivan to visually compare the 3D pose against Chen 2019
+Figure 2 before any energetics run. NOESY hints from Faraj 2023
+(NOEs: H-16↔H-1′/H-9′, H-15↔H-8′, H-14/Me-25↔H-6′) place the OMe-
+bearing C-1′ on the same face as the H-9′ side. If the embedded
+pose is the opposite atropoisomer, the fix is to swap the four
+arene-CH atoms (C-5′↔C-9′ and C-6′↔C-8′ in the paper labels), which
+is a chemically equivalent SMILES-level permutation and a non-trivial
+3D-coordinate swap.
+
+If the M5 ascomylactam run produces a TS that depends on the
+atropoisomer face, this caveat becomes a correctness gate.
+
+## Atom-label map (paper-label ↔ RDKit canonical index)
+
+See `atom_label_map.txt` (auto-generated by the build script). The
+13-atom macrocyclic perimeter, in the order the SSSR enumerator
+emits it (sorted canonical indices), is:
+
+| Canonical idx | Paper label | Role |
+| ---: | --- | --- |
+|  0 | C-17 | enol C(-OH), =C18 |
+|  1 | C-16 | sp³ junction (rings A, B, E) |
+|  2 | C-15 | sp³ junction (rings B, D, E) |
+|  3 | C-14 | sp³ oxymethine; ether donor |
+| 23 | O (ether) | macrocyclic Ar–O–C bridge |
+| 24 | C-7′ | aromatic C–O (ipso to ether) |
+| 25 | C-8′ (or C-6′) | aromatic CH, ortho to C-7′ |
+| 26 | C-9′ (or C-5′) | aromatic CH, meta to C-7′ |
+| 27 | C-4′ | aromatic C ipso to CH₂(3′) |
+| 28 | C-3′ | sp³ benzylic CH₂ |
+| 29 | C-2′ | sp³ quaternary hemiaminal |
+| 30 | C-1′ | sp³ CH bearing OMe |
+| 31 | C-18 | sp² C, =C17, fused to lactam |
+
+(The arene contributes only **three** atoms to the perimeter —
+C-7′, one ortho, one meta — because the macrocycle traverses one
+face of the *para*-ring; the other face's CH atoms, C-5′/C-9′ or
+C-6′/C-8′, sit at canonical indices 38 and 39 as substituents of
+the macrocycle. This is the structural origin of the
+atropoisomerism.)
+
+## Open questions for Ivan
+
+1. **Atropoisomer face**: verify the 3D pose in `structure.mol`
+   matches Chen 2019 Figure 2. If wrong, swap the four arene-CH
+   atom permutation (see caveat above) and re-embed.
+2. **Perimeter sign-off**: confirm the 13-tuple above matches the
+   atoms you read off Figure 1 / Figure 2.
+3. **Building blocks**: `blocks: []` in `runspec.yaml` is a
+   placeholder. The literature tactic (Ar–O–C(sp³) closure;
+   Uchiro 2017 GKK1032 analog using η⁶-arene-Cr SNAr) implies a
+   seco-precursor with a phenol on the arene side and a leaving
+   group on the C-14 side. We have not yet authored this block;
+   adding it is the next M5 task after sign-off on this encoding.
+4. **CCDC CIF**: if/when Ivan obtains the actual CIF, re-encode via
+   `obabel structure.cif -O structure.mol` and diff against the
+   current file; the CIF coordinates are authoritative for the
+   atropoisomer.
+
+## Encoding-pass status
+
+- `pixi run python -m macrocert.cli encode-target data/targets/ascomylactam_a`
+  succeeded; `ring_perimeter.txt` written.
+- Formula / stereocount / 13-ring all verified at build time.
+- No commit yet — leaving unstaged for review.
+
+---
+
+`signed_by: Ivan Leon (TBD)` — pending Ivan's manual atom-by-atom
+audit per the open questions above.

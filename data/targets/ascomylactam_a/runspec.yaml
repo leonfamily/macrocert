@@ -1,36 +1,109 @@
-# Ascomylactam A run specification. The structure file is not yet in
-# place — see notes.md. This runspec is the eventual M5 entry point.
+# Ascomylactam A run specification — M5 entry point.
+# Structure encoded 2026-05-24 from Chen 2019 connectivity + X-ray
+# absolute configuration (CCDC 1515168) via RDKit/openbabel; see
+# notes.md and structure.mol.
 name: ascomylactam_a
+
 target:
-  structure_path: structure.mol      # TODO: drop the CIF-derived Molfile here
+  structure_path: structure.mol
   ring_size: 13
-  # expected_ring_atoms: <to be filled in once ring_perimeter.txt is signed off>
+  # expected_ring_atoms: <to be filled in once Ivan signs off on
+  # ring_perimeter.txt; the auto-derived perimeter is the 13-tuple
+  # [C17, C16, C15, C14, O_ether, C7', (C8'|C6'), (C9'|C5'),
+  #  C4', C3', C2', C1', C18] mapped to RDKit canonical indices
+  # 0,1,2,3,23,24,25,26,27,28,29,30,31.>
 
+# Seco-precursor: Chen 2019 cyclized structure with the
+# macrocyclic Ar-O-C(sp3) bond opened to Ar-F + HO-C(sp3),
+# carrying all 12 sp3 stereocenters of the cyclized parent.
+# Authored 2026-05-24 by scripts/build_ascomylactam_seco.py;
+# mass balance verified (seco MW = cyclized MW + HF;
+# 579.3360 = 559.3298 + 20.0062).
+# Refs:
+#   Chen 2019 (DOI:10.1021/acs.jnatprod.8b00918) -- cyclized parent
+#   Uchiro 2017 (DOI:10.1002/asia.201601728) -- analogous GKK1032A2 seco-SNAr
 blocks:
-  - phe_amine_arm
-  - pks_acid_arm
-  - dienophile_arm
+  - ascomylactam_a_seco
 
+# Full M5 configuration: evaluate all 12 macrocyclization tactics on
+# the same seco-precursor. max_steps: 1 keeps the search tractable —
+# each rule is tried once against the seco, producing at most one
+# derivation per (rule, match site).
+#
+# Expected outcome per proposal §5: a shortlist of ≤10 strategy
+# families with certificates (the rules that can close the 13-ring)
+# plus no-go certificates for ruled-out classes (the rules whose
+# LHS doesn't match the seco or whose product fails the ring-size
+# predicate). The verifier (macrocert-verify) checks every emitted
+# certificate.
+#
+# Rationale for the (rules, max_steps) choice:
+# - all 12 rules together (not single rule): need the no-go cert
+#   per family per proposal §5
+# - max_steps: 1: ring_close_only is true, predicates guard the
+#   13-ring + intramolecular constraint, so any productive
+#   derivation is a single firing on the seco.
+# - max_steps > 1 caused a process-runaway on first attempt
+#   (likely under sleep/wake interruption); stay conservative.
 rules: all_macrocyclization
 
 strategy:
-  max_steps: 8
+  max_steps: 1
   ring_close_only: true
+  # Workstream F α-C overlay follow-up (task #34): with the upstream
+  # MØD MOD_ABORT patch landed and macrolactamization/macrolactonization
+  # carrying α-C stereo overlays (sym tetrahedral on context, requires
+  # sp3 α-C in substrate), turn on runtime stereo enforcement so the
+  # certificate is stereo-faithful. See docs/workstream_f_alpha_c_overlays.md.
+  stereo_enforcement: true
+  predicates:
+    is_intramolecular: true
+    ring_size_equals: 13
+    # Workstream D phase 3: the aryl_etherification and
+    # biaryl_etherification rules have structurally identical GML
+    # bodies (both close Ar-X + O-H -> Ar-O-* + HX). MØD's match
+    # operates on element labels and can't distinguish phenolic
+    # (sp2) vs aliphatic (sp3) O partner. These predicates run a
+    # RDKit SMARTS substructure check on the product to enforce
+    # the intended chemistry per rule. For ascomylactam A the
+    # alcohol partner is C-14 (sp3) — only aryl_etherification is
+    # mechanistically correct.
+    alcohol_partner_C_must_be_sp3:
+      aryl_etherification: true
+    alcohol_partner_C_must_be_aromatic:
+      biaryl_etherification: true
 
 solver:
-  backend: mod
+  # M5 calls for ≤10 strategy families in the shortlist
+  # (proposal §5 deliverable). SCIP is the ILP solver tier; MØD
+  # is the DG generator. top_n=10 matches the proposal.
+  backend: scip
   top_n: 10
   time_budget_s: 120
   request_infeasibility_cert: true
 
 energetics:
-  enabled: true
-  initial_tier: xtb
-  dG_kcal_max: 30.0   # generous barrier ceiling for medium-ring closures
+  # Disabled until the energetics protocol's TS-search hook (Layer
+  # C) is wired end-to-end for macrocycles of this size. The xTB
+  # tier is fine for 13-membered seco precursors but the TS search
+  # for the atropoisomeric closure is not yet implemented; see
+  # docs/energetics_protocol.md (gap noted in proposal §4).
+  enabled: false
 
 notes: |
-  Full M5 run. Until structure.mol is in place (notes.md), this spec is
-  unloadable; `pixi run encode-target data/targets/ascomylactam_a/`
-  will fail with FileNotFoundError on the missing structure — which is
-  the intended behavior. We do not allow inferring a target structure
-  from the class name.
+  Structure file is RDKit-built from Chen 2019 connectivity + X-ray
+  absolute configuration. The 3D embed succeeded but does NOT
+  enforce the published atropoisomer (para-arene rotation inside
+  the 13-membered ring) — Ivan to verify the pose against
+  Chen 2019 Figure 2 before any energetics run. See notes.md
+  §"Atropoisomerism caveat" and the canonical isomeric SMILES in
+  atom_label_map.txt.
+
+  blocks: [] is intentional for the first encoding pass; the seco
+  precursor + aryl-halide partner for the Ar-O-C(sp3) closure
+  (the literature tactic in Uchiro 2017's GKK1032 analogue) has
+  not yet been authored as a building block. Until it is, the
+  generator will report "no seco precursor" — that is the
+  expected failure mode for this run; the M5 deliverable is the
+  encoded target + perimeter audit + literature-tactic
+  identification, not necessarily a closed DG.

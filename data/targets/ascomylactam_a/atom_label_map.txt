@@ -1,0 +1,121 @@
+paper=         1  rdkit_idx=  0  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        10  rdkit_idx=  9  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        11  rdkit_idx= 10  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        12  rdkit_idx= 11  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        13  rdkit_idx= 12  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        14  rdkit_idx= 13  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        15  rdkit_idx= 14  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        16  rdkit_idx= 15  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        17  rdkit_idx= 25  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        18  rdkit_idx= 26  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        19  rdkit_idx= 27  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=         2  rdkit_idx=  1  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        20  rdkit_idx= 28  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        21  rdkit_idx= 29  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        22  rdkit_idx= 30  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        23  rdkit_idx= 31  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        24  rdkit_idx= 32  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        25  rdkit_idx= 33  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        26  rdkit_idx= 34  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=         3  rdkit_idx=  2  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=         4  rdkit_idx=  3  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=         5  rdkit_idx=  4  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=         6  rdkit_idx=  5  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=         7  rdkit_idx=  6  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=         8  rdkit_idx=  7  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=         9  rdkit_idx=  8  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        1p  rdkit_idx= 16  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        2p  rdkit_idx= 17  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        3p  rdkit_idx= 18  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        4p  rdkit_idx= 19  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        5p  rdkit_idx= 20  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        6p  rdkit_idx= 21  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        7p  rdkit_idx= 22  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        8p  rdkit_idx= 23  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=        9p  rdkit_idx= 24  element=C# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=         N  rdkit_idx= 35  element=N# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=   O_amide  rdkit_idx= 36  element=O# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=    O_enol  rdkit_idx= 40  element=O# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=   O_ether  rdkit_idx= 37  element=O# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=    O_hemi  rdkit_idx= 39  element=O# Paper-label -> RDKit atom index (heavy atoms only; built by build_ascomylactam_a.py)
+# canonical_isomeric_smiles: CO[C@@H]1C2=C(O)[C@@]34[C@H]5[C@H](Oc6ccc(cc6)C[C@]1(O)NC2=O)[C@H]1[C@@H](C[C@H](C)C[C@@H]1C)[C@@H]5C(C)=C[C@]3(C)C=C(C)[C@@H]4C
+
+paper=     O_ome  rdkit_idx= 38  element=O
