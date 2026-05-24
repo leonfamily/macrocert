@@ -1,0 +1,58 @@
+# expected.yaml — trost_bryostatin_analogue_rcm_2007
+# Status: Awaiting Ivan sign-off.
+#
+# WARNING: The target is a synthetic ring-expanded bryostatin
+# analogue (31-membered), NOT a natural bryostatin. The bryostatin
+# natural-product macrocycle has not been closed by RCM in any
+# published total synthesis — the C16-C17 trans-trisubstituted alkene
+# is too hindered. See research_brief.md §1 and §7 for the diagnosis.
+
+literature_tactic: rcm
+
+# Ring size: 31-membered macrocycle (outlier vs. other panel cases,
+# which are 12-16). Natural bryostatin is 26-membered; the analogue's
+# extra -CH2- expands the ring by 5 atoms. Confirm with Ivan that
+# the panel rules accept ring sizes >= 30; some macrocyclization
+# rules cap at 25.
+literature_ring_size: 31
+
+expected_witness: optimal
+
+expected_top_rule_class: macrocyclization
+
+# AE class: ethylene byproduct (MW 28.05), mass fraction ~2.8% of
+# the deprotected analogue (estimated MW ~1000). High band, consistent
+# with the surrogate rcm_15_from_heptadecadiene and epothilone B cases.
+ae_class: high
+
+reference: |
+  Trost, B. M.; Yang, H.; Thiel, O. R.; Frontier, A. J.; Brindle, C. S.
+  "Synthesis of a Ring-Expanded Bryostatin Analogue." J. Am. Chem.
+  Soc. 2007, 129, 2206-2207. DOI: 10.1021/ja067305j.
+
+  Full paper: Trost, B. M.; Yang, H.; Dong, G. "Total Syntheses of
+  Bryostatins: Synthesis of Two Ring-Expanded Bryostatin Analogues and
+  the Development of a New-Generation Strategy to Access the C7-C27
+  Fragment." Chem. Eur. J. 2011, 17, 9789-9805.
+  DOI: 10.1002/chem.201002932.
+
+  Open-access redrawing of the structures: Jahan, N. et al.
+  Synthesis of Bioactive Macrocycles Involving Ring-Closing
+  Metathesis. SynOpen 2023, 7, 209-242, Scheme 19.
+  DOI: 10.1055/s-0042-1751453.
+
+  Ring-closing metathesis closes the metathesis precursor (compound
+  176 in Jahan 2023 numbering = compound 3-precursor in Trost 2007
+  JACS) to give the 31-membered macrolactone 177 (then 178 and 179
+  after deprotection). Grubbs-Hoveyda 2nd-generation catalyst,
+  benzene, 50-80 C, high dilution, 80% yield, 1:1 E:Z mixture
+  (both isomers chromatographically separated and biologically
+  evaluated). Byproduct: ethylene.
+
+  IMPORTANT: this is a synthetic ring-expanded bryostatin ANALOGUE,
+  not a natural bryostatin. The natural-product bryostatin macrocycle
+  is closed by Yamaguchi/Shiina macrolactonization or by Prins
+  macrocyclization in the published total syntheses — never by RCM.
+  The task brief's premise that Wender 2008/2011, Trost 2008, and
+  Keck 2011 used RCM for the bryostatin macrocycle is not consistent
+  with the published literature.

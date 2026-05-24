@@ -1,0 +1,33 @@
+# PLACEHOLDER — DO NOT TREAT AS A VALID V2000 MOLFILE.
+#
+# AWAITING Ivan to encode from:
+#   Phoenix, S.; Reddy, M. S.; Deslongchamps, P. "Total Synthesis of
+#   (+)-Cassaine via Transannular Diels-Alder Reaction."
+#   J. Am. Chem. Soc. 2008, 130, 13989-13995.
+#   DOI: 10.1021/ja805097s
+#
+# Recommended source: PubChem CID 5281267 (cassaine) Molfile,
+#   downloadable from NCBI PubChem:
+#     https://pubchem.ncbi.nlm.nih.gov/compound/5281267
+#   Cross-validates against ChEBI:3454 (DOI prefix 10.1093/oso for
+#   the Oxford highlight in Taber's book).
+#
+# Cassaine: C24H39NO4, MW 405.6 g/mol, CAS 468-76-8.
+# Tricyclic diterpenoid alkaloid from Erythrophleum species
+# (Fabaceae). 6-6-6 trans-decalin-fused cyclohexane with a
+# 2-dimethylaminoethyloxycarbonyl ester at C4 and a 3-beta-hydroxyl.
+#
+# ALTERNATIVE: encode the TDA-immediate product (tricycle 5 from
+# Phoenix-Reddy-Deslongchamps 2008, Scheme 1) - this is more faithful
+# to the literature step-by-step but is not in any public database and
+# must be manually derived from the paper's Scheme 1 (C8 stereo
+# pre-epimerization; the dimethylaminoethyl tether is absent;
+# C3 is silyl-protected). Ivan picks.
+#
+# CCDC ALTERNATIVE: the 2008 JACS paper reports X-ray crystallography
+# per its MeSH terms. Refcode lookup needs ConQuest by DOI; if Ivan
+# has CCDC access, the X-ray structure of tricycle 5 (or of cassaine
+# itself if deposited) is preferable for stereochemistry verification.
+#
+# Do not autopopulate this file. The synthetic-chemistry team owns the
+# structure encoding decision.

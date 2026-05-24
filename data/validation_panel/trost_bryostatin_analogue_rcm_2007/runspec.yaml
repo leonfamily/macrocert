@@ -1,0 +1,59 @@
+name: trost_bryostatin_analogue_rcm_2007
+
+target:
+  structure_path: structure.mol
+  ring_size: 31
+
+blocks:
+  # The acyclic precursor for the RCM closure is the metathesis
+  # substrate 176 (in Jahan 2023 review numbering) = the
+  # 2-methyl-6-nitrobenzoic-anhydride-coupled diene-tethered
+  # bryostatin scaffold described in Trost 2007 JACS Scheme 1.
+  # The macrolactone ester bond between the bryostatin A-pyranose
+  # acyl side chain and the C-pyranose alcohol is already
+  # established in 176; only the new C=C alkene of the
+  # macrocyclization remains to be formed by RCM.
+  - bryostatin_analogue_metathesis_precursor
+
+rules: all_macrocyclization
+
+strategy:
+  max_steps: 1
+  ring_close_only: true
+  predicates:
+    is_intramolecular: true
+    ring_size_equals: 31
+
+# Energetics disabled for v0 panel calibration, matching the surrogate
+# and other literature cases. The 1:1 E:Z selectivity is an energetics
+# concern for v1, not v0 (the panel rule rcm is selectivity-agnostic).
+energetics:
+  enabled: false
+
+solver:
+  backend: scip
+  top_n: 3
+  time_budget_s: 60
+
+notes: |
+  Trost-Yang-Thiel-Frontier-Brindle ring-expanded bryostatin analogue
+  (2007 JACS 129:2206; full paper 2011 Chem. Eur. J. 17:9789).
+  31-membered macrolactone (vs. natural bryostatin's 26-membered ring).
+  Grubbs-Hoveyda 2nd-generation catalyst, benzene, 50-80 C, high
+  dilution, 80% yield, 1:1 E:Z. Byproduct: ethylene.
+
+  This is the ONLY published bryostatin-family RCM macrocyclization.
+  Natural bryostatins are closed by Yamaguchi macrolactonization
+  (Wender, Keck) or by Ru-Pd-Au cascade (Trost), never by RCM.
+
+  PLACEHOLDER WARNING: structure.mol is a placeholder. The analogue
+  is NOT in PubChem or ChEBI (synthetic analogue with no public
+  database entry). Encode from Trost 2007 JACS 129:2206 SI compound
+  3 or from Jahan 2023 SynOpen review Scheme 19. Manual encoding
+  required. See research_brief.md §4-§7 for the structural source
+  details and §1 for the citation-vs-task-brief diagnosis.
+
+  RING-SIZE WARNING: 31-membered is an outlier vs. all other panel
+  cases (12-16 membered). Confirm with Ivan that the panel rules
+  accept ring sizes >= 30. Some macrocyclization application
+  conditions cap at 25 in the standard total-synthesis literature.

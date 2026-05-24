@@ -1,0 +1,59 @@
+# expected.yaml — citreoviridin_suh_imda_1985
+#
+# STATUS: SLOT IS UNFILLABLE AS NAMED.
+# Citreoviridin is not macrocyclic. The "Suh 1985" and "Trost 1985"
+# citations referenced in panel_TODO.md and the user task brief do not
+# exist. Suh-Wilcox citreoviridin (1988, DOI 10.1021/ja00210a026)
+# uses no Diels-Alder. See research_brief.md and notes.md.
+#
+# Ivan to decide: rename directory and substitute target (Berube-
+# Deslongchamps 1987 or Phoenix-Reddy-Deslongchamps cassaine 2008),
+# or drop this slot. Until then `expected_witness: infeasible` is set
+# to surface the mismatch.
+
+literature_tactic: transannular_diels_alder
+
+# The literature ring size for citreoviridin's "macrocyclization step"
+# is undefined because the compound has no macrocycle. Value set to
+# null to flag the mismatch.
+literature_ring_size: null
+
+# Cannot be `optimal` — no rule in the v0 library can correctly
+# close citreoviridin via macrocyclization (it is not macrocyclic).
+expected_witness: infeasible
+
+# Expected top rule class is meaningless for an infeasible witness.
+expected_top_rule_class: null
+
+# AE class: if the slot is reassigned to a real TDA target (cassaine,
+# Berube-Deslongchamps 13-membered triene), the AE class is `high`
+# (cycloaddition is byproduct-free). For citreoviridin as named, AE
+# is undefined.
+ae_class: high     # placeholder for the EVENTUAL real TDA target
+
+reference: |
+  TARGET MISMATCH. The slot was named for "citreoviridin (Suh 1985)"
+  per panel_TODO.md, but:
+    1. Citreoviridin (C23H30O6, MW 402.48, PubChem CID 6436023) is
+       NOT macrocyclic.
+    2. Suh-Wilcox citreoviridin total synthesis is 1988, not 1985:
+       Suh, H.; Wilcox, C. S. J. Am. Chem. Soc. 1988, 110, 470-481.
+       DOI: 10.1021/ja00210a026.
+    3. That paper uses no Diels-Alder reaction of any kind. The route
+       is chiral-pool / Sharpless asymmetric epoxidation / Payne
+       rearrangement / Wittig polyene assembly.
+    4. No Trost 1985 citreoviridin paper exists.
+
+  Recommended substitutions (Ivan to pick):
+    Option B (preferred): cassaine via TDA.
+      Phoenix, S.; Reddy, M. S.; Deslongchamps, P.
+      "Total Synthesis of (+)-Cassaine via Transannular Diels-Alder
+      Reaction." J. Am. Chem. Soc. 2008, 130, 13989-13995.
+      DOI: 10.1021/ja805097s. Ring size 14, trans-decalin product,
+      single TDA closure.
+    Option A: Berube-Deslongchamps 1987 13-membered macrocyclic
+      trienone → cis-decalin (methodology paper).
+      Berube, G.; Deslongchamps, P. Tetrahedron Lett. 1987, 28,
+      5249-5252. DOI: 10.1016/S0040-4039(00)96699-1.
+
+  See research_brief.md for full analysis.

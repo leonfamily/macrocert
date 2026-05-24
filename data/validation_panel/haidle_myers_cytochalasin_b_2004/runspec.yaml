@@ -1,0 +1,76 @@
+name: haidle_myers_cytochalasin_b_2004
+
+target:
+  structure_path: structure.mol
+  # Ring size 14 = cytochalasin B's macrolactone (NOT the 5-membered
+  # isoindolone gamma-lactam, which is too small for macrocert's rule
+  # set).
+  ring_size: 14
+
+blocks:
+  # The Haidle-Myers 2004 macrocyclization is on a linear ω-keto-
+  # aldehyde phosphonate seco-precursor (Fig. 2 compound 6). The
+  # macrolactone ester bond is already established in the precursor;
+  # only the alkene of the macrocycle remains. THIS RUNSPEC SHIPS
+  # WITH THE TDA INTERPRETATION (see expected.yaml and notes.md
+  # "Decision flag for Ivan"); the actual published precursor is for
+  # HWE not TDA, so the encoding requires Ivan's interpretive call.
+  - cytochalasin_b_macrocyclic_triene_precursor_biomimetic
+
+rules: biomimetic_macrocyclization
+
+strategy:
+  max_steps: 1
+  ring_close_only: true
+  predicates:
+    is_intramolecular: true
+    ring_size_equals: 14
+
+# Energetics disabled for v0 panel calibration. The bond-level AE
+# of the TDA-interpretation reference (Skellam 2017 biosynthesis IMDA)
+# is high (cycloaddition is byproduct-free). The actual Haidle-Myers
+# 2004 HWE step has bond-level byproduct = dialkyl phosphate anion
+# (~125 g/mol for dimethyl phosphate); if Ivan switches to a future
+# HWE rule, the AE class would drop from high to mid.
+energetics:
+  enabled: false
+
+solver:
+  backend: scip
+  top_n: 3
+  time_budget_s: 60
+
+notes: |
+  Cytochalasin B (Haidle-Myers 2004 PNAS 101:12048). 14-membered
+  macrolactone (NOT macrolactam; cytochalasin B's only lactam is the
+  5-membered isoindolone γ-lactam, too small for macrocert).
+
+  IMPORTANT: this case has TWO chemistry-error caveats vs. the task
+  brief:
+    (1) "Cytochalasins B, D, E, H have macrolactam closures" — wrong.
+        Their macrocycle is a macrolactone (B, D) or macrocarbocycle
+        (E, H, L-696,474). Only the 5-membered isoindolone is a lactam.
+    (2) Haidle-Myers 2004 uses intramolecular HWE olefination for the
+        macrocyclization, NOT macrolactamization, NOT macrolactonization,
+        NOT RCM. Macrocert v0 has no HWE rule.
+
+  Citation correction: Skellam 2017 *Nat. Prod. Rep.* DOI is
+  10.1039/c7np00036g (not 10.1039/c7np00045f).
+
+  This runspec ships with the TDA interpretation (rules =
+  biomimetic_macrocyclization = [macrolactamization,
+  transannular_diels_alder]) per the biomimetic class flag added for
+  this family. Justification: Skellam 2017 reports the cytochalasan
+  biosynthesis uses an intramolecular Diels-Alder; a biomimetic
+  transannular variant would be an honest fit for macrocert's TDA
+  rule. The actual published Haidle-Myers chemistry is HWE-based and
+  needs a new rule in v1.
+
+  Decision flag for Ivan (see notes.md):
+    (a) Keep TDA interpretation (current; ships with optimal witness).
+    (b) Switch to infeasible-marker (cf. citreoviridin slot).
+    (c) Defer this case until an HWE rule is implemented in v1.
+
+  PLACEHOLDER WARNING: structure.mol is a placeholder; PubChem CID
+  5311281 Molfile is the recommended source for cytochalasin B.
+  Cross-validates against ChEBI:23528.

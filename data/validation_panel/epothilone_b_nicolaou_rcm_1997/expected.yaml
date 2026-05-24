@@ -1,0 +1,37 @@
+# expected.yaml — epothilone_b_nicolaou_rcm_1997
+#
+# Target: (12Z)-12,13-didehydro-12,13-deoxy-epothilone B (the
+# post-RCM intermediate; C27H41NO5S, MW 491.27).
+# The natural-product C12-C13 epoxide is installed AFTER the RCM
+# by a separate DMDO step; the panel encodes the alkene
+# intermediate whose closure is the actual macrocyclization event.
+
+literature_tactic: rcm
+
+literature_ring_size: 16
+
+expected_witness: optimal
+
+expected_top_rule_class: macrocyclization
+
+# AE class: ethylene byproduct (MW 28.054), mass fraction ≈ 5.7% of
+# the deepoxy intermediate (MW 491.27). High band, consistent with
+# the surrogate rcm_15_from_heptadecadiene and rcm_13_from_pentadecadiene.
+ae_class: high
+
+reference: |
+  Nicolaou, K. C.; Ninkovic, S.; Sarabia, F.; Vourloumis, D.;
+  He, Y.; Vallberg, H.; Finlay, M. R. V.; Yang, Z. "Total Synthesis
+  of Epothilones A and B via a Macrolactonization-Based Strategy."
+  J. Am. Chem. Soc. 1997, 119, 7974-7991. DOI: 10.1021/ja971110h.
+
+  Also: Nicolaou, K. C. et al. Nature 1997, 387, 268-272.
+  DOI: 10.1038/387268a0.
+
+  Ring-closing metathesis closes the C12=C13 alkene of the
+  seco-acid diene to give (12Z)-12,13-didehydro-12,13-deoxy-
+  epothilone B; the natural product is reached by subsequent
+  DMDO epoxidation. Grubbs G1 catalyst, CH2Cl2, 25 °C, 0.001 M.
+  ~1:1 Z:E selectivity on this substrate; Z isomer separated
+  chromatographically and carried forward to the epoxidation.
+  Ring size 16. Byproduct: ethylene (28.054 g/mol).

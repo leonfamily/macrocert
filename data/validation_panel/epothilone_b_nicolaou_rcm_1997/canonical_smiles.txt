@@ -1,0 +1,10 @@
+# Canonical isomeric SMILES for 12,13-deepoxy-epothilone B
+# (the post-RCM intermediate; epothilone B is reached by
+# subsequent DMDO epoxidation of the C12=C13 alkene).
+#
+# formula: C27H41NO5S
+# exact MW: 491.2705
+# rings: [5, 16]
+# stereocenters: [(1, 'S'), (9, 'R'), (14, 'S'), (19, 'S'), (21, 'S')]
+# refs: 10.1021/ja971110h, 10.1038/387268a0
+C/C1=C/C[C@H](/C(C)=C/c2csc(C)n2)OC(=O)C[C@H](O)C(C)(C)[C@@H](O)[C@H](C)C(=O)[C@@H](C)CCC1

@@ -1,0 +1,57 @@
+name: vancomycin_cde_ring_boger_snar
+
+target:
+  structure_path: structure.mol
+  ring_size: 16
+
+blocks:
+  # Seco-precursor for the Boger C-O-D SNAr macrocyclization: linear
+  # tripeptide bearing residue D (aryl fluoride, ortho-NO2 activated)
+  # and residue C (phenol partner). Derived programmatically by
+  # scripts/build_vancomycin_cd_seco.py from the cyclized CD-ring
+  # model substrate. Mass balance: seco MW = cyclized MW + HF.
+  - vancomycin_cd_seco
+
+rules: all_macrocyclization
+
+strategy:
+  max_steps: 1
+  ring_close_only: true
+  predicates:
+    is_intramolecular: true
+    ring_size_equals: 16
+    # Discriminate aryl_etherification (Ar-O-C(sp3)) from
+    # biaryl_etherification (Ar-O-Ar) at the strategy layer; the GML
+    # bodies are structurally identical and only the alcohol partner's
+    # hybridization tells them apart.
+    alcohol_partner_C_must_be_aromatic:
+      biaryl_etherification: true
+    alcohol_partner_C_must_be_sp3:
+      aryl_etherification: true
+
+energetics:
+  enabled: false
+
+solver:
+  backend: scip
+  top_n: 10
+  time_budget_s: 60
+
+notes: |
+  Vancomycin aglycon C-O-D ring (Boger 1999). 16-membered biaryl ether
+  macrocycle closed by intramolecular SNAr: the aryl fluoride on
+  residue D (activated by ortho-NO2) is displaced by the tethered
+  phenolate on residue C. Byproduct: HF (20.006 g/mol).
+
+  Structure encoded as the CD-ring model compound from Boger JOC 1999
+  (64, 70-80), not the full aglycon: tripeptide tether with Ala-Ala
+  side chains; D-arene retains its ortho-NO2 activator in the cyclized
+  intermediate (Boger reduces NO2 -> H AFTER macrocyclization).
+
+  Encoded by scripts/build_vancomycin_cd.py; seco-precursor derived by
+  scripts/build_vancomycin_cd_seco.py. Mass balance verified.
+
+  References:
+    - JACS 121:10004 (DOI:10.1021/ja992577q) -- full aglycon synthesis
+    - JOC 64:70 (DOI:10.1021/jo980880o)      -- CD/DE methodology
+    - BMCL 8:721 (DOI:10.1016/S0960-894X(98)00110-3) -- CDE system

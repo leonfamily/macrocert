@@ -1,0 +1,35 @@
+# expected.yaml -- vancomycin_cde_ring_boger_snar
+#
+# Vancomycin's C-O-D ring closes via Ar-O-Ar SNAr (phenol attacks aryl
+# fluoride). Routed to `biaryl_etherification` (NOT `aryl_etherification`,
+# which is the Ar-O-C(sp3) sibling for ascomylactam A's family).
+# See docs/biaryl_etherification_research.md.
+literature_tactic: biaryl_etherification
+
+literature_ring_size: 16
+
+expected_witness: optimal
+
+expected_top_rule_class: macrocyclization
+
+# AE class: HF is the only byproduct (MW 20.006); mass fraction ~ 4% of the
+# CD-ring model substrate (~503 g/mol). High AE band, comparable to the
+# surrogate lactams (H2O, MW 18).
+ae_class: high
+
+reference: |
+  Boger, D. L.; Miyazaki, S.; Kim, S. H.; Wu, J. H.; Castle, S. L.;
+  Loiseleur, O.; Jin, Q. "Total Synthesis of the Vancomycin Aglycon."
+  J. Am. Chem. Soc. 1999, 121, 10004-10011. DOI: 10.1021/ja992577q.
+
+  Methodology: Boger, D. L.; Castle, S. L.; Miyazaki, S.; Wu, J. H.;
+  Beresis, R. T.; Loiseleur, O. "Vancomycin CD and DE Macrocyclization
+  and Atropisomerism Studies." J. Org. Chem. 1999, 64, 70-80.
+  DOI: 10.1021/jo980880o.
+
+  The C-O-D ring closes by intramolecular SNAr displacement of an
+  aryl fluoride on residue D (activated by an ortho-nitro group) by
+  the phenolate of residue C. Ring size 16. Byproduct: HF.
+  This is biaryl-ether macroetherification, NOT macrolactamization;
+  the original panel categorization (B-validation-panel.md) is wrong.
+  See research_brief.md for details.

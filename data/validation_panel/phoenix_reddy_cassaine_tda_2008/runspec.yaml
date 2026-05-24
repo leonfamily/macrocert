@@ -1,0 +1,54 @@
+name: phoenix_reddy_cassaine_tda_2008
+
+target:
+  structure_path: structure.mol
+  ring_size: 14
+
+blocks:
+  # The acyclic precursor for the TDA is the linear seco-precursor that
+  # is macrolactonized (or otherwise closed) to give the 14-membered
+  # macrocyclic triene 4 in Phoenix-Reddy-Deslongchamps 2008. For panel
+  # purposes the block name is left as a single representative
+  # precursor pending detailed substrate encoding from the SI.
+  - cassaine_macrocyclic_triene_precursor
+
+rules: all_macrocyclization
+
+strategy:
+  max_steps: 1
+  ring_close_only: true
+  predicates:
+    is_intramolecular: true
+    ring_size_equals: 14
+
+# Energetics disabled for v0 panel calibration, matching the surrogate
+# and other literature cases. The TDA is reported as proceeding cleanly
+# to the predicted T4 transition-state product; no Z/E selectivity gap
+# to flag in v1.
+energetics:
+  enabled: false
+
+solver:
+  backend: scip
+  top_n: 3
+  time_budget_s: 60
+
+notes: |
+  (+)-Cassaine (Phoenix-Reddy-Deslongchamps 2008). 14-membered
+  macrocyclic-triene precursor closes via transannular Diels-Alder to
+  give a 6-6-6 fused trans-decalin steroid tricycle (compound 5),
+  which is then elaborated through ~6 steps to cassaine 1
+  (C24H39NO4, MW 405.6 g/mol). Thermal conditions, no catalyst.
+  Stereochemistry controlled by macrocyclic preorganization
+  (cis-trans-trans triene geometry of compound 4). Byproduct: none.
+  AE class: high.
+
+  This case replaces the unfillable citreoviridin_suh_imda_1985 slot
+  per the recommendation in that case's research_brief.md and the
+  current panel_TODO.md.
+
+  PLACEHOLDER WARNING: structure.mol is a placeholder; PubChem CID
+  5281267 Molfile is the recommended source for the natural product
+  target. The TDA-immediate intermediate (tricycle 5) is an
+  alternative encoding (manually derived from the paper's Scheme 1,
+  not from a public database). Ivan picks. See research_brief.md §7.

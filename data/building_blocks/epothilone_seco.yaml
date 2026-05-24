@@ -1,0 +1,40 @@
+name: epothilone B seco-acid diene (RCM precursor)
+smiles: C=CC[C@@H](OC(=O)C[C@H](O)C(C)(C)[C@@H](O)[C@H](C)C(=O)[C@@H](C)CCCC(=C)C)/C(C)=C/c1csc(C)n1
+provenance: |
+  Seco-precursor for the Nicolaou 1997 RCM closure of
+  epothilone B (JACS 1997, 119, 7974, DOI:10.1021/ja971110h;
+  Nature 1997, 387, 268, DOI:10.1038/387268a0). Derived
+  programmatically from the cyclized 12,13-deepoxy
+  epothilone B alkene (formula C27H41NO5S, MW 491.27) by
+  breaking the in-ring C12=C13 alkene and capping each
+  side with a terminal CH2= group. The macrolactone ester
+  (C1-O-C15) is already established in this seco substrate,
+  matching Nicolaou's actual route: macrolactonization
+  precedes RCM in their scheme. The two terminal alkenes
+  at C12 and C13 are the dienes consumed by Grubbs G1 in
+  CH2Cl2 at 25 °C (0.001 M), expelling ethylene as the
+  RCM byproduct.
+notes: |
+  Mass balance verified by build script:
+    cyclized (deepoxy) MW = 491.2705
+    seco MW              = 519.3018
+    Δ MW                 = 28.0313
+    ethylene (C2H4) MW   = 28.0313
+
+  Stereocenters preserved: the seco retains all 5 sp3 chiral
+  centres of the deepoxy macrocycle (C3 S, C6 R, C7 S, C8 S,
+  C15 S, in Nicolaou's macrocycle numbering). The exocyclic
+  C16=C17 (E)-vinyl tether to the thiazole is unchanged.
+  The two terminal CH2= termini at former-C12 and former-C13
+  carry no stereo (sp2, terminal).
+
+  E/Z selectivity caveat: Nicolaou's actual RCM produces a
+  ~1:1 Z:E mixture on this substrate; the desired Z isomer
+  is separated chromatographically before epoxidation to
+  epothilone B. The panel rule `rcm` is selectivity-agnostic
+  in v0, so the runspec's enforce_ez_geometry: {rcm: Z}
+  predicate filters the post-closure product to the Z isomer.
+refs:
+  - "Nicolaou, K. C. et al. J. Am. Chem. Soc. 1997, 119, 7974-7991 (DOI:10.1021/ja971110h) — primary reference"
+  - "Nicolaou, K. C. et al. Nature 1997, 387, 268-272 (DOI:10.1038/387268a0) — companion"
+  - "ChEBI:31550 (epothilone B); LIPID MAPS LMPK04000041 — natural-product reference for the post-epoxidation form"

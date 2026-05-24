@@ -1,0 +1,25 @@
+name: erythronolide_b_seco_acid
+smiles: CC[C@@H](O)[C@H](C)[C@H](O)[C@@H](C)C(=O)[C@H](C)C[C@@](C)(O)[C@H](O)[C@@H](C)[C@H](O)[C@@H](C)C(=O)O
+provenance: |
+  Seco-acid precursor for erythronolide B (Corey 1978;
+  J. Am. Chem. Soc. 100:4620, DOI:10.1021/ja00482a063).
+  Derived programmatically from the cyclized PubChem CID 441113
+  structure by breaking the macrocyclic C(=O)-O ester bond and
+  capping the acyl side with -OH; the C13 alcohol side retains
+  its free secondary -OH. Macrolactonization fires intramolecularly
+  to close the 14-membered ring and expel H2O.
+notes: |
+  Building block for the Corey-Nicolaou macrolactonization M5 leg.
+  Stereochemistry preserved on all 10 sp3 centers of the cyclized
+  form (the macrolactonization rule's stereo_flags include
+  retains_alpha_stereo and retains_alcohol_stereo, so the alpha
+  carbon C2 and the alcohol carbon C13 keep their configuration
+  under Corey-Nicolaou conditions).
+  Mass balance: seco exact MW = cyclized exact MW + H2O:
+  402.2618 + 18.0106 = 420.2723 (verified by build script).
+refs:
+  - "Corey, E. J.; Kim, S.; Yoo, S.-E.; Nicolaou, K. C.; Melvin, L. S.;
+     Brunelle, D. J.; Falck, J. R.; Trybulski, E. J.; Lett, R.;
+     Sheldrake, P. W. JACS 1978, 100, 4620. DOI:10.1021/ja00482a063 -- macrolactonization paper"
+  - "Corey, E. J.; Nicolaou, K. C. JACS 1974, 96, 5614.
+     DOI:10.1021/ja00824a073 -- PySSPy/PPh3 activator methodology"

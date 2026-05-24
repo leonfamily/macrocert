@@ -1,0 +1,50 @@
+# expected.yaml — phoenix_reddy_cassaine_tda_2008
+# Status: Awaiting Ivan sign-off.
+#
+# This case replaces the unfillable citreoviridin_suh_imda_1985 slot.
+# See research_brief.md §1 for the citation diagnosis and notes.md for
+# encoding caveats.
+
+literature_tactic: transannular_diels_alder
+
+# Ring size of the macrocyclic-triene precursor (compound 4 in
+# Phoenix-Reddy-Deslongchamps 2008). TDA closes this 14-membered ring
+# to a 6-6-6 fused tricycle (compound 5), forming TWO new sigma C-C
+# bonds in a single pericyclic event.
+literature_ring_size: 14
+
+expected_witness: optimal
+
+expected_top_rule_class: macrocyclization
+
+# AE class: TDA is byproduct-free (cycloaddition has 100% atom economy
+# at the bond-formation step). Matches the high_atom_economy_bond
+# class flag on the transannular_diels_alder rule.
+ae_class: high
+
+reference: |
+  Phoenix, S.; Reddy, M. S.; Deslongchamps, P. "Total Synthesis of
+  (+)-Cassaine via Transannular Diels-Alder Reaction." J. Am. Chem.
+  Soc. 2008, 130, 13989-13995. DOI: 10.1021/ja805097s.
+
+  Earlier communication: Phoenix, S.; Bourque, E.; Deslongchamps, P.
+  Org. Lett. 2000, 2, 4149-4152. DOI: 10.1021/ol006670r.
+
+  14-membered TDA methodology (Deslongchamps lineage):
+    Lamothe, S.; Ndibwami, A.; Deslongchamps, P. Tetrahedron Lett.
+    1988, 29, 1639 (theoretical, DOI 10.1016/S0040-4039(00)82005-5)
+    and 1641 (experimental, DOI 10.1016/S0040-4039(00)82006-7).
+
+  Transannular Diels-Alder closes the 14-membered macrocyclic triene
+  4 (cis-trans-trans geometry) to give the trans-decalin tricycle 5.
+  Thermal conditions (180-230 C in toluene/xylene); no catalyst.
+  Stereochemistry controlled by macrocyclic preorganization. Tricycle
+  5 is elaborated through ~6 further steps (stereoselective reduction,
+  hydroboration, methyl cuprate 1,4-addition, dimethylaminoethyl-
+  oxycarbonyl tethering, C8 epimerization, C3 deprotection) to
+  (+)-cassaine 1 (C24H39NO4, MW 405.6 g/mol, PubChem CID 5281267,
+  ChEBI:3454). Byproduct: none. Ring size: 14 (precursor); 6-6-6
+  fused tricycle (product).
+
+  This case replaces the unfillable citreoviridin_suh_imda_1985 slot
+  per the recommendation in that case's research_brief.md.

@@ -1,0 +1,42 @@
+# PLACEHOLDER — DO NOT TREAT AS A VALID V2000 MOLFILE.
+#
+# AWAITING Ivan to encode from:
+#   Trost, B. M.; Yang, H.; Thiel, O. R.; Frontier, A. J.;
+#   Brindle, C. S. "Synthesis of a Ring-Expanded Bryostatin Analogue."
+#   J. Am. Chem. Soc. 2007, 129, 2206-2207.
+#   DOI: 10.1021/ja067305j
+#
+# Full paper (preferred source for SI structures):
+#   Trost, B. M.; Yang, H.; Dong, G. "Total Syntheses of Bryostatins:
+#   Synthesis of Two Ring-Expanded Bryostatin Analogues and the
+#   Development of a New-Generation Strategy to Access the C7-C27
+#   Fragment." Chem. Eur. J. 2011, 17, 9789-9805.
+#   DOI: 10.1002/chem.201002932
+#
+# Open-access alternative with redrawn structures:
+#   Jahan, N. et al. SynOpen 2023, 7, 209-242, Scheme 19.
+#   DOI: 10.1055/s-0042-1751453
+#   Open access; URL: https://www.thieme-connect.com/products/ejournals/pdf/10.1055/s-0042-1751453.pdf
+#
+# NO PUBCHEM / CHEBI / CCDC ENTRY: this is a synthetic ring-expanded
+# bryostatin analogue. It is NOT in any public structural database.
+# Ivan must encode manually from the literature.
+#
+# Recommended encoding target: compound 178 or 179 in Jahan 2023
+# numbering = the deprotected macrolactone analogue (1:1 E:Z mixture
+# of 31-membered macrocyclic alkene). Both isomers have been
+# chromatographically separated and biologically evaluated by Trost;
+# either is a valid panel target for the RCM rule.
+#
+# Alternative: encode compound 3 in Trost 2007 JACS = the
+# protected-form analogue (TES + OAc retained) that is the direct
+# RCM product before deprotection. This is more faithful to the
+# rule-firing step. Ivan picks.
+#
+# Ring size warning: 31-membered is an outlier vs. all other panel
+# cases. Confirm with Ivan that the panel rule accepts >= 30. The
+# natural bryostatin macrocycle is 26-membered; the analogue's
+# extra -CH2- expands the ring by 5 atoms.
+#
+# Do not autopopulate this file. The synthetic-chemistry team owns the
+# structure encoding decision.

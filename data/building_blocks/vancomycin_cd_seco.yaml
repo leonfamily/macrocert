@@ -1,0 +1,25 @@
+name: vancomycin_cd_seco_precursor
+smiles: CNC(=O)[C@H](NC(=O)[C@H](C)NC(=O)[C@H](C)NC(=O)c1ccc(O)cc1)c1cc(Cl)cc([N+](=O)[O-])c1F
+provenance: |
+  Seco-precursor for the vancomycin C-O-D ring (Boger 1999 SNAr
+  biaryl ether macrocyclization). Derived programmatically from
+  the encoded CD-ring model substrate (16-membered macrocycle,
+  C22H22ClN5O7) by breaking the macrocyclic Ar-O-Ar bridge:
+  the F leaving group is restored on the residue-D arene
+  (the electrophile, identified by its retained ortho-NO2
+  activator), and a free phenolic OH is left on the residue-C
+  arene (the nucleophile partner).
+  biaryl_etherification rule fires intramolecularly on this
+  substrate to close the 16-ring with HF expulsion.
+notes: |
+  CD-ring model compound; not the full vancomycin aglycon
+  (C53H53Cl2N9O20, MW 1144.93). The model captures the SNAr
+  disconnection (Ar-F + Ar-OH -> Ar-O-Ar + HF) and 16-ring
+  size with a simplified tripeptide tether (Ala-Ala-CalphaD).
+  All three Calpha atoms carry L-amino-acid stereochemistry.
+  Mass balance: seco MW = cyclized MW + HF (verified):
+  503.1208 + 20.006 = 523.1270.
+refs:
+  - "Boger et al. 1999, JACS 121:10004 (DOI:10.1021/ja992577q) -- vancomycin aglycon CD+DE SNAr"
+  - "Boger et al. 1999, JOC 64:70 (DOI:10.1021/jo980880o) -- CD/DE model methodology"
+  - "Beugelmans et al. 1994, JOC 59:5535 (DOI:10.1021/jo00098a010) -- earliest intrinsic-NO2 SNAr macroetherification"

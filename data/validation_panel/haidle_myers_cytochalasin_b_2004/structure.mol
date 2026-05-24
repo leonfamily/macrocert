@@ -1,0 +1,44 @@
+# PLACEHOLDER — DO NOT TREAT AS A VALID V2000 MOLFILE.
+#
+# AWAITING Ivan to encode from:
+#   Haidle, A. M.; Myers, A. G. "An enantioselective, modular, and
+#   general route to the cytochalasins: Synthesis of L-696,474 and
+#   cytochalasin B."
+#   Proc. Natl. Acad. Sci. USA 2004, 101, 12048-12053.
+#   DOI: 10.1073/pnas.0402111101
+#   PMC: PMC514432 (open access)
+#
+# Biosynthesis review (CORRECTED DOI):
+#   Skellam, E. "The biosynthesis of cytochalasans."
+#   Nat. Prod. Rep. 2017, 34, 1252-1263.
+#   DOI: 10.1039/c7np00036g
+#   (NOT 10.1039/c7np00045f as in the task brief — that DOI
+#   resolves to a different 2017 paper by Bai & Wang on symmetry
+#   in natural-product synthesis.)
+#
+# Recommended source: PubChem CID 5311281 (cytochalasin B) Molfile,
+#   downloadable from NCBI PubChem:
+#     https://pubchem.ncbi.nlm.nih.gov/compound/5311281
+#   Cross-validates against ChEBI:23528.
+#
+# Cytochalasin B: C29H37NO5, MW 479.6 g/mol, CAS 14930-96-2.
+# Cytochalasan with 14-membered macrolactone (NOT macrolactam) +
+# 5-membered isoindolone gamma-lactam (the small lactam ring) +
+# 6-membered cyclohexane (B-ring) fused to the isoindolone.
+# Stereodescriptor: (1S,5S,6R,7R,8S,11S,13E,15S,16E,18R).
+# 7 sp3 stereocenters.
+#
+# CCDC X-RAY: McLaughlin et al. 1974 reported the X-ray of
+# cytochalasin B; CCDC refcode is probably CYTOLB10 or similar.
+# Lookup needs ConQuest. If Ivan has CCDC access, this is the
+# canonical 3D structure source.
+#
+# DECISION FLAG FOR IVAN (see notes.md):
+# This case has two chemistry-error caveats vs. the task brief
+# (cytochalasin B has a macrolactone not macrolactam; Haidle-Myers
+# uses HWE not macrolactamization). The structure encoding is
+# straightforward (PubChem CID 5311281), but the tactic-class
+# interpretation requires Ivan's call.
+#
+# Do not autopopulate this file. The synthetic-chemistry team owns the
+# structure encoding decision AND the tactic-class interpretation.

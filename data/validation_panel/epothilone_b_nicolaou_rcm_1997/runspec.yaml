@@ -1,0 +1,95 @@
+name: epothilone_b_nicolaou_rcm_1997
+
+target:
+  structure_path: structure.mol
+  ring_size: 16
+
+# Seco-precursor: the (already-esterified) seco-acid diene bearing
+# terminal vinyls at C12 and C13. Authored programmatically by
+# scripts/build_epothilone_seco.py from the cyclized 12,13-deepoxy
+# epothilone B (the post-RCM intermediate); mass balance verified:
+# seco MW = cyclized MW + ethylene (519.3018 = 491.2705 + 28.0313).
+blocks:
+  - epothilone_seco
+
+# Full M5 configuration: evaluate all 12 macrocyclization tactics on
+# the same seco-precursor (proposal §5). The literature tactic is rcm;
+# every other rule should emit a no-go certificate (LHS doesn't match
+# the diene-only substrate). max_steps: 1 + ring_close_only: true
+# keeps the search to a single firing per (rule, match site).
+rules: all_macrocyclization
+
+strategy:
+  max_steps: 1
+  ring_close_only: true
+  predicates:
+    is_intramolecular: true
+    ring_size_equals: 16
+    # Workstream D phase 3 ether discriminators. The seco substrate
+    # has no Ar-X and no aryl-O acceptor, so both ether rules should
+    # fail to match independently of these predicates; the predicates
+    # are still set for schema consistency with the other panel cases.
+    alcohol_partner_C_must_be_aromatic:
+      biaryl_etherification: true
+    alcohol_partner_C_must_be_sp3:
+      aryl_etherification: true
+    # Workstream D phase 2 E/Z gate (DISABLED for v0).
+    #
+    # Nicolaou's actual RCM on this substrate gives ~1:1 Z:E and the
+    # Z isomer is separated chromatographically (JACS 1997, 119, 7974
+    # SI; corroborated in PMC3211109 review). The literature-favoured
+    # product is Z. However MØD does not propagate E/Z through rule
+    # firing (see docs/mod_stereo_reference.md §1.5, §5.2): the rcm
+    # rule applied to the (stereo-free, MØD-canonicalised) seco
+    # produces an output SMILES whose new in-ring C=C is STEREONONE.
+    # A Z-gate would therefore reject every RCM candidate, returning
+    # an empty derivation graph (verified: with `enforce_ez_geometry:
+    # rcm: Z` enabled the campaign emits an infeasible certificate
+    # with 0 hyperedges). Per the M5 brief, drop the geometry
+    # constraint for the first run and document the issue. Stereo
+    # propagation is a Workstream F deliverable.
+    #
+    # enforce_ez_geometry:
+    #   rcm: Z
+
+# Energetics disabled for v0 panel calibration, matching the surrogate
+# rcm cases and the ascomylactam A reference run. The 1:1 Z:E
+# selectivity is an energetics concern for v1, not v0.
+energetics:
+  enabled: false
+
+solver:
+  # M5 calls for ≤10 strategy families in the shortlist (proposal §5).
+  # SCIP backend, top_n: 10, request infeasibility certificates so
+  # ruled-out tactics emit verifier-clean no-go certs.
+  backend: scip
+  top_n: 10
+  time_budget_s: 120
+  request_infeasibility_cert: true
+
+notes: |
+  Epothilone B Nicolaou 1997 RCM closure. 16-membered macrolactone.
+  The encoded `structure.mol` is the **post-RCM intermediate**:
+  (12Z)-12,13-didehydro-12,13-deoxy-epothilone B (informally
+  "12,13-deepoxy-epothilone B"), formula C27H41NO5S, MW 491.27.
+  The natural-product C12-C13 epoxide of epothilone B is installed
+  AFTER the RCM by a separate DMDO/m-CPBA step; encoding the
+  alkene intermediate matches the actual macrocyclization product
+  whose closure the rule library is asked to recognise.
+
+  Primary references:
+    Nicolaou, K. C.; Ninkovic, S.; Sarabia, F.; Vourloumis, D.;
+      He, Y.; Vallberg, H.; Finlay, M. R. V.; Yang, Z.
+      J. Am. Chem. Soc. 1997, 119, 7974-7991.
+      DOI: 10.1021/ja971110h.
+    Nicolaou, K. C. et al. Nature 1997, 387, 268-272.
+      DOI: 10.1038/387268a0.
+
+  Grubbs G1 catalyst, CH2Cl2, 25 °C, 0.001 M. Byproduct: ethylene
+  (MW 28.05 g/mol; bond-level AE class `high`). E/Z selectivity is
+  poor in the original Nicolaou RCM on the unmatched substrate
+  (~1:1 Z:E); the Z isomer is separated chromatographically and
+  carried forward to the DMDO epoxidation.
+
+  See research_brief.md for the full provenance and §7 for the
+  encoding-choice rationale (deepoxy intermediate vs. natural product).

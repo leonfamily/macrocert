@@ -1,0 +1,72 @@
+name: corey_erythronolide_b_macrolactonization_1978
+
+target:
+  structure_path: structure.mol
+  ring_size: 14
+
+blocks:
+  # Acyclic seco-acid for the C1-O13 macrolactonization. Derived from
+  # the cyclized erythronolide B (PubChem CID 441113, InChIKey
+  # ZFBRGCCVTUPRFQ-HWRKYNCUSA-N) by opening the ester C(=O)-O bond and
+  # mass-balancing with H2O. Built by
+  # scripts/build_erythronolide_b_seco.py.
+  - erythronolide_b_seco
+
+rules: all_macrocyclization
+
+strategy:
+  max_steps: 1
+  ring_close_only: true
+  predicates:
+    is_intramolecular: true
+    ring_size_equals: 14
+    alcohol_partner_C_must_be_aromatic:
+      biaryl_etherification: true
+    alcohol_partner_C_must_be_sp3:
+      aryl_etherification: true
+
+energetics:
+  enabled: false
+
+solver:
+  backend: scip
+  top_n: 10
+  time_budget_s: 60
+  extra:
+    # NOTE / TODO: the Corey-Nicolaou activator override is *not yet
+    # wired through the macrocert pipeline*. The ReagentAlternative
+    # dataclass exists (src/macrocert/spec/rules.py) and the
+    # macrolactonization rule's reagent_mass_alternatives table includes
+    # the Corey_Nicolaou entry (482 g/mol activator, 389 g/mol
+    # additional byproduct), but no call site reads
+    # `solver.extra.activator` and threads it into the objective
+    # calculation. Documented as TODO; this leg of the M5 campaign will
+    # run under the default Yamaguchi process-level mass (568 g/mol)
+    # until the override path lands. Bond-level chemistry (H2O byproduct,
+    # 18.015 g/mol) is identical, so the optimal *bond-level* objective
+    # is unchanged.
+    activator: Corey_Nicolaou
+
+notes: |
+  Erythronolide B (Corey 1978; PubChem CID 441113, C21H38O7, MW 402.5).
+  14-membered macrolactone aglycone of erythromycin B. The
+  macrolactonization closes the C1-O13 ester bond of the seco-acid
+  precursor (assembled in Part 3, DOI 10.1021/ja00482a062, from C1-C9
+  and C10-C13 aldol fragments). Corey-Nicolaou activator: PySSPy +
+  PPh3 in xylene at reflux, high dilution (~1 mM), ~80% yield.
+  Byproduct (bond level): H2O. Ring size: 14.
+
+  This case is the literature anchor for the surrogate
+  lactone_14_from_13_hydroxytridecanoic_acid case and is intended to
+  exercise the Corey_Nicolaou alternative in
+  data/rules/macrolactonization.meta.yaml reagent_mass_alternatives.
+  See solver.extra.activator above and notes.md for the wiring gap.
+
+  Citation correction (vs. proposal/panel_TODO): the proposal cited
+  DOI 10.1021/ja00482a075 which CrossRef cannot resolve. The correct
+  DOI is 10.1021/ja00482a063 (Part 4, pp 4620-4622, Corey 1978).
+
+  Formula correction (vs. research_brief.md): the brief asserts
+  C21H38O6 / MW 386.52 and PubChem CID 122729. Both are wrong.
+  Erythronolide B is C21H38O7 (four hydroxyls: C3, C5, C6, C12), MW
+  402.52, PubChem CID 441113 (CID 122729 is rifampicin).

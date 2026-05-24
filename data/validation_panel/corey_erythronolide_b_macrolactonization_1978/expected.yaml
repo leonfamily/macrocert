@@ -1,0 +1,52 @@
+# expected.yaml -- corey_erythronolide_b_macrolactonization_1978
+
+literature_tactic: macrolactonization
+
+# Corey-Nicolaou activator (PySSPy + PPh3) is an alternative in
+# data/rules/macrolactonization.meta.yaml reagent_mass_alternatives.
+# The panel runner should select this alternative for the AE
+# calculation once the activator-override is wired through the
+# pipeline (see notes.md / runspec.yaml TODO); bond-level byproduct
+# H2O is unchanged.
+literature_activator: Corey_Nicolaou
+
+literature_ring_size: 14
+
+expected_witness: optimal
+
+expected_top_rule_class: macrocyclization
+
+# AE class: H2O byproduct at the bond level (18.015 g/mol),
+# mass fraction = 18.015 / 402.52 = 4.48 % of erythronolide B
+# (MW 402.52, C21H38O7). High band, consistent with all
+# macrolactonization surrogate cases.
+ae_class: high
+
+reference: |
+  Corey, E. J.; Kim, S.; Yoo, S.-E.; Nicolaou, K. C.; Melvin, L. S.;
+  Brunelle, D. J.; Falck, J. R.; Trybulski, E. J.; Lett, R.;
+  Sheldrake, P. W. "Total synthesis of erythromycins. 4. Total
+  synthesis of erythronolide B." J. Am. Chem. Soc. 1978, 100,
+  4620-4622. DOI: 10.1021/ja00482a063.
+
+  Corey-Nicolaou activator (PySSPy/PPh3) methodology paper:
+  Corey, E. J.; Nicolaou, K. C. J. Am. Chem. Soc. 1974, 96,
+  5614-5616. DOI: 10.1021/ja00824a073.
+
+  Macrolactonization closes the C1-O13 ester bond of an acyclic
+  seco-acid precursor. PySSPy (2 eq), PPh3 (2 eq), xylene at reflux
+  (~140 C), high dilution (~1 mM), ~80% yield. Ring size: 14.
+  Byproduct (bond level): H2O. Process-level: 2-mercaptopyridine
+  (111.16 g/mol) and Ph3P=O (278.28 g/mol).
+
+  CITATION CORRECTION: the proposal/panel_TODO.md cite
+  10.1021/ja00482a075, which CrossRef cannot resolve. The correct
+  DOI is 10.1021/ja00482a063 (Part 4, pp 4620-4622). DOI
+  ja00482a062 (Part 3, pp 4618-4620) is the fragment-synthesis
+  sibling paper.
+
+  FORMULA CORRECTION: the research_brief.md asserted C21H38O6
+  / MW 386.52 / PubChem CID 122729. All three are incorrect.
+  Erythronolide B is C21H38O7 (MW 402.52, four hydroxyls at
+  C3/C5/C6/C12), PubChem CID 441113, InChIKey
+  ZFBRGCCVTUPRFQ-HWRKYNCUSA-N. CID 122729 is rifampicin.

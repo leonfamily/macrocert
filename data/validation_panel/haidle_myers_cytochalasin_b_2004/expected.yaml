@@ -1,0 +1,63 @@
+# expected.yaml — haidle_myers_cytochalasin_b_2004
+# Status: Awaiting Ivan sign-off on tactic-class decision AND structure
+# encoding. See notes.md "Decision flag for Ivan" for the three options
+# (TDA / infeasible / new-rule).
+#
+# This scaffold ships with the TDA-interpretation option (a) so the
+# panel runner has something to fire on. Switch to option (b)
+# (infeasible, cf. citreoviridin) by setting expected_witness:
+# infeasible and literature_tactic: macrolactamization, and document
+# the rule mismatch.
+
+literature_tactic: transannular_diels_alder
+
+# Ring size: 14 (cytochalasin B macrolactone). The biosynthetic IMDA
+# is on an acyclic substrate (forms the 6,5 perhydroisoindolone) so
+# the ring_size predicate on the substrate is somewhat semantically
+# stretched; the macrocert TDA rule on a 14-membered precursor would
+# instead represent a hypothetical biomimetic transannular variant.
+literature_ring_size: 14
+
+# Subject to the tactic-class interpretation. Optimal under option (a);
+# infeasible under option (b).
+expected_witness: optimal
+
+expected_top_rule_class: macrocyclization
+
+# AE class: biosynthetic IMDA is byproduct-free (cycloaddition).
+# The actual Haidle-Myers HWE step produces dialkyl phosphate anion
+# (~125 g/mol for dimethyl phosphate), which is NOT consistent with
+# the high AE class — but the TDA interpretation here references the
+# biosynthetic mechanism, not the HWE chemistry.
+ae_class: high
+
+reference: |
+  Haidle, A. M.; Myers, A. G. "An enantioselective, modular, and
+  general route to the cytochalasins: Synthesis of L-696,474 and
+  cytochalasin B." Proc. Natl. Acad. Sci. USA 2004, 101, 12048-12053.
+  DOI: 10.1073/pnas.0402111101. PMC: PMC514432.
+
+  Biosynthesis review: Skellam, E. "The biosynthesis of cytochalasans."
+  Nat. Prod. Rep. 2017, 34, 1252-1263. DOI: 10.1039/c7np00036g.
+  (NOT 10.1039/c7np00045f as in the task brief; that DOI resolves
+  to a different paper.)
+
+  Haidle-Myers 2004 closes the cytochalasin B macrocycle by an
+  intramolecular Horner-Wadsworth-Emmons (HWE) olefination on a
+  preformed-macrolactone seco-precursor. Bond formed: C=C alkene.
+  Byproduct (bond level): dialkyl phosphate anion (~125 g/mol for
+  dimethyl phosphate). Macrocert v0 has NO HWE rule.
+
+  The TDA interpretation in this expected.yaml is a stretch: the
+  biosynthesis IS IMDA (acyclic), not transannular DA (macrocyclic).
+  A truly biomimetic macrocyclic-triene TDA precursor for cytochalasin
+  B has not been reported in the literature. The TDA encoding here is
+  motivated by the biomimetic_macrocyclization rule set in
+  data/rules/_index.yaml (which lists transannular_diels_alder +
+  macrolactamization as the biomimetic pair).
+
+  See notes.md and research_brief.md §7 for the full chemistry-error
+  diagnosis vs. the task brief's premise.
+
+  Cytochalasin B: C29H37NO5, MW 479.6 g/mol, CAS 14930-96-2,
+  PubChem CID 5311281, ChEBI:23528.

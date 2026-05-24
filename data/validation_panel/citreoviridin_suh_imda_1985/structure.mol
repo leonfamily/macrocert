@@ -1,0 +1,23 @@
+# PLACEHOLDER — STRUCTURE NOT ENCODABLE AS NAMED.
+#
+# Citreoviridin (PubChem CID 6436023, ChemSpider 4940705,
+# C23H30O6, MW 402.48) is NOT macrocyclic. It cannot be the
+# product of a macrocyclization rule, transannular Diels-Alder
+# or otherwise.
+#
+# AWAITING IVAN'S DECISION on reassigning this slot. Candidates:
+#   - Cassaine via TDA: Phoenix, S.; Reddy, M. S.; Deslongchamps, P.
+#     J. Am. Chem. Soc. 2008, 130, 13989-13995.
+#     DOI: 10.1021/ja805097s
+#   - Berube-Deslongchamps 1987 13-membered macrocyclic triene
+#     (methodology paper, not a total synthesis):
+#     Tetrahedron Lett. 1987, 28, 5249-5252.
+#     DOI: 10.1016/S0040-4039(00)96699-1
+#
+# If the slot is reassigned to citreoviridin under a DIFFERENT
+# rule (Option A in research_brief.md §4), the SMILES for the
+# natural product is:
+#   COc1cc(=O)oc(/C=C/C=C/C=C/C(C)=C/[C@]2(C)O[C@H](C)[C@@](C)(O)[C@H]2O)c1C
+# but no `transannular_diels_alder` rule fires on this molecule.
+#
+# Do not autopopulate this file. See notes.md.
