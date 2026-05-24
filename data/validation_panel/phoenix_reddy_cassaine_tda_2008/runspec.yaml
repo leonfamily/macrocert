@@ -2,16 +2,35 @@ name: phoenix_reddy_cassaine_tda_2008
 
 target:
   structure_path: structure.mol
-  ring_size: 14
+  # target.ring_size is the *new ring* created by the macrocyclization
+  # rule, used by the dg_to_ir flag `is_macrocyclization` and the
+  # `exactly_one_macrocyclization` constraint. For the TDA, that new
+  # ring is the cyclohexene at the centre of the 6-6-6 fused product
+  # (the [4+2] cycloaddition forms a 6-ring, not the substrate's
+  # 14-ring; the 14-ring is *contracted* into the fused system).
+  #
+  # The *substrate*'s 14-membered macrocycle is the literature ring
+  # size — recorded in expected.yaml as `literature_ring_size: 14`
+  # and discussed in research_brief.md, but not used as a strategy
+  # filter here.
+  #
+  # See docs/cassaine_m5.md §2.4 for the TDA ring-size discussion.
+  ring_size: 6
 
 blocks:
-  # The acyclic precursor for the TDA is the linear seco-precursor that
-  # is macrolactonized (or otherwise closed) to give the 14-membered
-  # macrocyclic triene 4 in Phoenix-Reddy-Deslongchamps 2008. For panel
-  # purposes the block name is left as a single representative
-  # precursor pending detailed substrate encoding from the SI.
-  - cassaine_macrocyclic_triene_precursor
+  # 14-membered macrocyclic triene authored programmatically by
+  # scripts/build_cassaine_seco.py from the cyclized tricycle 5
+  # (output of scripts/build_cassaine.py) by applying the reverse of
+  # the transannular_diels_alder rule. Mass balance verified:
+  # Δ MW = 0 (TDA has no byproduct).
+  - cassaine_seco
 
+# Full M5 configuration: evaluate all 12 macrocyclization tactics on
+# the same seco-precursor (proposal §5). The literature tactic is
+# transannular_diels_alder; every other rule should emit a no-go
+# certificate (LHS doesn't match the triene-only macrocyclic substrate).
+# max_steps: 1 + ring_close_only: true keeps the search to a single
+# firing per (rule, match site).
 rules: all_macrocyclization
 
 strategy:
@@ -19,36 +38,89 @@ strategy:
   ring_close_only: true
   predicates:
     is_intramolecular: true
-    ring_size_equals: 14
+    # ring_size_equals filters product-side rings (it's a MØD
+    # rightPredicate). The TDA contracts the 14-membered triene to a
+    # 6-6-6 fused tricycle; the *new* ring produced by the [4+2] is
+    # the cyclohexene at the centre of the fused system. Setting this
+    # to 6 (not 14) accepts the TDA closure; setting it to 14 would
+    # reject every TDA derivation because the contracted product has
+    # no 14-ring. See docs/cassaine_m5.md §2.4 for the discussion.
+    ring_size_equals: 6
+    # Workstream D phase 3 ether discriminators. The seco substrate
+    # has no Ar-X and no aryl-O acceptor, so both ether rules should
+    # fail to match independently of these predicates; the predicates
+    # are still set for schema consistency with the other panel cases.
+    alcohol_partner_C_must_be_aromatic:
+      biaryl_etherification: true
+    alcohol_partner_C_must_be_sp3:
+      aryl_etherification: true
 
 # Energetics disabled for v0 panel calibration, matching the surrogate
-# and other literature cases. The TDA is reported as proceeding cleanly
-# to the predicted T4 transition-state product; no Z/E selectivity gap
-# to flag in v1.
+# and other literature cases. The TDA on compound 4 is reported as
+# proceeding cleanly to the predicted T4 transition-state product;
+# no selectivity gap to flag in v1.
 energetics:
   enabled: false
 
 solver:
+  # M5 calls for ≤10 strategy families in the shortlist (proposal §5).
+  # SCIP backend, top_n: 10, request infeasibility certificates so
+  # ruled-out tactics emit verifier-clean no-go certs.
   backend: scip
-  top_n: 3
-  time_budget_s: 60
+  top_n: 10
+  time_budget_s: 120
+  request_infeasibility_cert: true
 
 notes: |
-  (+)-Cassaine (Phoenix-Reddy-Deslongchamps 2008). 14-membered
-  macrocyclic-triene precursor closes via transannular Diels-Alder to
-  give a 6-6-6 fused trans-decalin steroid tricycle (compound 5),
-  which is then elaborated through ~6 steps to cassaine 1
-  (C24H39NO4, MW 405.6 g/mol). Thermal conditions, no catalyst.
-  Stereochemistry controlled by macrocyclic preorganization
-  (cis-trans-trans triene geometry of compound 4). Byproduct: none.
-  AE class: high.
+  (+)-Cassaine via Phoenix-Reddy-Deslongchamps 2008 transannular
+  Diels-Alder closure (JACS 130:13989-13995, DOI:10.1021/ja805097s).
+  14-membered macrocyclic triene precursor (compound 4) closes via
+  TDA to give the 6-6-6 trans-decalin tricycle (compound 5), formula
+  C21H32O3 (methyl-ester / free-OH simplification of the paper's
+  silyl-protected t-butyl-ester form), exact MW 332.235. Compound 5
+  is elaborated through ~6 further steps (stereoselective reduction,
+  hydroboration, methyl cuprate 1,4-addition, dimethylaminoethyl-
+  oxycarbonyl tethering, C8 epimerization, C3 deprotection) to
+  (+)-cassaine 1 (C24H39NO4, MW 405.288, PubChem CID 5281267,
+  ChEBI:3454).
 
-  This case replaces the unfillable citreoviridin_suh_imda_1985 slot
-  per the recommendation in that case's research_brief.md and the
-  current panel_TODO.md.
+  Encoded `structure.mol` is the **post-TDA tricycle 5**, NOT the
+  natural product cassaine. Justification: the panel rule must
+  recognise the bond it actually forms. The TDA produces a cyclohexene
+  with a residual in-ring alkene (the diene's 2=3 bond); the natural
+  product has no such alkene (it is reduced in the post-TDA
+  elaboration sequence). Encoding the natural product would mean the
+  transannular_diels_alder rule cannot match in reverse on
+  `structure.mol`, returning an infeasible certificate for the
+  literature tactic — which contradicts the expected.yaml
+  `expected_witness: optimal`.
 
-  PLACEHOLDER WARNING: structure.mol is a placeholder; PubChem CID
-  5281267 Molfile is the recommended source for the natural product
-  target. The TDA-immediate intermediate (tricycle 5) is an
-  alternative encoding (manually derived from the paper's Scheme 1,
-  not from a public database). Ivan picks. See research_brief.md §7.
+  Thermal conditions (180-230 °C in toluene/xylene); no catalyst.
+  Stereochemistry of compound 5 is controlled by macrocyclic
+  preorganization (the cis-trans-trans triene geometry of compound 4).
+  Byproduct: none. AE class: high (rule meta records
+  byproduct_mass_g_per_mol: 0.0).
+
+  Stereo caveat (Workstream F task #35, queued not done): the v0 TDA
+  rule (data/rules/transannular_diels_alder.gml) carries no stereo
+  annotations on either side of the rewrite. The 4 new sp3 centres
+  installed by the TDA (C5, C8 ring junctions; C10, C13 angular
+  methyl-bearing quaternaries) and the endo/exo split are not
+  enforced. The campaign runs without stereo enforcement on the TDA
+  leg; the encoded structure.mol carries the Deslongchamps-predicted
+  T4-transition-state stereochemistry for documentation only, not
+  as a panel constraint.
+
+  Primary references:
+    Phoenix, S.; Reddy, M. S.; Deslongchamps, P. J. Am. Chem. Soc.
+      2008, 130, 13989-13995. DOI: 10.1021/ja805097s.
+    Phoenix, S.; Bourque, E.; Deslongchamps, P. Org. Lett. 2000,
+      2, 4149-4152. DOI: 10.1021/ol006670r.
+    Lamothe, S.; Ndibwami, A.; Deslongchamps, P. Tetrahedron Lett.
+      1988, 29, 1639 (theoretical, DOI:10.1016/S0040-4039(00)82005-5)
+      and 1641 (experimental, DOI:10.1016/S0040-4039(00)82006-7).
+
+  See research_brief.md for the full provenance and §3 for the
+  disconnection analysis; see canonical_smiles.txt alongside
+  structure.mol for the RDKit-canonical isomeric SMILES audit; see
+  docs/cassaine_m5.md for the M5 campaign report.

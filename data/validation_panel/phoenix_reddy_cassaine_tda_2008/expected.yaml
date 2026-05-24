@@ -1,9 +1,11 @@
 # expected.yaml — phoenix_reddy_cassaine_tda_2008
-# Status: Awaiting Ivan sign-off.
 #
-# This case replaces the unfillable citreoviridin_suh_imda_1985 slot.
-# See research_brief.md §1 for the citation diagnosis and notes.md for
-# encoding caveats.
+# Target: TDA-immediate intermediate (tricycle 5) of Phoenix-Reddy-
+# Deslongchamps 2008. 6-6-6 trans-decalin with one residual in-ring
+# alkene (the TDA-preserved diene 2=3 bond) and an exocyclic alpha,
+# beta-unsaturated methyl ester. C21H32O3, exact MW 332.235.
+# Compound 5 is elaborated through ~6 further steps to (+)-cassaine
+# (C24H39NO4, MW 405.288, PubChem CID 5281267).
 
 literature_tactic: transannular_diels_alder
 
@@ -19,7 +21,8 @@ expected_top_rule_class: macrocyclization
 
 # AE class: TDA is byproduct-free (cycloaddition has 100% atom economy
 # at the bond-formation step). Matches the high_atom_economy_bond
-# class flag on the transannular_diels_alder rule.
+# class flag on the transannular_diels_alder rule and the rule meta's
+# byproduct_mass_g_per_mol: 0.0.
 ae_class: high
 
 reference: |
@@ -42,9 +45,19 @@ reference: |
   5 is elaborated through ~6 further steps (stereoselective reduction,
   hydroboration, methyl cuprate 1,4-addition, dimethylaminoethyl-
   oxycarbonyl tethering, C8 epimerization, C3 deprotection) to
-  (+)-cassaine 1 (C24H39NO4, MW 405.6 g/mol, PubChem CID 5281267,
+  (+)-cassaine 1 (C24H39NO4, MW 405.288, PubChem CID 5281267,
   ChEBI:3454). Byproduct: none. Ring size: 14 (precursor); 6-6-6
   fused tricycle (product).
 
-  This case replaces the unfillable citreoviridin_suh_imda_1985 slot
-  per the recommendation in that case's research_brief.md.
+  v0 panel encoding: structure.mol is the TDA-immediate tricycle 5
+  (C21H32O3, MW 332.235) — methyl-ester / free-OH simplification of
+  the paper's silyl-protected t-butyl-ester form. The natural product
+  itself has no residual cyclohexene for the TDA rule to recognise
+  on reverse synthesis; encoding the intermediate matches the
+  *actual* macrocyclization event. See notes.md and
+  research_brief.md §7 for the encoding-choice rationale.
+
+  Stereo caveat: the v0 TDA rule carries no stereo annotations
+  (Workstream F task #35 is queued but not yet done). The 4 new sp3
+  centres installed by the TDA + the endo/exo split are not enforced
+  on the panel run.

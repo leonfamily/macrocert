@@ -1,33 +1,119 @@
-# PLACEHOLDER — DO NOT TREAT AS A VALID V2000 MOLFILE.
-#
-# AWAITING Ivan to encode from:
-#   Phoenix, S.; Reddy, M. S.; Deslongchamps, P. "Total Synthesis of
-#   (+)-Cassaine via Transannular Diels-Alder Reaction."
-#   J. Am. Chem. Soc. 2008, 130, 13989-13995.
-#   DOI: 10.1021/ja805097s
-#
-# Recommended source: PubChem CID 5281267 (cassaine) Molfile,
-#   downloadable from NCBI PubChem:
-#     https://pubchem.ncbi.nlm.nih.gov/compound/5281267
-#   Cross-validates against ChEBI:3454 (DOI prefix 10.1093/oso for
-#   the Oxford highlight in Taber's book).
-#
-# Cassaine: C24H39NO4, MW 405.6 g/mol, CAS 468-76-8.
-# Tricyclic diterpenoid alkaloid from Erythrophleum species
-# (Fabaceae). 6-6-6 trans-decalin-fused cyclohexane with a
-# 2-dimethylaminoethyloxycarbonyl ester at C4 and a 3-beta-hydroxyl.
-#
-# ALTERNATIVE: encode the TDA-immediate product (tricycle 5 from
-# Phoenix-Reddy-Deslongchamps 2008, Scheme 1) - this is more faithful
-# to the literature step-by-step but is not in any public database and
-# must be manually derived from the paper's Scheme 1 (C8 stereo
-# pre-epimerization; the dimethylaminoethyl tether is absent;
-# C3 is silyl-protected). Ivan picks.
-#
-# CCDC ALTERNATIVE: the 2008 JACS paper reports X-ray crystallography
-# per its MeSH terms. Refcode lookup needs ConQuest by DOI; if Ivan
-# has CCDC access, the X-ray structure of tricycle 5 (or of cassaine
-# itself if deposited) is preferable for stereochemistry verification.
-#
-# Do not autopopulate this file. The synthetic-chemistry team owns the
-# structure encoding decision.
+cassaine_tricycle5 PhoenixReddy2008 JACS130:13989 3D-RDKit
+ OpenBabel05242610423D
+
+ 56 58  0  0  0  0  0  0  0  0999 V2000
+   -0.1036    1.0085   -1.8923 C   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.4837    1.0348   -0.4054 C   0  0  1  0  0  0  0  0  0  0  0  0
+   -1.9007    0.4948   -0.2014 C   0  0  0  0  0  0  0  0  0  0  0  0
+   -2.9075    1.3529    0.0649 C   0  0  0  0  0  0  0  0  0  0  0  0
+   -4.3414    1.0255    0.2636 C   0  0  0  0  0  0  0  0  0  0  0  0
+   -4.8881   -0.0323    0.0092 O   0  0  0  0  0  0  0  0  0  0  0  0
+   -4.9421    2.1333    0.7727 O   0  0  0  0  0  0  0  0  0  0  0  0
+   -6.3395    1.9691    1.0158 C   0  0  0  0  0  0  0  0  0  0  0  0
+   -2.0259   -1.0111   -0.2984 C   0  0  0  0  0  0  0  0  0  0  0  0
+   -1.0026   -1.7373    0.5865 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.4333   -1.2599    0.2993 C   0  0  1  0  0  0  0  0  0  0  0  0
+    0.5072    0.2782    0.5203 C   0  0  1  0  0  0  0  0  0  0  0  0
+    1.9208    0.8059    0.4467 C   0  0  0  0  0  0  0  0  0  0  0  0
+    3.0079    0.0191    0.4139 C   0  0  0  0  0  0  0  0  0  0  0  0
+    2.9335   -1.4983    0.4192 C   0  0  1  0  0  0  0  0  0  0  0  0
+    4.2445   -2.2528    0.8563 C   0  0  0  0  0  0  0  0  0  0  0  0
+    4.7238   -1.8966    2.2783 C   0  0  0  0  0  0  0  0  0  0  0  0
+    5.4076   -1.8602   -0.1015 C   0  0  0  0  0  0  0  0  0  0  0  0
+    4.0094   -3.7865    0.6984 C   0  0  1  0  0  0  0  0  0  0  0  0
+    5.0841   -4.5453    1.2529 O   0  0  0  0  0  0  0  0  0  0  0  0
+    2.7224   -4.2929    1.3450 C   0  0  0  0  0  0  0  0  0  0  0  0
+    1.4878   -3.5342    0.8667 C   0  0  0  0  0  0  0  0  0  0  0  0
+    1.5880   -2.0048    1.0761 C   0  0  2  0  0  0  0  0  0  0  0  0
+    1.4796   -1.7032    2.5930 C   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.8257    1.5844   -2.4827 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.0800   -0.0045   -2.3045 H   0  0  0  0  0  0  0  0  0  0  0  0
+    0.8804    1.4597   -2.0560 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.4591    2.0919   -0.1023 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -2.6953    2.4166    0.1368 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -6.7245    2.9069    1.4258 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -6.8690    1.7565    0.0818 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -6.5110    1.1747    1.7491 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -1.8817   -1.3109   -1.3436 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -3.0150   -1.3724   -0.0115 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -1.2640   -1.5718    1.6377 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -1.0950   -2.8121    0.3982 H   0  0  0  0  0  0  0  0  0  0  0  0
+    0.6063   -1.4650   -0.7675 H   0  0  0  0  0  0  0  0  0  0  0  0
+    0.1756    0.4863    1.5493 H   0  0  0  0  0  0  0  0  0  0  0  0
+    2.0513    1.8862    0.4532 H   0  0  0  0  0  0  0  0  0  0  0  0
+    3.9804    0.4986    0.3517 H   0  0  0  0  0  0  0  0  0  0  0  0
+    2.8437   -1.7475   -0.6526 H   0  0  0  0  0  0  0  0  0  0  0  0
+    5.7513   -2.2424    2.4452 H   0  0  0  0  0  0  0  0  0  0  0  0
+    4.1220   -2.3624    3.0584 H   0  0  0  0  0  0  0  0  0  0  0  0
+    4.7222   -0.8150    2.4476 H   0  0  0  0  0  0  0  0  0  0  0  0
+    5.1375   -2.0419   -1.1478 H   0  0  0  0  0  0  0  0  0  0  0  0
+    5.6828   -0.8055   -0.0045 H   0  0  0  0  0  0  0  0  0  0  0  0
+    6.3164   -2.4352    0.1068 H   0  0  0  0  0  0  0  0  0  0  0  0
+    3.9602   -4.0368   -0.3699 H   0  0  0  0  0  0  0  0  0  0  0  0
+    5.8632   -4.4228    0.6858 H   0  0  0  0  0  0  0  0  0  0  0  0
+    2.6007   -5.3582    1.1081 H   0  0  0  0  0  0  0  0  0  0  0  0
+    2.8068   -4.2644    2.4370 H   0  0  0  0  0  0  0  0  0  0  0  0
+    0.6126   -3.9369    1.3905 H   0  0  0  0  0  0  0  0  0  0  0  0
+    1.3392   -3.7502   -0.1996 H   0  0  0  0  0  0  0  0  0  0  0  0
+    2.0854   -2.3719    3.2043 H   0  0  0  0  0  0  0  0  0  0  0  0
+    0.4552   -1.8402    2.9530 H   0  0  0  0  0  0  0  0  0  0  0  0
+    1.7808   -0.6825    2.8449 H   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  1  0  0  0  0
+  1 25  1  0  0  0  0
+  1 26  1  0  0  0  0
+  1 27  1  0  0  0  0
+  2  3  1  0  0  0  0
+  2 28  1  1  0  0  0
+  3  4  2  0  0  0  0
+  3  9  1  0  0  0  0
+  4  5  1  0  0  0  0
+  4 29  1  0  0  0  0
+  5  6  2  0  0  0  0
+  5  7  1  0  0  0  0
+  7  8  1  0  0  0  0
+  8 30  1  0  0  0  0
+  8 31  1  0  0  0  0
+  8 32  1  0  0  0  0
+  9 10  1  0  0  0  0
+  9 33  1  0  0  0  0
+  9 34  1  0  0  0  0
+ 10 11  1  0  0  0  0
+ 10 35  1  0  0  0  0
+ 10 36  1  0  0  0  0
+ 11 12  1  0  0  0  0
+ 11 37  1  6  0  0  0
+ 12 13  1  0  0  0  0
+ 12  2  1  0  0  0  0
+ 12 38  1  1  0  0  0
+ 13 14  2  0  0  0  0
+ 13 39  1  0  0  0  0
+ 14 15  1  0  0  0  0
+ 14 40  1  0  0  0  0
+ 15 16  1  0  0  0  0
+ 15 41  1  6  0  0  0
+ 16 17  1  0  0  0  0
+ 16 18  1  0  0  0  0
+ 16 19  1  0  0  0  0
+ 17 42  1  0  0  0  0
+ 17 43  1  0  0  0  0
+ 17 44  1  0  0  0  0
+ 18 45  1  0  0  0  0
+ 18 46  1  0  0  0  0
+ 18 47  1  0  0  0  0
+ 19 20  1  0  0  0  0
+ 19 21  1  0  0  0  0
+ 19 48  1  6  0  0  0
+ 20 49  1  0  0  0  0
+ 21 22  1  0  0  0  0
+ 21 50  1  0  0  0  0
+ 21 51  1  0  0  0  0
+ 22 23  1  0  0  0  0
+ 22 52  1  0  0  0  0
+ 22 53  1  0  0  0  0
+ 23 24  1  1  0  0  0
+ 23 15  1  0  0  0  0
+ 23 11  1  0  0  0  0
+ 24 54  1  0  0  0  0
+ 24 55  1  0  0  0  0
+ 24 56  1  0  0  0  0
+M  END

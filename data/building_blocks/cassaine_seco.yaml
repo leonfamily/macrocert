@@ -1,0 +1,57 @@
+name: cassaine 14-membered macrocyclic triene (TDA precursor)
+smiles: COC(=O)/C=C1\CCC=C(C)CCC(O)C(C)(C)C=CC=CC1C
+provenance: |
+  Seco-precursor for the Phoenix-Reddy-Deslongchamps 2008 TDA
+  closure of cassaine (JACS 2008, 130, 13989-13995,
+  DOI:10.1021/ja805097s; earlier communication Org. Lett. 2000,
+  2, 4149-4152, DOI:10.1021/ol006670r). The 14-membered
+  cis-trans-trans macrocyclic triene corresponds to compound 4
+  in the paper's Scheme 1; the transannular [4+2] cycloaddition
+  closes it (no catalyst, thermal at 180-230 °C in xylene) to
+  give the 6-6-6 trans-decalin tricycle 5, which is elaborated
+  through ~6 further steps to (+)-cassaine 1 (C24H39NO4, MW
+  405.288 g/mol; PubChem CID 5281267, ChEBI:3454).
+
+  Derived programmatically from the cyclized tricycle 5 by
+  applying the reverse of the transannular_diels_alder rule:
+  break the two new sigma bonds (rule positions 1-6 and 4-5);
+  restore the diene (C(1)=C(2)-C(3)=C(4)) and dienophile
+  (C(5)=C(6)) double bonds.
+
+  The macrocyclic triene retains the exocyclic alpha,beta-
+  unsaturated methyl ester (preserved from the tricycle's side
+  chain) and the free C3 hydroxyl. The paper uses a
+  silyl-protected C3-OH and a t-butyl ester at this stage; the
+  v0 encoding simplifies both for panel convention.
+notes: |
+  Mass balance verified by the build script:
+    cyclized (tricycle 5) MW = 332.2351
+    seco MW                  = 332.2351
+    Δ MW                     = 0.0000
+    TDA byproduct mass       = 0.0
+  (Cycloaddition has 100% atom economy at the bond-formation step;
+  the AE class for this case is `high` and matches the rule meta's
+  byproduct_mass_g_per_mol: 0.0.)
+
+  Triene geometry caveat: Lamothe-Ndibwami-Deslongchamps 1988
+  (Tet. Lett. 29:1639 theoretical, 29:1641 experimental) specify
+  a *cis-trans-trans* arrangement of the three C=C bonds in
+  compound 4. The seco SMILES authored here is stereo-naive:
+  no E/Z descriptors are set on any of the three in-ring
+  alkenes (the MØD-MacroCert TDA rule itself carries no stereo
+  annotations on either side of the rewrite). Workstream F
+  task #35 (TDA stereo encoding for 4 new sp3 centres + endo/exo
+  split) is queued but not yet done.
+
+  Stereocenters: the seco retains the 2 sp3 stereocenters that
+  pre-exist the TDA (the C3-OH carbon and the C4 quaternary
+  centre); the 4 sp3 stereocenters formed by the TDA (the two
+  ring-junction CH and the two angular methyl-bearing quaternaries)
+  collapse to sp2 in the seco because they are the diene/dienophile
+  carbons of the 14-membered triene.
+refs:
+  - "Phoenix, S.; Reddy, M. S.; Deslongchamps, P. J. Am. Chem. Soc. 2008, 130, 13989-13995 (DOI:10.1021/ja805097s) — primary reference"
+  - "Phoenix, S.; Bourque, E.; Deslongchamps, P. Org. Lett. 2000, 2, 4149-4152 (DOI:10.1021/ol006670r) — earlier communication"
+  - "Lamothe, S.; Ndibwami, A.; Deslongchamps, P. Tetrahedron Lett. 1988, 29, 1639-1640 (DOI:10.1016/S0040-4039(00)82005-5) — 14-mb TDA methodology, theoretical"
+  - "Lamothe, S.; Ndibwami, A.; Deslongchamps, P. Tetrahedron Lett. 1988, 29, 1641-1644 (DOI:10.1016/S0040-4039(00)82006-7) — 14-mb TDA methodology, experimental"
+  - "PubChem CID 5281267 / ChEBI:3454 — natural-product reference for the post-elaboration form"
