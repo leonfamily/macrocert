@@ -25,6 +25,8 @@ def emit(
     composed: ComposedRule | None,
     solution: Solution | None,
     witness: Witness,
+    *,
+    energetics_deps: Any = None,
 ) -> dict[str, Any]:
     cert: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
@@ -33,7 +35,9 @@ def emit(
         "composed_rule": _serialize_composed(composed) if composed else _empty_composed(ir),
         "flow": dict(solution.flow) if solution else {},
         "solver_witness": _serialize_witness(witness),
-        "energetics_dependencies": None,
+        "energetics_dependencies": (
+            energetics_deps.to_jsonable() if energetics_deps is not None else None
+        ),
     }
     return cert
 

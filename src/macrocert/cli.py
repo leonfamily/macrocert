@@ -102,6 +102,14 @@ def _cmd_run(args: argparse.Namespace) -> int:
     if report.witness_kind == "optimal":
         print(f"  bond-level expelled mass:    {report.bond_level_expelled_mass:.2f} g/mol")
         print(f"  process-level expelled mass: {report.process_level_expelled_mass:.2f} g/mol")
+    if report.energetics_summary:
+        cs = report.energetics_summary.get("cache_stats", {})
+        per_edge = report.energetics_summary.get("per_edge", {})
+        print(f"  energetics: {len(per_edge)} edge(s) evaluated, "
+              f"cache hits={cs.get('hits', 0)} misses={cs.get('misses', 0)}")
+        for eid, ent in per_edge.items():
+            dG = ent.get("dG_kcal_per_mol")
+            print(f"    {eid}: tier={ent['tier']} ΔG={dG:+.2f} kcal/mol")
     print(f"  certificate: {report.certificate_path}")
     return 0
 

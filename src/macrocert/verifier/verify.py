@@ -43,6 +43,10 @@ def verify_certificate(cert_path: Path) -> int:
     if rc:
         return rc
 
+    rc = _check_energetics(cert)
+    if rc:
+        return rc
+
     print(f"OK  {cert_path}")
     return 0
 
@@ -190,6 +194,70 @@ def _check_flow_balance(cert: dict[str, Any]) -> int:
             file=sys.stderr,
         )
         return 20
+
+    return 0
+
+
+def _check_energetics(cert: dict[str, Any]) -> int:
+    """Re-check energetics_dependencies for internal consistency.
+
+    The verifier does NOT re-run DFT/MLIP — Layer D is defeasible by
+    construction (proposal §3.5). What we check:
+      - If energetics_dependencies is null, the certificate makes no
+        energetics claims; nothing to verify.
+      - If non-null, every entry must declare {tier, dG_kcal_per_mol,
+        cache_key, method}. The tier must be in {mlip, xtb, dft}.
+      - Every entry must correspond to an actual edge in the
+        derivation_graph (no orphan claims).
+      - Every edge that appears in flow with multiplicity > 0 must
+        have an energetics entry — the certificate is honest about
+        which 'sorry's it relied on.
+    """
+    deps = cert.get("energetics_dependencies")
+    if deps is None:
+        return 0
+    if not isinstance(deps, dict):
+        print("energetics_dependencies must be a dict or null", file=sys.stderr)
+        return 30
+
+    per_edge = deps.get("per_edge", {})
+    if not isinstance(per_edge, dict):
+        print("energetics_dependencies.per_edge must be a dict", file=sys.stderr)
+        return 30
+
+    valid_tiers = {"mlip", "xtb", "dft"}
+    edge_ids = {e["id"] for e in cert["derivation_graph"]["hyperedges"]}
+
+    for eid, entry in per_edge.items():
+        if eid not in edge_ids:
+            print(
+                f"energetics_dependencies references orphan edge {eid!r}",
+                file=sys.stderr,
+            )
+            return 20
+        for required in ("tier", "dG_kcal_per_mol", "cache_key", "method"):
+            if required not in entry:
+                print(
+                    f"energetics_dependencies[{eid}] missing {required!r}",
+                    file=sys.stderr,
+                )
+                return 20
+        if entry["tier"] not in valid_tiers:
+            print(
+                f"energetics_dependencies[{eid}] has invalid tier {entry['tier']!r}",
+                file=sys.stderr,
+            )
+            return 20
+
+    flow = {k: int(v) for k, v in cert["flow"].items()}
+    for eid, n in flow.items():
+        if n > 0 and eid not in per_edge:
+            print(
+                f"flow uses edge {eid} x{n} but no energetics entry — "
+                "certificate is silent on which ΔG was trusted",
+                file=sys.stderr,
+            )
+            return 20
 
     return 0
 
