@@ -1,10 +1,10 @@
-name: lactam_16_from_15_aminopentadecanoic_acid
+name: lactone_16_from_15_hydroxypentadecanoic_acid
 target:
   structure_path: structure.mol
   ring_size: 16
 
 blocks:
-  - aminopentadecanoic_acid
+  - hydroxypentadecanoic_acid
 
 rules: all_macrocyclization
 
@@ -24,5 +24,6 @@ energetics:
   enabled: false
 
 notes: |
-  Surrogate macrolactamization case (ring size 16).
-  Closes via one firing of the macrolactamization rule.
+  Surrogate macrolactonization case (ring size 16).
+  Closes via one firing of the macrolactonization rule.
+  Reference: Mukaiyama, Usui & Saigo 1976, Chem. Lett. 49 (DOI:10.1246/cl.1976.49).

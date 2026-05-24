@@ -11,6 +11,9 @@ rules: all_macrocyclization
 strategy:
   max_steps: 1
   ring_close_only: true
+  predicates:
+    is_intramolecular: true
+    ring_size_equals: 13
 
 solver:
   backend: scip

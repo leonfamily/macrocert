@@ -1,0 +1,9 @@
+name: 19-hydroxynonadecanoic acid
+smiles: OC(=O)CCCCCCCCCCCCCCCCCCO
+provenance: |
+  Surrogate panel building block — 20-membered macrolactone precursor — large-ring stress test, cousin of lactam_20 surrogate.
+notes: |
+  Linear omega-hydroxy acid that cyclizes to a 20-membered
+  macrolactone in one rule firing (macrolactonization).
+refs:
+  - "Parenty, Moreau, Niel & Campagne 2013, Chem. Rev. — macrolactonization survey"

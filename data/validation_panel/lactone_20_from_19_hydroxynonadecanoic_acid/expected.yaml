@@ -1,0 +1,10 @@
+literature_tactic: macrolactonization
+literature_ring_size: 20
+expected_witness: optimal
+expected_top_rule_class: macrocyclization
+ae_class: high
+reference: |
+  Parenty, Moreau, Niel & Campagne 2013, Chem. Rev. — macrolactonization survey.
+  omega-hydroxy acid macrolactonization is well-precedented for the
+  musk-lactone series (Exaltolide, n=14); included to calibrate tau
+  across ring sizes alongside the lactam_* surrogates.

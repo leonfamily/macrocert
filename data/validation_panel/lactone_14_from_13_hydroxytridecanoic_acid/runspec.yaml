@@ -1,10 +1,10 @@
-name: lactam_14_from_13_aminotridecanoic_acid
+name: lactone_14_from_13_hydroxytridecanoic_acid
 target:
   structure_path: structure.mol
   ring_size: 14
 
 blocks:
-  - aminotridecanoic_acid
+  - hydroxytridecanoic_acid
 
 rules: all_macrocyclization
 
@@ -24,5 +24,6 @@ energetics:
   enabled: false
 
 notes: |
-  Surrogate macrolactamization case (ring size 14).
-  Closes via one firing of the macrolactamization rule.
+  Surrogate macrolactonization case (ring size 14).
+  Closes via one firing of the macrolactonization rule.
+  Reference: Parenty, Moreau, Niel & Campagne 2013, Chem. Rev. — macrolactonization survey.

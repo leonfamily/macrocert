@@ -1,0 +1,9 @@
+name: 13-hydroxytridecanoic acid
+smiles: OC(=O)CCCCCCCCCCCCO
+provenance: |
+  Surrogate panel building block — 14-membered macrolactone precursor; series-coverage cousin of the lactam_14 surrogate.
+notes: |
+  Linear omega-hydroxy acid that cyclizes to a 14-membered
+  macrolactone in one rule firing (macrolactonization).
+refs:
+  - "Parenty, Moreau, Niel & Campagne 2013, Chem. Rev. — macrolactonization survey"

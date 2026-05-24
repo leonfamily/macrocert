@@ -1,10 +1,10 @@
-name: lactam_20_from_19_aminononadecanoic_acid
+name: lactone_20_from_19_hydroxynonadecanoic_acid
 target:
   structure_path: structure.mol
   ring_size: 20
 
 blocks:
-  - aminononadecanoic_acid
+  - hydroxynonadecanoic_acid
 
 rules: all_macrocyclization
 
@@ -24,5 +24,6 @@ energetics:
   enabled: false
 
 notes: |
-  Surrogate macrolactamization case (ring size 20).
-  Closes via one firing of the macrolactamization rule.
+  Surrogate macrolactonization case (ring size 20).
+  Closes via one firing of the macrolactonization rule.
+  Reference: Parenty, Moreau, Niel & Campagne 2013, Chem. Rev. — macrolactonization survey.

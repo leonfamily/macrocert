@@ -17,11 +17,29 @@ PANEL = Path("data/validation_panel")
 REPORT = PANEL / "REPORT.md"
 
 
+def _is_placeholder_case(case_dir: Path) -> bool:
+    """Skip Workstream B placeholder cases (PLACEHOLDER MOL header or
+    null ring_size in runspec). Same logic as tests/panel/test_panel.py.
+    """
+    mol = case_dir / "structure.mol"
+    if mol.exists():
+        try:
+            if mol.read_text(encoding="utf-8", errors="replace").lstrip().startswith("# PLACEHOLDER"):
+                return True
+        except OSError:
+            pass
+    return False
+
+
 def main():
     cases = sorted(d for d in PANEL.iterdir() if d.is_dir())
     results = []
+    skipped = []
     for case_dir in cases:
         if not (case_dir / "runspec.yaml").exists():
+            continue
+        if _is_placeholder_case(case_dir):
+            skipped.append(case_dir.name)
             continue
         report = run(case_dir, artifacts_dir="artifacts/panel")
         cert = json.loads(report.certificate_path.read_text())
@@ -91,9 +109,19 @@ def main():
             "  split is preserved per proposal §3.3, and each is reported separately.",
         ]
 
+    if skipped:
+        lines += [
+            "",
+            "## Skipped (placeholder structures)",
+            "",
+        ]
+        for name in skipped:
+            lines.append(f"- {name} — `structure.mol` is a `# PLACEHOLDER` awaiting Ivan's CIF audit")
+        lines.append("")
+
     REPORT.write_text("\n".join(lines) + "\n")
     print(f"wrote {REPORT}")
-    print(f"  {len(results)} cases summarized; τ candidate documented")
+    print(f"  {len(results)} cases summarized; {len(skipped)} skipped (placeholders); τ candidate documented")
 
 
 if __name__ == "__main__":

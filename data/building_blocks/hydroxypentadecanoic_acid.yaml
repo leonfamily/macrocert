@@ -1,0 +1,9 @@
+name: 15-hydroxypentadecanoic acid
+smiles: OC(=O)CCCCCCCCCCCCCCO
+provenance: |
+  Surrogate panel building block — Exaltolide / cyclopentadecanolide precursor (CAS 106-02-5); the canonical 16-membered musk macrolactone. Mukaiyama 1976 tested this n=14 substrate explicitly. DOI:10.1246/cl.1976.49
+notes: |
+  Linear omega-hydroxy acid that cyclizes to a 16-membered
+  macrolactone in one rule firing (macrolactonization).
+refs:
+  - "Mukaiyama, Usui & Saigo 1976, Chem. Lett. 49 (DOI:10.1246/cl.1976.49)"
