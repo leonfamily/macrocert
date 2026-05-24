@@ -1,0 +1,85 @@
+# MØD-MacroCert pre-registration lockfile (template)
+#
+# Locks acceptance criteria *before* invoking the ascomylactam A run.
+# Any retuning of these values after lock-in invalidates the M5 result;
+# the run must be re-issued under a new pre-registration version.
+#
+# Workflow:
+#   1. When the panel + rule library + energetics protocol are stable,
+#      copy this template to `data/pre_registration.lock.yaml`.
+#   2. Fill in every field with concrete values; Ivan signs `signed_by`.
+#   3. `scripts/pre_m5_gate.py` reads `pre_registration.lock.yaml` and
+#      requires every field to be present + non-default.
+#   4. The certificate emitted by the ascomylactam run records
+#      `pre_registration_hash` (sha256 of the lockfile).
+#   5. The verifier checks the hash matches at audit time.
+#
+# If you find yourself wanting to change a value after locking, you are
+# in posthoc tuning territory. Stop, document why, mint a v2 lockfile,
+# and re-run the panel under v2 to recalibrate. Do not silently edit.
+
+version: 1
+locked_at: null  # ISO 8601 timestamp at lock time
+signed_by: null  # "ivan.leon" — set by Ivan at lock time
+signing_note: |
+  # Optional free-text note from Ivan explaining the lock state, any
+  # known concerns, and the rationale for proceeding to M5 now.
+
+# ----- Panel acceptance ------------------------------------------------------
+
+panel:
+  min_pass_rate: 0.80         # ≥ proposal §4.1 threshold
+  min_case_count: 10          # ≥ proposal §Workstream B target
+  ae_threshold_tau: null      # AE threshold per tactic, kg-byproduct / kg-product
+                              # set from `REPORT.md` calibration
+
+# ----- Rule library ----------------------------------------------------------
+
+rule_library:
+  min_tactic_count: 5         # macrolactamization, RCM, TDA + ≥2 from
+                              # {macrolactonization, cross-coupling, C-H,
+                              #  RCAM}
+  required_tactics:
+    - macrolactamization
+    - rcm
+    - transannular_diels_alder
+    - macrolactonization
+  stereo_annotations_required: true
+  dual_rule_comparison_logged: true
+
+# ----- Strategy predicates ---------------------------------------------------
+
+strategy_predicates:
+  is_intramolecular: required          # must be active for all panel + ascomylactam runspecs
+  ring_size_equals: required           # must be active where applicable
+  forbidden_context: optional          # rule-specific blacklists
+
+# ----- Energetics (Layer D) --------------------------------------------------
+
+energetics:
+  tier_policy: "xtb_screen_mlip_triage_dft_refine"
+  mlip_model: null                     # e.g., "MACE-OFF-medium"
+  mlip_ood_detection_required: true    # certificate must record OOD flag + score
+  dft_method: null                     # e.g., "B3LYP/def2-SVP" or "wB97X-D/def2-SVP"
+  dft_d3_dispersion: null              # true | false
+  implicit_solvent:
+    psi4: null                         # e.g., "PCM_water"
+    xtb: null                          # e.g., "ALPB_water"
+  ts_search_method: null               # e.g., "CI-NEB" or "FSM"
+  barrier_threshold_kcal_per_mol: null # e.g., 30.0; cite source in signing_note
+
+# ----- Verifier --------------------------------------------------------------
+
+verifier:
+  adversarial_test_count_min: 11        # tests/verifier/test_adversarial.py
+  reproducibility_hash_check_passes: required_on_toy_macrolactam
+
+# ----- Ascomylactam A target -------------------------------------------------
+
+target:
+  name: "ascomylactam_a"
+  structure_file: "data/targets/ascomylactam_a/structure.mol"
+  perimeter_signed: required
+  dual_encoding_agree: required
+  source_paper_doi: "10.1021/acs.jnatprod.8b00918"
+  structural_revision_checked: required  # any post-2019 revisions confirmed/refuted
