@@ -100,3 +100,42 @@ def test_unknown_witness_kind_rejected(good_cert, tmp_path):
     cert = copy.deepcopy(good_cert)
     cert["solver_witness"] = {"kind": "feels_good_to_me"}
     assert _write_and_verify(cert, tmp_path) == 30
+
+
+# --- energetics_dependencies checks ----------------------------------------
+@pytest.fixture(scope="module")
+def good_energetics_cert() -> dict[str, Any]:
+    path = Path("artifacts/toy_macrolactam_energetics/certificate.json")
+    if not path.exists():
+        subprocess.run(
+            [sys.executable, "-m", "macrocert.cli", "run",
+             "data/targets/toy_macrolactam_energetics"],
+            check=True, capture_output=True,
+        )
+    return json.loads(path.read_text())
+
+
+def test_good_energetics_cert_verifies(good_energetics_cert, tmp_path):
+    assert _write_and_verify(good_energetics_cert, tmp_path) == 0
+
+
+def test_orphan_energetics_entry_rejected(good_energetics_cert, tmp_path):
+    cert = copy.deepcopy(good_energetics_cert)
+    cert["energetics_dependencies"]["per_edge"]["nonexistent_edge_id"] = {
+        "tier": "xtb", "dG_kcal_per_mol": 0.0,
+        "cache_key": "x", "method": "GFN2-xTB",
+    }
+    assert _write_and_verify(cert, tmp_path) == 20
+
+
+def test_invalid_tier_rejected(good_energetics_cert, tmp_path):
+    cert = copy.deepcopy(good_energetics_cert)
+    eid = next(iter(cert["energetics_dependencies"]["per_edge"]))
+    cert["energetics_dependencies"]["per_edge"][eid]["tier"] = "vibes"
+    assert _write_and_verify(cert, tmp_path) == 20
+
+
+def test_silent_on_used_edge_rejected(good_energetics_cert, tmp_path):
+    cert = copy.deepcopy(good_energetics_cert)
+    cert["energetics_dependencies"]["per_edge"] = {}
+    assert _write_and_verify(cert, tmp_path) == 20
