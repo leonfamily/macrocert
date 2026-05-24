@@ -1,0 +1,150 @@
+# HWE olefination rule metadata (consumed by macrocert.spec.rules).
+# See data/rules/hwe_olefination.gml for the DPO span. Application
+# conditions (ring closure on a single component, ring-size membership
+# in the macrocyclic range, phosphonate must have beta-EWG on alpha-C,
+# substrate must have exactly one aldehyde, no other alpha-acidic sites,
+# etc.) live in macrocert.generate.strategies, not here.
+#
+# See docs/hwe_olefination_research.md §3 (reagent + byproduct mass per
+# activator), §4 (stereo flags), §9 (proposed meta.yaml). The bond-level
+# byproduct is dialkyl phosphate; the canonical variant is dimethyl
+# phosphonate (NaH/dimethyl-phosphonate activator), giving the protonated
+# byproduct (MeO)2P(O)OH = 126.05 g/mol on workup. Alternative
+# phosphonate / base systems are listed in `reagent_mass_alternatives`
+# below; the rule body is variant-agnostic (the OR groups on P live in
+# off-rule substrate context).
+
+# Process-level reagent mass: NaH (24 g/mol) for the canonical
+# dimethyl-phosphonate / NaH protocol. Per-substrate overrides in
+# RunSpec.solver.extra can select alternatives from
+# `reagent_mass_alternatives` below.
+reagent_mass_g_per_mol: 24.0
+
+# Bond-level expelled mass: dialkyl phosphate conjugate acid, from the
+# rule's atom-map. For the canonical dimethyl phosphonate variant the
+# byproduct is (MeO)2P(O)OH = 126.05 g/mol (atoms 2, 3, 4, 6 of the rule
+# body plus the two off-rule OMe decorations on atom 3). The rule body
+# uses the conjugate-acid form (alpha-H lives on phosphate O on R-side).
+byproduct_mass_g_per_mol: 126.05
+
+# Which atom ID anchors the *retained* product side on R. Used by the
+# verifier's bond-level AE recomputation: BFS from this atom through R's
+# edges reaches the retained ring atoms. Atom 1 (alpha-C, now sp2 alkene
+# C on the macrocycle) is the anchor; atom 5 is reached via the new 1=5
+# bond. Atoms 2, 3, 4, 6 are disconnected from atom 1 in R and correctly
+# classified as byproduct.
+retained_root_atom: 1
+
+classes:
+  - macrocyclization
+  - cc_closure                  # forms a C=C bond closing the macrocycle
+  - alkene_forming
+  - high_atom_economy_bond      # ~125 g/mol byproduct at bond level — moderate AE
+  - hwe_family                  # umbrella class for all HWE variants
+  - cytochalasan_family         # Haidle-Myers cytochalasin B, L-696,474
+  - macrolide_family            # lactimidomycin (Nagorny 2013), Ando 2010 series
+
+# Stereochemical behaviour (see docs/hwe_olefination_research.md §4):
+#   - e_selective_default: dimethyl/diethyl phosphonate + standard base
+#     gives E-alkene typically 10:1 to >50:1 E:Z (reversibility of
+#     addition + irreversible anti-oxaphosphetane collapse).
+#   - may_invert_with_Still_Gennari: Z-selective with (CF3CH2O)2P
+#     (Still-Gennari) or (PhO)2P (Ando) phosphonate variants — selectable
+#     via reagent_mass_alternatives.
+#   - retains_remote_alpha_stereo: ring atoms not adjacent to atoms 1, 5
+#     are untouched (alpha-C of phosphonate becomes sp2 and loses chirality
+#     at atom 1, but all *other* sp3 stereocenters on the ring are preserved).
+#   - risk_alpha_epimerization: if the aldehyde alpha-C (one bond beyond
+#     atom 5, off-rule) is an sp3 stereocenter, strong base / high temp may
+#     epimerize it (Haidle-Myers documented for L-696,474 11-ring at 80 C).
+#     Mitigate with `haidle_myers` (NaOCH2CF3) or `masamune_roush` (LiCl/DBU)
+#     activator.
+stereo_flags:
+  - e_selective_default
+  - may_invert_with_Still_Gennari
+  - retains_remote_alpha_stereo
+  - risk_alpha_epimerization
+
+refs:
+  - "Trost 1991, Science 254:1471 (atom economy)"
+  - "Wadsworth & Emmons 1961, J. Am. Chem. Soc. 83:1733, DOI:10.1021/ja01468a042 (original HWE)"
+  - "Boutagy & Thomas 1974, Chem. Rev. 74:87, DOI:10.1021/cr60287a005 (mechanism review)"
+  - "Still & Gennari 1983, Tetrahedron Lett. 24:4405, DOI:10.1016/S0040-4039(00)85909-2 (Z-selective)"
+  - "Masamune, Roush, Blanchette 1984, Tetrahedron Lett. 25:2183, DOI:10.1016/S0040-4039(01)80205-7 (LiCl/amine)"
+  - "Ando 1997, J. Org. Chem. 62:1934, DOI:10.1021/jo970057c (Z-selective diaryl phosphonate)"
+  - "Haidle & Myers 2004, PNAS 101:12048, DOI:10.1073/pnas.0402111101 (cytochalasin B + L-696,474 intramolecular HWE, NaOCH2CF3 conditions)"
+  - "Ando, Narumiya, Takada, Teruya 2010, Org. Lett. 12:1460, DOI:10.1021/ol100071d (Z-selective macrolactone)"
+  - "Larsen, Sun, Nagorny 2013, Org. Lett. 15:2998, DOI:10.1021/ol401186f (Zn-mediated HWE macrocyclization)"
+  - "Bisceglia & Orelli 2015, Curr. Org. Chem. 19:744, DOI:10.2174/1385272819666150311231006 (HWE review)"
+  - "Kobayashi, Tanaka, Kogen 2018, Tetrahedron Lett. 59:568, DOI:10.1016/j.tetlet.2017.12.076 (HWE in NP synthesis)"
+
+# Activator alternatives — selectable per-RunSpec via solver.extra.
+# Each entry's reagent_mass_g_per_mol replaces the canonical value;
+# byproduct_mass_extra is the *additional* byproduct mass beyond the
+# 126.05 g/mol of dimethyl phosphate (e.g., diphenyl phosphonate has
+# heavier OAr groups so the byproduct anion is larger).
+reagent_mass_alternatives:
+  - name: "canonical_NaH_dimethyl"
+    reagent_mass_g_per_mol: 24.0
+    additional_byproduct_mass_g_per_mol: 0.0
+    description: "Canonical HWE: NaH in THF/DME, dimethyl phosphonate, E-selective; textbook Wadsworth-Emmons protocol."
+    refs: ["10.1021/ja01468a042"]
+  - name: "canonical_KHMDS_dimethyl"
+    reagent_mass_g_per_mol: 199.45
+    additional_byproduct_mass_g_per_mol: 0.0
+    description: "KHMDS in THF, dimethyl phosphonate, E-selective; standard alternative for less acidic phosphonates."
+    refs: ["10.1021/cr60287a005"]
+  - name: "masamune_roush"
+    reagent_mass_g_per_mol: 322.0    # LiCl (42.4) + DBU (152.2) + MeCN (41.1) + margin
+    additional_byproduct_mass_g_per_mol: 0.0
+    description: "Masamune-Roush conditions: LiCl + DBU or iPr2NEt in MeCN; mild, avoids alpha-epimerization on base-sensitive substrates."
+    refs: ["10.1016/S0040-4039(01)80205-7"]
+  - name: "haidle_myers"
+    reagent_mass_g_per_mol: 222.0    # NaOCH2CF3 (122.04) + CF3CH2OH (100.04) co-solvent
+    additional_byproduct_mass_g_per_mol: 0.0
+    description: "Haidle-Myers conditions: NaOCH2CF3 in CF3CH2OH/DME; epimerization-suppressed, used for cytochalasin B (14-ring, 65%) and L-696,474 (11-ring, 52%) macrocyclization."
+    refs: ["10.1073/pnas.0402111101"]
+  - name: "still_gennari"
+    reagent_mass_g_per_mol: 464.0    # KHMDS (199.45) + 18-crown-6 (264.32)
+    additional_byproduct_mass_g_per_mol: 136.0  # (CF3CH2O)2 vs (MeO)2 byproduct delta
+    description: "Still-Gennari conditions: bis(trifluoroethyl) phosphonate + KHMDS + 18-crown-6; Z-SELECTIVE (1:20 to 1:50 Z) on primary aldehydes."
+    refs: ["10.1016/S0040-4039(00)85909-2"]
+  - name: "ando"
+    reagent_mass_g_per_mol: 349.0    # KHMDS (199.45) + NaI (149.89)
+    additional_byproduct_mass_g_per_mol: 124.0  # (PhO)2 vs (MeO)2 byproduct delta
+    description: "Ando conditions: diphenyl phosphonate + KHMDS or NaH + NaI; Z-SELECTIVE (1:10 to 1:50 Z), cheaper than Still-Gennari."
+    refs: ["10.1021/jo970057c"]
+  - name: "ando_macrocyclic"
+    reagent_mass_g_per_mol: 302.0    # NaI (149.89) + DBU (152.24)
+    additional_byproduct_mass_g_per_mol: 165.0  # diaryl-phosphonate vs dimethyl delta
+    description: "Ando macrocyclic conditions: NaI + DBU + diaryl phosphonate; Z-SELECTIVE 13-18 membered cyclic alkenes — direct intramolecular Z-HWE precedent."
+    refs: ["10.1016/j.tetlet.2011.01.043"]
+  - name: "nagorny_zn"
+    reagent_mass_g_per_mol: 493.0    # Zn(OTf)2 (363.50) + iPr2NEt (129.24)
+    additional_byproduct_mass_g_per_mol: 0.0
+    description: "Zn(II)-mediated HWE: Zn(OTf)2 + iPr2NEt; for very strained / base-sensitive macrolides (e.g., lactimidomycin)."
+    refs: ["10.1021/ol401186f"]
+
+notes: |
+  Intramolecular Horner-Wadsworth-Emmons olefination of a beta-keto
+  phosphonate (or phosphonoacetate ester) with a tethered aldehyde,
+  closing a macrocyclic C=C alkene and expelling dialkyl phosphate
+  at the bond level. Process-level AE is dominated by the choice of
+  base + co-additives — Masamune-Roush (LiCl/DBU) or Haidle-Myers
+  (NaOCH2CF3/CF3CH2OH) are the workhorse mild conditions for
+  natural-product macrocyclization on substrates with base-labile
+  alpha-stereocenters. Still-Gennari (CF3CH2O)2P and Ando (PhO)2P
+  invert the default E-selectivity to Z-selective. The rule body is
+  identical across all phosphonate variants; the byproduct mass and
+  E/Z selectivity are configured at the activator level via
+  reagent_mass_alternatives.
+
+  Wittig macrocyclization (Ph3P=CR2 + aldehyde) is NOT covered by
+  this rule — same mechanism class (oxaphosphetane), but byproduct
+  is Ph3P=O (278 g/mol). Julia-Kocienski olefination (sulfonyl-
+  stabilized carbanion + aldehyde) is also NOT covered — different
+  byproduct (sulfinate). Both belong in sibling rules if needed.
+
+  Panel coverage:
+    - haidle_myers_cytochalasin_b_2004 (cytochalasin B 14-ring
+      macrolactone via NaOCH2CF3 / dimethyl-phosphonoacetate ester).

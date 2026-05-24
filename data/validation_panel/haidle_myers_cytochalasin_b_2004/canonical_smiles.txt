@@ -1,0 +1,12 @@
+# Canonical isomeric SMILES for cytochalasin B
+# (PubChem CID 5311281, ChEBI:23528, CAS 14930-96-2; cross-validated
+# against the Haidle-Myers 2004 PNAS structure).
+#
+# formula: C29H37NO5
+# exact MW: 479.2672
+# average MW: 479.62
+# rings: [5, 6, 6, 14]
+# stereocenters (assigned): 8
+# refs: 10.1073/pnas.0402111101 (Haidle-Myers 2004 PNAS),
+#       PubChem CID 5311281, ChEBI:23528
+C=C1[C@@H](C)[C@H]2[C@H](Cc3ccccc3)NC(=O)[C@]23OC(=O)/C=C/[C@H](O)CCC[C@@H](C)C/C=C/[C@H]3[C@@H]1O

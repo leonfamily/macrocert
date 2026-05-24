@@ -14,6 +14,9 @@ sets:
     - cross_coupling_buchwald
     - cross_coupling_sonogashira
     - cross_coupling_stille
+    - hwe_olefination               # intramolecular HWE -> alkene + dialkyl phosphate
+                                    # (Wadsworth-Emmons 1961 DOI:10.1021/ja01468a042;
+                                    # Haidle-Myers 2004 cytochalasin B DOI:10.1073/pnas.0402111101)
 
   high_ae_macrocyclization:  # bond-level AE ≥ threshold
     - macrolactamization            # H2O byproduct (18 g/mol)
@@ -23,6 +26,15 @@ sets:
     - c_h_dehydrogenative_coupling  # H2 byproduct (2 g/mol) — highest AE C-C
     - rcm                           # ethylene byproduct (28 g/mol)
     - transannular_diels_alder      # zero byproduct
+    - hwe_olefination               # dimethyl phosphate (~126 g/mol) — judgment call:
+                                    # included because (a) both new alkene carbons come
+                                    # from the substrate (no atom donation by an
+                                    # activator), (b) no transition-metal catalyst,
+                                    # (c) bond-level mass is below the cross-coupling
+                                    # threshold (>140 g/mol Suzuki/Negishi/Stille).
+                                    # The bond-level AE is "moderate-to-high" relative
+                                    # to the panel as a whole — heavier than H2O/HF/H2
+                                    # but lighter than the cross-coupling byproducts.
     # Cross-couplings deliberately excluded: HBr (Buchwald, Sonogashira)
     # is small but the activator stack is heavy; Suzuki/Negishi/Stille
     # all carry > 140 g/mol bond-level byproduct mass. Stille additionally

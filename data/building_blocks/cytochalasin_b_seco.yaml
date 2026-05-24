@@ -1,0 +1,62 @@
+name: cytochalasin B seco-aldehyde phosphonoacetate (HWE precursor)
+smiles: C=C1[C@@H](C)[C@H]2[C@H](Cc3ccccc3)NC(=O)[C@@]2(OC(=O)CP(=O)(OC)OC)[C@@H](/C=C/C[C@H](C)CCC[C@@H](O)C=O)[C@@H]1O
+provenance: |
+  Seco-precursor for the Haidle-Myers 2004 intramolecular
+  Horner-Wadsworth-Emmons (HWE) closure of cytochalasin B's
+  14-membered macrolactone (PNAS 101:12048-12053,
+  DOI:10.1073/pnas.0402111101; PMC PMC514432, open access).
+  Derived programmatically from the cyclized natural-product
+  cytochalasin B (PubChem CID 5311281, ChEBI:23528,
+  C29H37NO5 MW 479.62) by breaking the in-ring α,β-unsaturated
+  ester C=C alkene (the bond formed by HWE in Scheme 7) and:
+    (a) attaching -CH2-P(=O)(OCH3)2 to the alpha-C (the
+        phosphonoacetate ester side), and
+    (b) attaching =O to the other side to make an aldehyde
+        (the ω-CHO end of the long aliphatic tether).
+  The macrolactone ester bond (R'-O-C(=O)-) is preserved in
+  the seco precursor — only the C=C alkene is opened. This
+  matches Haidle-Myers's actual route: the macrolactone is
+  pre-installed (compound 3 in Scheme 7; DCC coupling of
+  diethylphosphonoacetic acid in step e at 81% yield) and the
+  HWE closure (step f, NaOCH2CF3 in CF3CH2OH/DME at 23 C, 65%)
+  forms only the C13=C14 alkene that closes the macrocycle.
+notes: |
+  Mass balance verified by build script:
+    cyclized MW (avg)    = 479.6170
+    seco MW (avg)        = 605.6650
+    Δ MW (avg)           = 126.0480
+    (MeO)2P(O)OH MW avg  = 126.0500  ← dimethyl phosphate conjugate acid
+
+    cyclized MW (exact)  = 479.2672
+    seco MW (exact)      = 605.2754
+    Δ MW (exact)         = 126.0082
+    (MeO)2P(O)OH exact   = 126.0082
+
+  Stereocenters preserved: the seco retains all sp3 chiral
+  centres of the cyclized cytochalasin B EXCEPT the two
+  alkene-forming carbons (originally sp2 in cyclized; the
+  alpha-C becomes sp3 CH2 of phosphonate in the seco, and the
+  beta-C becomes the planar CHO of the aldehyde). The other
+  in-14-ring alkene (C20=C21, isolated trans-alkene retained
+  through HWE) is preserved with E geometry.
+
+  Phosphonate variant: dimethyl phosphonate (canonical;
+  matches data/rules/hwe_olefination.meta.yaml
+  reagent_mass_alternatives.canonical_NaH_dimethyl entry,
+  byproduct_mass_g_per_mol = 126.05 g/mol). The actual
+  Haidle-Myers 2004 paper uses the diethyl variant
+  ((EtO)2P(O)CH2C(O)O-) on a slightly different substrate, but
+  the rule body is variant-agnostic — the OR groups on P live
+  in off-rule substrate context. The seco YAML uses dimethyl
+  for the canonical-mass demonstration.
+
+  HWE conditions per Haidle-Myers 2004 (Scheme 7, step f):
+    NaOCH2CF3 (sodium 2,2,2-trifluoroethoxide) in
+    CF3CH2OH/DME, 23 °C, 65% yield, single (E) diastereomer.
+  These are the epimerization-suppressed Haidle-Myers
+  conditions; see hwe_olefination.meta.yaml
+  reagent_mass_alternatives.haidle_myers (DOI:10.1073/pnas.0402111101).
+refs:
+  - "Haidle, A. M.; Myers, A. G. Proc. Natl. Acad. Sci. USA 2004, 101, 12048-12053 (DOI:10.1073/pnas.0402111101) — primary reference, HWE macrocyclization of cytochalasin B (compound 3 → 40, 65%) and L-696,474 (compound 11 → 36, 52%, 5:1 dr)."
+  - "Wadsworth, W. S.; Emmons, W. D. J. Am. Chem. Soc. 1961, 83, 1733 (DOI:10.1021/ja01468a042) — original HWE method."
+  - "PubChem CID 5311281; ChEBI:23528 — cytochalasin B structural data, C29H37NO5 MW 479.62, CAS 14930-96-2."

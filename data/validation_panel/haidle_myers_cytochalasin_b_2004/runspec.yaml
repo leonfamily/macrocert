@@ -1,23 +1,34 @@
 name: haidle_myers_cytochalasin_b_2004
 
 target:
+  # Cyclized cytochalasin B (PubChem CID 5311281, ChEBI:23528,
+  # C29H37NO5, MW 479.62). Built by scripts/build_cytochalasin_b.py
+  # from the PubChem isomeric SMILES (DOI:10.1073/pnas.0402111101 for
+  # the synthetic provenance; the natural-product structure data is
+  # PubChem-sourced, cross-validated against ChEBI).
   structure_path: structure.mol
-  # Ring size 14 = cytochalasin B's macrolactone (NOT the 5-membered
-  # isoindolone gamma-lactam, which is too small for macrocert's rule
-  # set).
+  # 14 = cytochalasin B's macrolactone (NOT the 5-membered isoindolone
+  # γ-lactam, which is too small for macrocert's rule set).
   ring_size: 14
 
 blocks:
-  # The Haidle-Myers 2004 macrocyclization is on a linear ω-keto-
-  # aldehyde phosphonate seco-precursor (Fig. 2 compound 6). The
-  # macrolactone ester bond is already established in the precursor;
-  # only the alkene of the macrocycle remains. THIS RUNSPEC SHIPS
-  # WITH THE TDA INTERPRETATION (see expected.yaml and notes.md
-  # "Decision flag for Ivan"); the actual published precursor is for
-  # HWE not TDA, so the encoding requires Ivan's interpretive call.
-  - cytochalasin_b_macrocyclic_triene_precursor_biomimetic
+  # Seco-precursor for the Haidle-Myers 2004 intramolecular HWE closure
+  # of cytochalasin B's 14-membered macrolactone. Built by
+  # scripts/build_cytochalasin_b_seco.py from the cyclized form by
+  # breaking the α,β-unsaturated-ester C=C alkene (the HWE-formed bond
+  # per Scheme 7 of DOI:10.1073/pnas.0402111101) and reattaching the
+  # phosphonoacetate moiety (-CH2-P(=O)(OMe)2 → α-C; =O → β-C as the
+  # aldehyde). Mass balance verified: Δ MW = 126.05 g/mol = (MeO)2P(O)OH
+  # (canonical dimethyl phosphate, matching hwe_olefination.meta.yaml
+  # byproduct_mass_g_per_mol = 126.05).
+  - cytochalasin_b_seco
 
-rules: biomimetic_macrocyclization
+# Workstream C update (2026-05-24): hwe_olefination is now in
+# all_macrocyclization (and high_ae_macrocyclization). The campaign
+# runner sweeps all 13 tactics and the HWE rule should fire on this
+# seco-precursor's α-aldehyde-tethered phosphonoacetate (compound 3 in
+# Scheme 7 of DOI:10.1073/pnas.0402111101).
+rules: all_macrocyclization
 
 strategy:
   max_steps: 1
@@ -25,52 +36,51 @@ strategy:
   predicates:
     is_intramolecular: true
     ring_size_equals: 14
+    # Workstream D phase-3 ether-rule discriminators: the seco precursor
+    # does not have biaryl or aryl-O-C(sp3) fragments matching either
+    # etherification rule, but the predicates are explicit per the
+    # campaign convention to keep the ether rules from incorrectly firing.
+    alcohol_partner_C_must_be_aromatic:
+      biaryl_etherification: true
+    alcohol_partner_C_must_be_sp3:
+      aryl_etherification: true
 
-# Energetics disabled for v0 panel calibration. The bond-level AE
-# of the TDA-interpretation reference (Skellam 2017 biosynthesis IMDA)
-# is high (cycloaddition is byproduct-free). The actual Haidle-Myers
-# 2004 HWE step has bond-level byproduct = dialkyl phosphate anion
-# (~125 g/mol for dimethyl phosphate); if Ivan switches to a future
-# HWE rule, the AE class would drop from high to mid.
+# Energetics disabled for v0 panel calibration. The bond-level AE of the
+# HWE closure step is moderate (byproduct dimethyl phosphate ≈ 126 g/mol);
+# the literature_tactic in expected.yaml is `hwe_olefination` with
+# ae_class: moderate (heavier byproduct than H2O/HF/H2 but still
+# bond-level reasonable; no transition-metal catalyst is needed).
 energetics:
   enabled: false
 
 solver:
   backend: scip
-  top_n: 3
+  top_n: 10
   time_budget_s: 60
 
 notes: |
-  Cytochalasin B (Haidle-Myers 2004 PNAS 101:12048). 14-membered
-  macrolactone (NOT macrolactam; cytochalasin B's only lactam is the
-  5-membered isoindolone γ-lactam, too small for macrocert).
+  Cytochalasin B (Haidle-Myers 2004 PNAS 101:12048, DOI:10.1073/pnas.0402111101).
+  14-membered macrolactone (NOT macrolactam; the cytochalasin B's only
+  lactam is the 5-membered isoindolone γ-lactam, too small for macrocert).
 
-  IMPORTANT: this case has TWO chemistry-error caveats vs. the task
-  brief:
-    (1) "Cytochalasins B, D, E, H have macrolactam closures" — wrong.
-        Their macrocycle is a macrolactone (B, D) or macrocarbocycle
-        (E, H, L-696,474). Only the 5-membered isoindolone is a lactam.
-    (2) Haidle-Myers 2004 uses intramolecular HWE olefination for the
-        macrocyclization, NOT macrolactamization, NOT macrolactonization,
-        NOT RCM. Macrocert v0 has no HWE rule.
+  Macrocyclization step: intramolecular Horner-Wadsworth-Emmons (HWE)
+  olefination on the seco precursor (compound 3 in Scheme 7 of the paper):
+    (MeO)2P(O)-CH2-C(=O)-O-...isoindolone...CHO  +  NaOCH2CF3
+        →  cyclic α,β-unsaturated macrolactone (E-alkene) + (MeO)2P(O)OH
+  Conditions: NaOCH2CF3 (sodium trifluoroethoxide, 122.04 g/mol) in
+  CF3CH2OH/DME at 23 °C. Yield: 65% with the C13=C14 E-alkene as the
+  sole diastereomer (the α-C18 stereocenter is preserved under these
+  epimerization-suppressed Haidle-Myers conditions; cf. L-696,474's
+  11-ring case at 80 °C where epimerization is partial).
+
+  Workstream C update (2026-05-24): the new `hwe_olefination` rule
+  (DOI:10.1021/ja01468a042 Wadsworth-Emmons 1961; full meta in
+  data/rules/hwe_olefination.meta.yaml) now covers this case. Previous
+  scaffolding (transannular_diels_alder biomimetic interpretation) is
+  superseded; this runspec switches to `rules: all_macrocyclization`
+  so the campaign sweep can demonstrate hwe_olefination as the optimal
+  tactic with the other 12 rules emitting no-go certs.
 
   Citation correction: Skellam 2017 *Nat. Prod. Rep.* DOI is
-  10.1039/c7np00036g (not 10.1039/c7np00045f).
-
-  This runspec ships with the TDA interpretation (rules =
-  biomimetic_macrocyclization = [macrolactamization,
-  transannular_diels_alder]) per the biomimetic class flag added for
-  this family. Justification: Skellam 2017 reports the cytochalasan
-  biosynthesis uses an intramolecular Diels-Alder; a biomimetic
-  transannular variant would be an honest fit for macrocert's TDA
-  rule. The actual published Haidle-Myers chemistry is HWE-based and
-  needs a new rule in v1.
-
-  Decision flag for Ivan (see notes.md):
-    (a) Keep TDA interpretation (current; ships with optimal witness).
-    (b) Switch to infeasible-marker (cf. citreoviridin slot).
-    (c) Defer this case until an HWE rule is implemented in v1.
-
-  PLACEHOLDER WARNING: structure.mol is a placeholder; PubChem CID
-  5311281 Molfile is the recommended source for cytochalasin B.
-  Cross-validates against ChEBI:23528.
+  10.1039/c7np00036g (not 10.1039/c7np00045f as in the task brief).
+  See research_brief.md §1 for the full DOI audit.
