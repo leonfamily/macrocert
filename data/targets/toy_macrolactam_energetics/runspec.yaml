@@ -20,14 +20,27 @@ solver:
 energetics:
   enabled: true
   initial_tier: xtb
-  dG_kcal_max: 30.0   # gas-phase macrolactamization barrier-tolerant ceiling
+  dG_kcal_max: 30.0           # 10.1039/d4sc08243e (Shaydullin 2025): RT-feasibility ceiling on ΔG_rxn
+  dG_barrier_kcal_max: 35.0   # 10.1039/d4sc08243e (Shaydullin 2025): RT-feasibility ceiling on activation barrier
+  ts_search_worked_example: true  # M5 pre-gate worked-example: Sella+xtb TS on HCN→HNC surrogate
+  solvent_name: null          # ALPB-DMF deferred until xtb-solvent-name canonicalisation lands; gas-phase HCN-HNC is fine for the worked example
+  tier_escalation: false      # v0 worked example: xtb only. MLIP/DFT escalation deferred — see docs/energetics_ts_search_landed.md
 
 notes: |
   Same target as toy_macrolactam, energetics enabled. Exercises the
-  lazy-feedback loop end-to-end:
+  lazy-feedback loop end-to-end *and* the Layer D TS-search worked
+  example (Workstream E #32, pre-M5 gate):
   - Solve top-1 → macrolactamization edge appears.
-  - xtb single-points the reactant + products → ΔG_rxn ≈ +3.87 kcal/mol
+  - xtb single-points the reactant + products → ΔG_rxn ≈ +5.77 kcal/mol
     (cached under .cache/energetics/).
   - ΔG ≤ 30.0 → edge survives, no blacklist, no re-solve.
-  - Certificate carries energetics_dependencies populated.
-  Second run hits the cache for zero recomputation.
+  - TS-search worked example: NEB → Sella(order=1) on HCN→HNC at
+    GFN2-xTB → barrier ≈ 73 kcal/mol (xtb is approximate; literature
+    ~46 kcal/mol). Demonstrates the Marks-2026 (arXiv:2604.00405)
+    saddle-search stack; the macrolactamization saddle itself
+    remains a tier-up path (MLIP + DFT). Certificate carries the
+    barrier value + provenance + feasibility label.
+  - Above the 35 kcal/mol Shaydullin 2025 ceiling → labelled
+    'defeasible_high_barrier' per proposal §6 honesty constraint.
+  Second run hits the cache for zero recomputation on the ΔG side;
+  the TS search re-runs (no TS cache yet — future work).

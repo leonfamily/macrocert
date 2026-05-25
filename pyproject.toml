@@ -30,6 +30,9 @@ macrocert = ["py.typed"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = ["-ra", "--strict-markers"]
+markers = [
+    "slow: tests that take > 1s (e.g. xtb/MLIP/DFT calls). Skip in fast CI with `pytest -m 'not slow'`.",
+]
 
 [tool.ruff]
 line-length = 100

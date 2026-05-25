@@ -75,6 +75,10 @@ pytest = ">=8"
 macrocert = { path = ".", editable = true }
 # Layer D MLIP — MACE-OFF transferable organic force field (Kovács 2025)
 mace-torch = ">=0.3"
+# Layer D TS-search — Sella P-RFO saddle optimizer (Hermes et al. 2022)
+# https://github.com/zadorlab/sella. arXiv:2604.00405 §2.4 Marks 2026:
+# the production NEB→Sella refinement recipe at order=1, internal=True.
+sella = ">=2.4"
 # Note: AIMNet2 has no PyPI release; install from GitHub on demand.
 # Note: SCINE/Chemoton (proposal §3.5) cannot be installed:
 #       scine-database-python has no osx-arm64 conda build as of 2026-05.

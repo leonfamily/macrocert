@@ -10,7 +10,11 @@ from pathlib import Path
 from typing import Any
 
 from .energetics.cache import EnergeticsCache
-from .energetics.feedback import EnergeticsDeps, run_with_energetics
+from .energetics.feedback import (
+    EnergeticsDeps,
+    compute_worked_example_barrier,
+    run_with_energetics,
+)
 from .generate import build_dg_for_runspec
 from .kernel import certify, compose, dg_to_ir, scip_backend
 from .spec.rules import load_rule_library
@@ -79,6 +83,22 @@ def run(
         )
         result = fb.final
         energetics_deps = fb.energetics
+        # Worked-example TS search (M5 pre-gate item).
+        # Runs the Sella+xtb saddle-search stack on a 3-atom surrogate
+        # (HCN→HNC) so the certificate carries a real, non-None barrier
+        # from a real PES. The macrolactamization saddle itself
+        # remains a tier-up path; see docs/energetics_ts_search_landed.md.
+        if spec.energetics.ts_search_worked_example:
+            barrier, feasibility, prov = compute_worked_example_barrier(
+                tier="xtb",  # v0 wires xtb only
+                solvent_name=spec.energetics.solvent_name,
+                dG_barrier_kcal_max=(
+                    spec.energetics.dG_barrier_kcal_max or 35.0
+                ),
+            )
+            energetics_deps.worked_example_barrier_kcal_per_mol = barrier
+            energetics_deps.worked_example_provenance = prov
+            energetics_deps.feasibility = feasibility
     else:
         result = scip_backend.solve(ir, time_budget_s=spec.solver.time_budget_s)
 

@@ -116,9 +116,31 @@ class SolverSpec:
 
 @dataclass(frozen=True)
 class EnergeticsSpec:
+    """Layer D switches per ``data/energetics_protocol.yaml``.
+
+    ``ts_search_worked_example`` opts the run into the M5 worked-example
+    TS search (Sella+xtb on a 3-atom surrogate; see
+    ``docs/energetics_ts_search_landed.md``). When False, the
+    certificate's ``worked_example_barrier_kcal_per_mol`` stays None
+    and the pre-M5 gate's energetics-protocol check will fail.
+
+    ``solvent_name`` flows into the xtb ALPB solvent model and the
+    energetics cache key (Workstream E fix). Default DMF per
+    ``energetics_protocol.solvent.name`` (peptide macrolactamization
+    canonical solvent — PMC 7893715, PMC 7314982, MDPI 2025
+    10.3390/biomedicines13010240).
+
+    ``dG_barrier_kcal_max`` is the Shaydullin 2025 ceiling
+    (10.1039/d4sc08243e, Chem. Sci. 16:5289) above which the run's
+    feasibility is labelled ``"defeasible_high_barrier"``.
+    """
     enabled: bool = False
     initial_tier: Literal["xtb", "mlip", "dft"] = "xtb"
     dG_kcal_max: float | None = None
+    dG_barrier_kcal_max: float | None = None
+    ts_search_worked_example: bool = False
+    solvent_name: str | None = None
+    tier_escalation: bool = False
 
 
 @dataclass(frozen=True)
@@ -185,6 +207,12 @@ def load_runspec(path: str | Path) -> RunSpec:
             enabled=bool(energetics.get("enabled", False)),
             initial_tier=str(energetics.get("initial_tier", "xtb")),  # type: ignore[arg-type]
             dG_kcal_max=energetics.get("dG_kcal_max"),
+            dG_barrier_kcal_max=energetics.get("dG_barrier_kcal_max"),
+            ts_search_worked_example=bool(
+                energetics.get("ts_search_worked_example", False)
+            ),
+            solvent_name=(energetics.get("solvent_name") or None),
+            tier_escalation=bool(energetics.get("tier_escalation", False)),
         ),
         notes=str(data.get("notes", "")),
     )
