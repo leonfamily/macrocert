@@ -157,5 +157,5 @@ After this work: **8/9 passing**. Remaining failure is `ascomylactam target enco
 - **DFT TS refinement.** Marks 2026 §2.4: 3×10⁻⁴ Ha/Bohr force tolerance, ~250 Sella iters. Needs a Psi4-ASE bridge.
 - **Atom-mapped bound-complex constructors.** For the actual macrolactamization saddle, write helpers that build (seco-acid + leaving-group) bound complex and (lactam + H₂O) bound complex with matching atom indices.
 - **3-model heterogeneous OOD ensemble.** Triggered by `mlip.ood_detection.threshold_kcal_per_mol` in the protocol; lift from std-dev of MACE-OMol25 / UMA-Medium / ESEN-S predictions.
-- **TS cache.** Add a TS cache (keyed analogously to `EnergeticsCache`) so re-runs of the worked example skip the Sella refinement.
+- ~~**TS cache.** Add a TS cache (keyed analogously to `EnergeticsCache`) so re-runs of the worked example skip the Sella refinement.~~ **Landed** — see [`ts_cache_landed.md`](ts_cache_landed.md).
 - **Conformational sampling** (protocol open question §10). CREST or RDKit ETKDG before the barrier search — important for macrocycles.

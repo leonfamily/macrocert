@@ -38,6 +38,11 @@ canonical activator + alternative-activator menu. All DOI-cited.
 - [`hwe_olefination_research.md`](hwe_olefination_research.md) — Wadsworth-Emmons + Still-Gennari (Z) + Ando + Haidle-Myers
 - [`energetics_protocol_research.md`](energetics_protocol_research.md) — Marks-Vandezande-Gomes 2026 TS benchmark; MACE-OMol25 + B3LYP-D3BJ + FSM/sella
 
+## Layer D — energetics
+
+- [`energetics_ts_search_landed.md`](energetics_ts_search_landed.md) — NEB → Sella P-RFO recipe (Marks 2026); NH₃ inversion worked example
+- [`ts_cache_landed.md`](ts_cache_landed.md) — TS-search content-addressed cache (follow-up #5)
+
 ## Layer C/F harness
 
 - [`mod_stereo_reference.md`](mod_stereo_reference.md) — MØD stereo grammar + canonical examples + the "tetrahedral-only enforcement" finding
