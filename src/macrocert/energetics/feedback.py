@@ -40,11 +40,19 @@ class EnergeticsDeps:
     the Shaydullin 2025 ceiling (35 kcal/mol, 10.1039/d4sc08243e),
     ``"defeasible_high_barrier"`` if above, ``"unknown"`` if not
     computed.
+
+    ``worked_example_cache_key`` and ``worked_example_cache_stats``
+    are populated by the TS cache (see :mod:`ts_cache`) when the
+    worked-example barrier was served from cache or freshly stored.
+    The verifier doesn't re-run the Sella refinement; it checks that
+    the cache key is present and that the provenance is non-empty.
     """
     entries: dict[str, dict] = field(default_factory=dict)
     cache_stats: dict = field(default_factory=dict)
     worked_example_barrier_kcal_per_mol: float | None = None
     worked_example_provenance: str | None = None
+    worked_example_cache_key: str | None = None
+    worked_example_cache_stats: dict = field(default_factory=dict)
     feasibility: str = "unknown"
 
     def to_jsonable(self) -> dict:
@@ -54,6 +62,8 @@ class EnergeticsDeps:
             "worked_example_barrier_kcal_per_mol":
                 self.worked_example_barrier_kcal_per_mol,
             "worked_example_provenance": self.worked_example_provenance,
+            "worked_example_cache_key": self.worked_example_cache_key,
+            "worked_example_cache_stats": dict(self.worked_example_cache_stats),
             "feasibility": self.feasibility,
         }
 
@@ -150,7 +160,8 @@ def compute_worked_example_barrier(
     solvent_name: str | None = None,
     dG_barrier_kcal_max: float = 35.0,
     verbose: bool = False,
-) -> tuple[float | None, str, str]:
+    ts_cache=None,
+) -> tuple[float | None, str, str, str | None, dict]:
     """Run the M5 worked-example TS search at ``tier``.
 
     The worked example is a 3-atom HCN→HNC isomerization run with
@@ -168,12 +179,15 @@ def compute_worked_example_barrier(
 
     Returns
     -------
-    (barrier_kcal_per_mol, feasibility_label, provenance)
+    (barrier_kcal_per_mol, feasibility_label, provenance, cache_key, cache_stats)
         ``barrier_kcal_per_mol`` is None iff the search failed to
         converge AND no fall-back NEB-max image energy was available.
         ``feasibility_label`` is ``"feasible"`` (< threshold),
         ``"defeasible_high_barrier"`` (≥ threshold), or
         ``"defeasible_no_convergence"``.
+        ``cache_key`` is the TS cache identifier (``None`` if the search
+        failed before the cache was consulted, or if no cache was passed).
+        ``cache_stats`` reports hits/misses on the TS cache for this call.
     """
     if tier != "xtb":
         # M5 v0 only wires xtb; MLIP/DFT tiers raise so callers can't
@@ -185,19 +199,14 @@ def compute_worked_example_barrier(
         )
 
     from ase.optimize import LBFGS
+    from .ts_cache import OptimizerConfig, TSCache
     from .ts_search import (
         SaddleSearch, ammonia_inversion_atoms, xtb_calculator_factory,
     )
 
-    factory = xtb_calculator_factory(solvent_name=solvent_name)
-    r, p, ts_guess = ammonia_inversion_atoms()
-    # Pre-relax the endpoints — Sella TS refinement expects local
-    # minima for the barrier reference energy.
-    r.calc = factory()
-    LBFGS(r, logfile=None).run(fmax=0.05, steps=200)
-    p.calc = factory()
-    LBFGS(p, logfile=None).run(fmax=0.05, steps=200)
+    cache = ts_cache if ts_cache is not None else TSCache()
 
+    factory = xtb_calculator_factory(solvent_name=solvent_name)
     label = (
         f"GFN2-xTB_ALPB-{solvent_name}"
         if solvent_name else "GFN2-xTB"
@@ -212,21 +221,52 @@ def compute_worked_example_barrier(
         method_label=label,
         verbose=verbose,
     )
-    try:
+    optimizer_config = OptimizerConfig.from_saddle_search(search)
+
+    def _compute():
+        # Lazy: only run xtb + Sella on a real cache miss. The endpoint
+        # pre-relaxation lives inside this closure so a cached hit
+        # short-circuits the slow path entirely.
+        r, p, ts_guess = ammonia_inversion_atoms()
+        r.calc = factory()
+        LBFGS(r, logfile=None).run(fmax=0.05, steps=200)
+        p.calc = factory()
+        LBFGS(p, logfile=None).run(fmax=0.05, steps=200)
         # NH₃ inversion has a textbook good TS guess (planar geometry);
         # skip the NEB step that's known-fragile for tiny molecules on
         # the xtb PES (ASE+xtb-python "could not evaluate input" failure
         # on tight-distance images). The Marks 2026 NEB→Sella recipe is
         # implemented in SaddleSearch.run() for the macrolactam-scale
         # substrates that need the string-method initial guess.
-        result = search.refine_from_guess(r, ts_guess, p)
+        return search.refine_from_guess(r, ts_guess, p)
+
+    hits_before, misses_before = cache.stats.hits, cache.stats.misses
+    try:
+        entry, was_miss = cache.lookup_or_compute(
+            workflow="worked_example",
+            substrate_id="nh3_inversion",
+            tier="xtb",
+            method=label,
+            optimizer_config=optimizer_config,
+            compute=_compute,
+        )
     except Exception as exc:
         return (
             None,
             "defeasible_no_convergence",
             f"TS-search raised: {type(exc).__name__}: {exc}",
+            None,
+            {
+                "hits": cache.stats.hits - hits_before,
+                "misses": cache.stats.misses - misses_before,
+            },
         )
+    call_stats = {
+        "hits": cache.stats.hits - hits_before,
+        "misses": cache.stats.misses - misses_before,
+    }
 
+    result = entry.result
     barrier = result.barrier_kcal_per_mol
     if not result.converged:
         feasibility = "defeasible_no_convergence"
@@ -237,7 +277,13 @@ def compute_worked_example_barrier(
         feasibility = "defeasible_high_barrier"
     else:
         feasibility = "feasible"
-    return barrier, feasibility, result.provenance
+    return (
+        barrier,
+        feasibility,
+        result.provenance,
+        entry.cache_key(),
+        call_stats,
+    )
 
 
 def _without_blacklisted(ir: HyperFlowIR, blacklist: set[str]) -> HyperFlowIR:

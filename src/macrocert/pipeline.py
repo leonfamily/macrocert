@@ -89,15 +89,19 @@ def run(
         # from a real PES. The macrolactamization saddle itself
         # remains a tier-up path; see docs/energetics_ts_search_landed.md.
         if spec.energetics.ts_search_worked_example:
-            barrier, feasibility, prov = compute_worked_example_barrier(
-                tier="xtb",  # v0 wires xtb only
-                solvent_name=spec.energetics.solvent_name,
-                dG_barrier_kcal_max=(
-                    spec.energetics.dG_barrier_kcal_max or 35.0
-                ),
+            barrier, feasibility, prov, cache_key, ts_cache_stats = (
+                compute_worked_example_barrier(
+                    tier="xtb",  # v0 wires xtb only
+                    solvent_name=spec.energetics.solvent_name,
+                    dG_barrier_kcal_max=(
+                        spec.energetics.dG_barrier_kcal_max or 35.0
+                    ),
+                )
             )
             energetics_deps.worked_example_barrier_kcal_per_mol = barrier
             energetics_deps.worked_example_provenance = prov
+            energetics_deps.worked_example_cache_key = cache_key
+            energetics_deps.worked_example_cache_stats = ts_cache_stats
             energetics_deps.feasibility = feasibility
     else:
         result = scip_backend.solve(ir, time_budget_s=spec.solver.time_budget_s)

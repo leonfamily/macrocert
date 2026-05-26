@@ -135,8 +135,8 @@ def test_compute_worked_example_barrier_xtb():
     """
     from macrocert.energetics.feedback import compute_worked_example_barrier
 
-    barrier, feasibility, provenance = compute_worked_example_barrier(
-        tier="xtb", dG_barrier_kcal_max=35.0,
+    barrier, feasibility, provenance, cache_key, cache_stats = (
+        compute_worked_example_barrier(tier="xtb", dG_barrier_kcal_max=35.0)
     )
     assert barrier is not None, "worked-example barrier is None"
     assert isinstance(barrier, float)
@@ -144,6 +144,8 @@ def test_compute_worked_example_barrier_xtb():
         "feasible", "defeasible_high_barrier", "defeasible_no_convergence",
     }
     assert "Sella" in provenance
+    assert cache_key is not None and len(cache_key) == 32
+    assert cache_stats["hits"] + cache_stats["misses"] >= 1
 
 
 def test_compute_worked_example_unsupported_tier_raises():
