@@ -1,0 +1,20 @@
+{
+  "cache_key": "8e2b81b0159da42003a31dadb4bfcd9a",
+  "method": "GFN2-xTB",
+  "optimizer_fingerprint": "3fefad70eb018eff",
+  "result": {
+    "barrier_kcal_per_mol": 6.1100875954345115,
+    "cache_key": "8e2b81b0159da42003a31dadb4bfcd9a",
+    "converged": true,
+    "e_product_ev": -120.44423498534863,
+    "e_reactant_ev": -120.44422540445835,
+    "e_ts_ev": -120.17927097529754,
+    "method": "GFN2-xTB",
+    "n_neb_images": 0,
+    "n_sella_iterations": 2,
+    "provenance": "Sella(order=1, internal=True, delta0=0.05, eta=1e-4, fmax=0.01 eV/\u00c5) refined from caller-supplied TS guess; method=GFN2-xTB; E_R=-120.4442eV, E_TS=-120.1793eV; converged=True"
+  },
+  "substrate_id": "nh3_inversion",
+  "tier": "xtb",
+  "workflow": "worked_example"
+}
