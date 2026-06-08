@@ -61,8 +61,10 @@ data/
 src/macrocert/
   spec/         RunSpec, RuleLibrary, target encoder, SMILES canonicalize
   generate/     MØD strategy composer (Layer B)
-  kernel/       IR, ILP backends (SCIP + MØD bitshift), composition,
-                certificate emission (Layer C)
+  kernel/       backend-neutral IR + two ILP backends (pyscipopt for
+                certificates with IIS / duals; mod.hyperflow.Model for
+                fast top-N enumeration), rule composition, certificate
+                emission (Layer C)
   energetics/   xtb + Psi4 + MACE-OFF drivers, cache, feedback (Layer D)
   verifier/     Independent re-checker (separate-process; import-free
                 of macrocert.* except conservation, atom-map, witness)
@@ -78,8 +80,9 @@ scripts/        Build scripts for panel surrogates + the 7 M5 targets;
                 build_m5_campaign.py is the §5 deliverable producer;
                 pre_m5_gate.py is the deployment gate.
 
-docs/           30+ docs (research briefs, M5 reports, stereo reference,
-                MØD investigation, encoding procedures). See INDEX.md.
+docs/           Research briefs, M5 reports, stereo reference, MØD
+                investigation, encoding procedures. Entry point:
+                [`docs/INDEX.md`](docs/INDEX.md).
 
 external/mod/   Vendored MØD; `git remote` points to jakobandersen/mod.
                 Local branch fix/stereo-finalize-copy-unmatched-r1
@@ -115,10 +118,13 @@ Phoenix-Reddy cassaine. Per-target reports listed in
 ## Pre-M5 gate
 
 `pixi run python scripts/pre_m5_gate.py` is the deployment gate that
-locks acceptance criteria before any M5 production run. Nine checks.
+locks acceptance criteria before any M5 production run. Nine checks:
+pre-registration signed, target encoded + signed, panel pass rate ≥
+80%, rules conserve, stereo policy declared, energetics protocol
+loadable, adversarial verifier exits 0, reproducibility hash matches.
 The gate's reproducibility-hash check is backed by deterministic MØD
-seeding (commit `d1c441c`). Use
-`data/pre_registration.template.yaml` as the lockfile template;
+seeding (`mod.rngReseed` + `MACROCERT_MOD_SEED`, `PYTHONHASHSEED=0`).
+Use `data/pre_registration.template.yaml` as the lockfile template;
 sign and rename to `pre_registration.lock.yaml` when ready.
 
 ## Verifier independence
@@ -130,10 +136,10 @@ no solver. It re-derives every claim from the IR + composed rule.
 Exit codes: 0 (OK), 10 (conservation/atom-map fail), 20 (witness
 invalid), 30 (schema error).
 
-The 80-test adversarial suite at `tests/verifier/test_adversarial.py`
-+ the 17-test stereo-conservation suite + the 8-test cache-key suite
-exercise the verifier against every mutation class catalogued in
-[`docs/adversarial_verifier_roadmap.md`](docs/adversarial_verifier_roadmap.md).
+The 80-test adversarial suite at `tests/verifier/test_adversarial.py`,
+the 17-test stereo-conservation suite, and the 8-test cache-key suite
+together exercise the verifier against every mutation class catalogued
+in [`docs/adversarial_verifier_roadmap.md`](docs/adversarial_verifier_roadmap.md).
 
 ## Key references
 
