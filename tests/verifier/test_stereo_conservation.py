@@ -263,7 +263,7 @@ def test_unenforced_geometry_fixed_warns():
 def test_stereo_free_macrolactam_no_issues():
     """The shipped macrolactamization rule has no stereo annotations,
     so the checker must be silent."""
-    text = open("rules/macrolactamization.gml").read()
+    text = open("tests/fixtures/macrolactamization_baseline.gml").read()
     issues = check_rule_stereo_conservation(text)
     assert issues == [], issues
 

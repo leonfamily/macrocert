@@ -96,7 +96,7 @@ ATOM_MAP_BREAK: dict[str, tuple[str, str]] = {
 
 # Repo-rooted path to the rule library. Tests run from the repo root
 # (see existing test_conservation.py which uses the same relative
-# pattern: ``open("rules/macrolactamization.gml")``).
+# pattern: ``open("tests/fixtures/macrolactamization_baseline.gml")``).
 _RULES_DIR = Path("data/rules")
 
 

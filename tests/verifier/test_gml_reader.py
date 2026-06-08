@@ -2,7 +2,7 @@ from macrocert.verifier.gml_reader import parse_rule
 
 
 def test_parses_macrolactamization_rule():
-    rule = parse_rule(open("rules/macrolactamization.gml").read())
+    rule = parse_rule(open("tests/fixtures/macrolactamization_baseline.gml").read())
     assert rule.ruleID.startswith("macrolactamization")
     assert 1 in rule.context.nodes
     assert rule.context.nodes[1].label == "C"

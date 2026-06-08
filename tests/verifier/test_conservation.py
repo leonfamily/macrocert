@@ -1,7 +1,7 @@
 from macrocert.verifier.conservation import check_rule_conservation, expelled_mass_g_per_mol
 
 
-MACROLACTAM = open("rules/macrolactamization.gml").read()
+MACROLACTAM = open("tests/fixtures/macrolactamization_baseline.gml").read()
 
 
 def test_macrolactamization_passes_conservation():
