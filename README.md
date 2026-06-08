@@ -144,6 +144,8 @@ in [`docs/adversarial_verifier_roadmap.md`](docs/adversarial_verifier_roadmap.md
 ## Key references
 
 - [`proposal.md`](proposal.md) — the original design document
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — layer map + load-bearing invariants
 - [`RESEARCH_PROPOSAL.md`](RESEARCH_PROPOSAL.md) — the 6-workstream execution plan
 - [`SETUP.md`](SETUP.md) — environment provisioning (pixi + native MØD build)
+- [`HANDOFF.md`](HANDOFF.md) — current state + onboarding for the next agent
 - [`docs/INDEX.md`](docs/INDEX.md) — canonical doc map
