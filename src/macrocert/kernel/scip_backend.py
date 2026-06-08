@@ -7,8 +7,10 @@ can extract:
   - dual bound (for optimality certification)
   - Farkas multipliers / IIS row tags (for infeasibility certification)
 
-It mirrors the formulation in scripts/layerC_demo.py but consumes the
-backend-neutral IR and is reusable across any RunSpec.
+The formulation is a backend-neutral specialization of the integer-
+hyperflow ILP from Andersen 2019 (IEEE/ACM TCBB 16:510), with the
+flow-conservation, ring-closure-exactly-once, step-budget, and
+bond-level AE objective taken from the IR.
 """
 from __future__ import annotations
 
