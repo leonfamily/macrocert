@@ -60,11 +60,6 @@ canonical activator + alternative-activator menu. All DOI-cited.
 - [`workstream_d_phase2.md`](workstream_d_phase2.md) — enforce_ez_geometry RDKit rightPredicate
 - [`workstream_d_phase3.md`](workstream_d_phase3.md) — alcohol_partner discriminators (SMARTS-substructure fallback)
 
-## Combined deliverable docs
-
-- [`c_h_encoding_and_energetics_protocol.md`](c_h_encoding_and_energetics_protocol.md) — combined C-H rule encoding + energetics_protocol.yaml report
-- [`cross_coupling_and_cache_fix.md`](cross_coupling_and_cache_fix.md) — combined cross-coupling rule set + cache.py SHA collision fix
-
 ## Verifier rigor
 
 - [`adversarial_verifier_expansion.md`](adversarial_verifier_expansion.md) — the +48 test expansion to 9 new rules
