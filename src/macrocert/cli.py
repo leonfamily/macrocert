@@ -158,6 +158,80 @@ def _cmd_report(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_cache_stats(args: argparse.Namespace) -> int:
+    """Aggregate disk-cache stats; optionally purge by tier.
+
+    Reports per-cache entry count, total disk usage, and most-recent
+    last-modified for both content-addressed caches in the repo:
+
+      .cache/energetics/<VERSION>/  — ΔG-rxn cache (cache.py)
+      .cache/ts/<VERSION>/          — TS saddle cache (ts_cache.py)
+
+    With --purge-tier <mlip|xtb|dft>, scans each cache for entries
+    whose stored ``tier`` matches and deletes them. The cache-key
+    schema includes the tier, so eviction is exact: no other tier's
+    entries are touched.
+    """
+    import json
+    import time
+    from pathlib import Path
+
+    cache_roots = [
+        ("energetics (ΔG)", Path(".cache/energetics")),
+        ("TS-search",       Path(".cache/ts")),
+    ]
+
+    if args.purge_tier:
+        purged = _purge_tier(cache_roots, args.purge_tier)
+        print(f"purged {purged} entries with tier={args.purge_tier!r}")
+        return 0
+
+    for label, root in cache_roots:
+        if not root.exists():
+            print(f"  {label}: (no cache directory yet at {root}/)")
+            continue
+        all_entries = sorted(root.rglob("*.json"))
+        if not all_entries:
+            print(f"  {label}: 0 entries under {root}/")
+            continue
+        total_bytes = sum(p.stat().st_size for p in all_entries)
+        most_recent = max(p.stat().st_mtime for p in all_entries)
+        # Per-version subdir breakdown — both caches use this layout.
+        per_version: dict[str, int] = {}
+        for p in all_entries:
+            ver = p.parent.name if p.parent.parent == root else "(flat)"
+            per_version[ver] = per_version.get(ver, 0) + 1
+        ver_str = ", ".join(f"{n} in {ver}/" for ver, n in sorted(per_version.items()))
+        print(
+            f"  {label}: {len(all_entries)} entries  "
+            f"({total_bytes / 1024:.1f} KB)  "
+            f"last-modified {time.strftime('%Y-%m-%d %H:%M', time.localtime(most_recent))}  "
+            f"[{ver_str}]"
+        )
+    return 0
+
+
+def _purge_tier(cache_roots, tier: str) -> int:
+    import json
+    purged = 0
+    for _label, root in cache_roots:
+        if not root.exists():
+            continue
+        for p in root.rglob("*.json"):
+            try:
+                data = json.loads(p.read_text())
+            except (OSError, json.JSONDecodeError):
+                continue
+            # Two cache schemas:
+            #   EnergeticsCache:  {"tier": "...", ...}                    (cache.py CacheEntry)
+            #   TSCache:          {"tier": "...", "result": {...}, ...}   (ts_cache.py TSCacheEntry)
+            cache_tier = data.get("tier")
+            if cache_tier == tier:
+                p.unlink()
+                purged += 1
+    return purged
+
+
 def _cmd_pareto(args: argparse.Namespace) -> int:
     from macrocert.report import render_pareto
 
@@ -206,6 +280,12 @@ def main(argv: list[str] | None = None) -> int:
     p_par.add_argument("certificates", nargs="+")
     p_par.add_argument("-o", "--output", default="artifacts/pareto.png")
     p_par.set_defaults(func=_cmd_pareto)
+
+    p_cs = sub.add_parser("cache-stats",
+                          help="Disk-cache stats (and optional --purge-tier)")
+    p_cs.add_argument("--purge-tier", choices=["mlip", "xtb", "dft"],
+                      help="Evict all entries (both caches) with this tier")
+    p_cs.set_defaults(func=_cmd_cache_stats)
 
     args = p.parse_args(argv)
     return args.func(args)
