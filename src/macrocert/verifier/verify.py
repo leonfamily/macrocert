@@ -53,6 +53,10 @@ def verify_certificate(cert_path: Path) -> int:
     if rc:
         return rc
 
+    rc = _check_advisory_propagation(cert)
+    if rc:
+        return rc
+
     print(f"OK  {cert_path}")
     return 0
 
@@ -226,6 +230,72 @@ def _check_flow_balance(cert: dict[str, Any]) -> int:
             file=sys.stderr,
         )
         return 20
+
+    return 0
+
+
+def _check_advisory_propagation(cert: dict[str, Any]) -> int:
+    """Enforce proposal §6 honesty plumbing on stereo advisories.
+
+    Every hyperedge carries ``stereo_treatment`` (from the producer-side
+    rule meta). If the cert uses (flow > 0) an edge whose treatment is
+    ``advisory_only``, the cert's ``provenance.stereo_advisories``
+    MUST publish a non-empty entry for that rule_id. This catches the
+    'silently drop the advisory and pretend the rule enforced stereo'
+    attack documented in docs/adversarial_verifier_roadmap.md §3.
+
+    Symmetrically: every published advisory must reference a rule_id
+    that exists in ``derivation_graph.hyperedges`` (no orphan advisories).
+    """
+    provenance = cert.get("provenance") or {}
+    advisories_raw = provenance.get("stereo_advisories", []) or []
+
+    advisories: dict[str, str] = {}
+    for entry in advisories_raw:
+        rid = entry.get("rule_id")
+        text = entry.get("advisory", "")
+        if not rid:
+            print("provenance.stereo_advisories entry missing rule_id",
+                  file=sys.stderr)
+            return 20
+        if not text:
+            print(
+                f"provenance.stereo_advisories[{rid!r}] has empty advisory text",
+                file=sys.stderr,
+            )
+            return 20
+        advisories[rid] = text
+
+    edges_by_rule: dict[str, list[dict[str, Any]]] = {}
+    for e in cert["derivation_graph"]["hyperedges"]:
+        edges_by_rule.setdefault(e["rule_id"], []).append(e)
+
+    for rid in advisories:
+        if rid not in edges_by_rule:
+            print(
+                f"provenance.stereo_advisories references orphan rule_id {rid!r} "
+                "(not in derivation_graph.hyperedges)",
+                file=sys.stderr,
+            )
+            return 20
+
+    flow: dict[str, int] = {k: int(v) for k, v in cert["flow"].items()}
+    used_rules: set[str] = set()
+    for e in cert["derivation_graph"]["hyperedges"]:
+        if int(flow.get(e["id"], 0)) > 0:
+            used_rules.add(e["rule_id"])
+
+    for rid in used_rules:
+        edges = edges_by_rule[rid]
+        if any(e.get("stereo_treatment") == "advisory_only" for e in edges):
+            if rid not in advisories:
+                print(
+                    f"used edge for rule {rid!r} is advisory_only but the cert "
+                    "publishes no matching provenance.stereo_advisories entry — "
+                    "violates proposal §6 honesty plumbing",
+                    file=sys.stderr,
+                )
+                return 20
 
     return 0
 

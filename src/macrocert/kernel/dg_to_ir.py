@@ -119,6 +119,9 @@ def build_ir(
             and _produces_ring_of_size(tgts, ring_size, Chem)
         )
 
+        stereo_treatment = (
+            rule_def.meta.stereo_treatment if rule_def else "match_enforced"
+        )
         hyperedges.append(
             HyperEdge(
                 id=edge_id,
@@ -128,6 +131,7 @@ def build_ir(
                 expelled_mass_g_per_mol=bond_mass,
                 reagent_mass_g_per_mol=reagent_mass,
                 is_macrocyclization=is_macro,
+                stereo_treatment=stereo_treatment,
             )
         )
 

@@ -32,6 +32,11 @@ class HyperEdge:
     expelled_mass_g_per_mol: float           # bond-level Trost cost per firing
     reagent_mass_g_per_mol: float            # process-level penalty per firing
     is_macrocyclization: bool = False        # used in the ring-closure-exactly-once constraint
+    # Stereo treatment of the fired rule, copied from RuleMeta.stereo_treatment.
+    # The verifier uses this to enforce advisory_propagation invariants on
+    # the cert without needing to load the rule library at verify time.
+    # Default keeps pre-Workstream-F-#36 fixtures still valid.
+    stereo_treatment: str = "match_enforced"
 
 
 @dataclass(frozen=True)

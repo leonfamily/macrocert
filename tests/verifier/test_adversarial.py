@@ -307,6 +307,75 @@ def test_suzuki_off_by_one_boron_oxygen_rejected(good_cert_per_rule, tmp_path):
 
 
 # =============================================================================
+# Stereo-policy advisory propagation — docs/adversarial_verifier_roadmap.md §3.
+# When a cert uses an advisory_only rule (rcm, biaryl_etherification,
+# hwe_olefination), it MUST publish the matching stereo advisory.
+# Stripping or forging the advisory is the canonical attack.
+# =============================================================================
+
+
+@pytest.fixture(scope="module")
+def good_advisory_cert() -> dict[str, Any]:
+    """A cert from a target whose optimal route uses an advisory_only
+    rule (rcm). Built once per session."""
+    path = Path("artifacts/panel/rcm_13_from_pentadecadiene/certificate.json")
+    if not path.exists():
+        subprocess.run(
+            [sys.executable, "-m", "macrocert.cli", "run",
+             "data/validation_panel/rcm_13_from_pentadecadiene",
+             "--artifacts-dir", "artifacts/panel"],
+            check=True, capture_output=True,
+        )
+    return json.loads(path.read_text())
+
+
+def test_good_advisory_cert_verifies(good_advisory_cert, tmp_path):
+    assert "rcm" in {e["rule_id"] for e in good_advisory_cert["derivation_graph"]["hyperedges"]
+                     if good_advisory_cert["flow"].get(e["id"], 0) > 0}
+    assert _write_and_verify(good_advisory_cert, tmp_path) == 0
+
+
+def test_advisory_stripped_for_used_advisory_only_rule_rejected(
+    good_advisory_cert, tmp_path,
+):
+    """The cert uses rcm (advisory_only). Stripping its advisory must
+    fail proposal §6 honesty plumbing."""
+    cert = copy.deepcopy(good_advisory_cert)
+    cert.setdefault("provenance", {})["stereo_advisories"] = []
+    _refresh_hash(cert)
+    assert _write_and_verify(cert, tmp_path) == 20
+
+
+def test_orphan_advisory_rejected(good_advisory_cert, tmp_path):
+    """An advisory whose rule_id appears in no hyperedge is a tampered
+    field — the cert is claiming an advisory for something it didn't fire."""
+    cert = copy.deepcopy(good_advisory_cert)
+    cert.setdefault("provenance", {})["stereo_advisories"] = [
+        {"rule_id": "nonexistent_rule", "advisory": "fake"},
+    ]
+    _refresh_hash(cert)
+    assert _write_and_verify(cert, tmp_path) == 20
+
+
+def test_empty_advisory_text_rejected(good_advisory_cert, tmp_path):
+    cert = copy.deepcopy(good_advisory_cert)
+    cert.setdefault("provenance", {})["stereo_advisories"] = [
+        {"rule_id": "rcm", "advisory": ""},
+    ]
+    _refresh_hash(cert)
+    assert _write_and_verify(cert, tmp_path) == 20
+
+
+def test_advisory_missing_rule_id_rejected(good_advisory_cert, tmp_path):
+    cert = copy.deepcopy(good_advisory_cert)
+    cert.setdefault("provenance", {})["stereo_advisories"] = [
+        {"advisory": "missing rule_id"},
+    ]
+    _refresh_hash(cert)
+    assert _write_and_verify(cert, tmp_path) == 20
+
+
+# =============================================================================
 # Cert integrity SHA — docs/adversarial_verifier_roadmap.md §7.
 # The integrity_hash field is OPTIONAL in the schema (pre-#7 certs are
 # accepted without it), but when present every field of the certificate
