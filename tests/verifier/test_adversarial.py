@@ -152,6 +152,7 @@ def test_silent_on_used_edge_rejected(good_energetics_cert, tmp_path):
 # rule. See ``tests/verifier/README.md`` for the coverage matrix.
 from .fixtures import (  # noqa: E402
     ATOM_MAP_BREAK,
+    LEGACY_RULES,
     NEW_RULES,
     build_minimal_certificate,
 )
@@ -281,6 +282,101 @@ def test_suzuki_off_by_one_boron_oxygen_rejected(good_cert_per_rule, tmp_path):
     replacement = 'node [ id 8  label "H"  ]'
     assert needle in tail, "suzuki right block missing id 8 O"
     cert["composed_rule"]["gml"] = head + tail.replace(needle, replacement, 1)
+    assert _write_and_verify(cert, tmp_path) == 10
+
+
+# =============================================================================
+# Legacy-rule parametrization — docs/adversarial_verifier_roadmap.md §1.
+#
+# macrolactamization + rcm have GML bodies that redeclare atoms in both
+# left and right blocks, so the same L↔R mismatch + tampered-mass +
+# obj-disagreement + edge-mass-mismatch mutation matrix that NEW_RULES
+# exercises applies cleanly to them. TDA's pure-context DPO span needs
+# a different attack surface (see test_tda_pure_context_* below).
+# =============================================================================
+
+
+@pytest.fixture(scope="module")
+def good_cert_per_legacy_rule() -> dict[str, dict[str, Any]]:
+    return {r: build_minimal_certificate(r) for r in LEGACY_RULES}
+
+
+@pytest.mark.parametrize("rule_id", LEGACY_RULES)
+def test_legacy_rule_good_certificate_verifies(
+    rule_id, good_cert_per_legacy_rule, tmp_path,
+):
+    cert = copy.deepcopy(good_cert_per_legacy_rule[rule_id])
+    assert _write_and_verify(cert, tmp_path) == 0
+
+
+@pytest.mark.parametrize("rule_id", LEGACY_RULES)
+def test_legacy_rule_atom_map_break_rejected(
+    rule_id, good_cert_per_legacy_rule, tmp_path,
+):
+    cert = copy.deepcopy(good_cert_per_legacy_rule[rule_id])
+    needle, replacement = ATOM_MAP_BREAK[rule_id]
+    gml = cert["composed_rule"]["gml"]
+    assert needle in gml, f"atom-map-break needle {needle!r} not in {rule_id} GML"
+    cert["composed_rule"]["gml"] = gml.replace(needle, replacement, 1)
+    assert _write_and_verify(cert, tmp_path) == 10
+
+
+@pytest.mark.parametrize("rule_id", LEGACY_RULES)
+def test_legacy_rule_tampered_expelled_mass_rejected(
+    rule_id, good_cert_per_legacy_rule, tmp_path,
+):
+    cert = copy.deepcopy(good_cert_per_legacy_rule[rule_id])
+    cert["composed_rule"]["expelled_mass_g_per_mol"] = 999.0
+    assert _write_and_verify(cert, tmp_path) == 10
+
+
+@pytest.mark.parametrize("rule_id", LEGACY_RULES)
+def test_legacy_rule_obj_value_disagrees_with_flow_rejected(
+    rule_id, good_cert_per_legacy_rule, tmp_path,
+):
+    # Real bond-level mass for macrolactam is 18.015, for rcm is 28.054,
+    # so setting obj to 0 creates a detectable disagreement. (For TDA
+    # the real mass is 0 and this mutation is a no-op — handled in
+    # test_tda_pure_context_attack_surface instead.)
+    cert = copy.deepcopy(good_cert_per_legacy_rule[rule_id])
+    cert["solver_witness"]["obj_value"] = 0.0
+    cert["solver_witness"]["dual_bound"] = 0.0
+    assert _write_and_verify(cert, tmp_path) == 20
+
+
+@pytest.mark.parametrize("rule_id", LEGACY_RULES)
+def test_legacy_rule_edge_expelled_mass_mismatch_rejected(
+    rule_id, good_cert_per_legacy_rule, tmp_path,
+):
+    cert = copy.deepcopy(good_cert_per_legacy_rule[rule_id])
+    cert["derivation_graph"]["hyperedges"][0]["expelled_mass_g_per_mol"] = 1.0
+    assert _write_and_verify(cert, tmp_path) == 20
+
+
+# --- TDA-specific: pure-context DPO span needs different attacks ------------
+def test_tda_good_certificate_verifies(tmp_path):
+    cert = build_minimal_certificate("transannular_diels_alder")
+    assert _write_and_verify(cert, tmp_path) == 0
+
+
+def test_tda_pure_context_attack_surface(tmp_path):
+    """TDA's DPO span has only context nodes — no L/R node redeclarations
+    means the symmetric label-swap attack (ATOM_MAP_BREAK pattern) has
+    no surface. The verifier *can* still be attacked, just via:
+
+      - macrocyclization-flag stripped: the only edge is no longer
+        flagged → exactly_one_macrocyclization fails (exit 20).
+      - tampered-mass: declared mass ≠ recomputed (which is 0). Setting
+        any non-zero value triggers the conservation re-check (exit 10).
+    """
+    cert = build_minimal_certificate("transannular_diels_alder")
+    cert["derivation_graph"]["hyperedges"][0]["is_macrocyclization"] = False
+    assert _write_and_verify(cert, tmp_path) == 20
+
+
+def test_tda_declared_mass_must_match_recomputed_zero(tmp_path):
+    cert = build_minimal_certificate("transannular_diels_alder")
+    cert["composed_rule"]["expelled_mass_g_per_mol"] = 42.0
     assert _write_and_verify(cert, tmp_path) == 10
 
 

@@ -7,11 +7,18 @@ conservation checks operate on the actual GML the producer emits)
 while avoiding the cost of running the full pipeline for each of the
 12 macrocyclization rules.
 """
-from .builders import build_minimal_certificate, NEW_RULES, NEW_RULE_REAGENT_MASS, ATOM_MAP_BREAK
+from .builders import (
+    ATOM_MAP_BREAK,
+    LEGACY_RULES,
+    NEW_RULE_REAGENT_MASS,
+    NEW_RULES,
+    build_minimal_certificate,
+)
 
 __all__ = [
-    "build_minimal_certificate",
+    "ATOM_MAP_BREAK",
+    "LEGACY_RULES",
     "NEW_RULES",
     "NEW_RULE_REAGENT_MASS",
-    "ATOM_MAP_BREAK",
+    "build_minimal_certificate",
 ]

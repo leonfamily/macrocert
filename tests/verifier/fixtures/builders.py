@@ -33,8 +33,8 @@ from typing import Any
 from macrocert.verifier.conservation import expelled_mass_g_per_mol
 
 # The 9 rules added 2026-05-24 (Workstream C). macrolactamization, rcm,
-# and transannular_diels_alder predate this expansion and are already
-# covered by the existing toy_macrolactam fixture.
+# and transannular_diels_alder predate this expansion and are also covered
+# below via LEGACY_RULES (per docs/adversarial_verifier_roadmap.md §1).
 NEW_RULES: tuple[str, ...] = (
     "macrolactonization",
     "aryl_etherification",
@@ -45,6 +45,22 @@ NEW_RULES: tuple[str, ...] = (
     "cross_coupling_buchwald",
     "cross_coupling_sonogashira",
     "cross_coupling_stille",
+)
+
+# The 2 original (pre-Workstream-C) rules whose GML body redeclares
+# atoms in both ``left`` and ``right`` blocks — so the same L/R-label-
+# disagreement mutation matrix the 9 new rules use also lands here.
+# Closes docs/adversarial_verifier_roadmap.md §1 follow-up #1 for these.
+#
+# transannular_diels_alder is the odd one out: its DPO span is
+# pure-context (no node redeclarations on L/R, only edges). The L↔R
+# label-swap attack has no surface there; the verifier's
+# context-internal atom-map invariant is structural, not enforced via
+# the per-side multiset diff. See test_tda_pure_context_attack_surface
+# in test_adversarial.py for the dedicated TDA mutations.
+LEGACY_RULES: tuple[str, ...] = (
+    "macrolactamization",
+    "rcm",
 )
 
 # Process-level reagent masses, pulled from data/rules/*.meta.yaml.
@@ -61,6 +77,10 @@ NEW_RULE_REAGENT_MASS: dict[str, float] = {
     "cross_coupling_buchwald": 300.0,
     "cross_coupling_sonogashira": 427.0,
     "cross_coupling_stille": 263.0,
+    # Legacy rules. Mass values copied verbatim from data/rules/*.meta.yaml.
+    "macrolactamization": 638.0,
+    "rcm": 30.0,
+    "transannular_diels_alder": 10.0,
 }
 
 # Per-rule atom-map break: a (needle, replacement) pair that swaps the
@@ -92,6 +112,12 @@ ATOM_MAP_BREAK: dict[str, tuple[str, str]] = {
     # cross_coupling_stille: opaque Sn (id 3) → Si (both tabulated; Si
     # mass 28.085 vs Sn 118.710 — large delta exposes mass-recompute).
     "cross_coupling_stille": ('id 3 label "Sn"', 'id 3 label "Si"'),
+    # Legacy rules. The needles MUST land in the *left* block first so
+    # str.replace(..., 1) creates an L≠R disagreement.
+    # macrolactamization: byproduct O (id 3) → S (id 3 first appears in left).
+    "macrolactamization": ('id 3 label "O"', 'id 3 label "S"'),
+    # rcm: ethylene H (id 5) → F (id 5 first appears in left).
+    "rcm": ('id 5 label "H"', 'id 5 label "F"'),
 }
 
 # Repo-rooted path to the rule library. Tests run from the repo root
@@ -106,6 +132,10 @@ def build_minimal_certificate(rule_id: str) -> dict[str, Any]:
     The certificate uses the rule's real GML body so that conservation,
     atom-map, and expelled-mass checks operate on the actual rule.
     Flow / witness scaffolding is synthetic (1 firing of 1 edge).
+
+    Works for both NEW_RULES and LEGACY_RULES (and TDA, even though TDA
+    has zero bond-level mass — the obj_value cross-check is still
+    meaningful as a tautology in that case).
     """
     gml = (_RULES_DIR / f"{rule_id}.gml").read_text()
     mass = expelled_mass_g_per_mol(gml, retained_root_atom=1)
