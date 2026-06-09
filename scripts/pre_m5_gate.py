@@ -254,8 +254,13 @@ def check_reproducibility_hash(lock: dict) -> bool:
     cmd = ["pixi", "run", "python", "-m", "macrocert.cli", "run",
            "data/targets/toy_macrolactam"]
     cert_path = REPO_ROOT / "artifacts" / "toy_macrolactam" / "certificate.json"
-    if not cert_path.exists():
-        subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True)
+    # Always do two fresh runs *within this gate invocation*. Reusing a
+    # pre-existing cert as h1 would compare a stale schema against the
+    # current one and report a false-positive non-determinism after any
+    # schema change.
+    if cert_path.exists():
+        cert_path.unlink()
+    subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True)
     if not cert_path.exists():
         return _check("reproducibility hash", False, "first run did not emit certificate")
     h1 = hashlib.sha256(cert_path.read_bytes()).hexdigest()
