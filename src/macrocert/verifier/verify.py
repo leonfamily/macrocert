@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from .conservation import check_rule_conservation, expelled_mass_g_per_mol
+from .stereo_conservation import check_rule_stereo_conservation
 
 _SCHEMA_PATH = Path(__file__).parent / "schema" / "certificate.schema.json"
 _INTEGRITY_HASH_FIELD = "integrity_hash"
@@ -119,6 +120,24 @@ def _check_composed_rule(cert: dict[str, Any]) -> int:
     result = check_rule_conservation(gml)
     if not result.ok:
         print(f"composed rule failed conservation: {result.reason}", file=sys.stderr)
+        return 10
+
+    # Cert-time stereo-conservation (docs/adversarial_verifier_roadmap.md §2).
+    # Catches tampered bracket-list permutations that make the rule's stereo
+    # claim incoherent — e.g., a cert that says ruleID=TDA_endo but whose
+    # tetrahedral[a,b,c,d]! bracket list has been swapped to an inverting
+    # (odd-permutation) pattern. Errors here are exit 10 (conservation),
+    # warnings are diagnostic only.
+    stereo_issues = check_rule_stereo_conservation(gml)
+    stereo_errors = [i for i in stereo_issues if i.severity == "error"]
+    if stereo_errors:
+        for issue in stereo_errors:
+            print(
+                f"composed rule failed stereo conservation: "
+                f"[{issue.code}] {issue.message}"
+                + (f" (node {issue.node_id})" if issue.node_id is not None else ""),
+                file=sys.stderr,
+            )
         return 10
 
     declared = composed.get("expelled_mass_g_per_mol")

@@ -307,6 +307,73 @@ def test_suzuki_off_by_one_boron_oxygen_rejected(good_cert_per_rule, tmp_path):
 
 
 # =============================================================================
+# Cert-time stereo conservation — docs/adversarial_verifier_roadmap.md §2.
+#
+# Wires check_rule_stereo_conservation into verify_certificate. Cert-side
+# silent-inversion attacks (an odd permutation of a tetrahedral bracket
+# between L and R sides of the same node) are now caught at verify time
+# rather than only at rule-load (pixi run check-rules).
+#
+# Note: the checker is an *L↔R-comparison* tool. It catches asymmetric
+# stereo claims between sides; it cannot judge whether a single-sided
+# bracket order is "canonical" without external metadata. The TDA
+# endo/exo rules create stereo from sp² (no L stereo to compare), so
+# their bracket-permutation tamper surface is currently undetectable
+# without canonical-bracket metadata — that's a follow-up; today the
+# TDA siblings still verify with check_rule_conservation (atom/charge
+# balance) and exit cleanly on bracket-only tampers.
+# =============================================================================
+
+
+def test_tda_endo_good_cert_verifies(tmp_path):
+    """Baseline: the real TDA endo rule body (with its single-sided
+    tetrahedral brackets on the R cyclohexene atoms) passes cert-time
+    stereo conservation cleanly."""
+    cert = build_minimal_certificate("transannular_diels_alder_endo")
+    assert _write_and_verify(cert, tmp_path) == 0
+
+
+def test_tda_exo_good_cert_verifies(tmp_path):
+    cert = build_minimal_certificate("transannular_diels_alder_exo")
+    assert _write_and_verify(cert, tmp_path) == 0
+
+
+_PRESERVING_BUT_INVERTED_BY_R_TAMPER = """
+rule [
+    ruleID "preserves stereo on node 0, but cert has been tampered"
+    left  [ node [ id 0 stereo "tetrahedral[1, 2, 3, 4]!" ] ]
+    context [
+        node [ id 0 label "C" ]
+        node [ id 1 label "H" ]
+        node [ id 2 label "C" ]
+        node [ id 3 label "C" ]
+        node [ id 4 label "N" ]
+        edge [ source 0 target 1 label "-" ]
+        edge [ source 0 target 2 label "-" ]
+        edge [ source 0 target 3 label "-" ]
+        edge [ source 0 target 4 label "-" ]
+    ]
+    right [ node [ id 0 stereo "tetrahedral[2, 1, 3, 4]!" ] ]
+]
+"""
+
+
+def test_cert_time_silent_inversion_rejected(tmp_path):
+    """Cert-side adversarial: a rule with stereo on both L and R of the
+    same node, where R's bracket is an odd-permutation of L's.
+    check_rule_stereo_conservation flags this as severity='error'
+    (code='odd_permutation_inversion'); the verifier wiring lifts it
+    to exit 10. This is the load-bearing P3 #2 surface — the same check
+    that catches inverting rule schemas at pixi run check-rules now
+    also catches them when an adversary swaps a composed-rule body
+    into the certificate."""
+    cert = build_minimal_certificate("macrolactamization")
+    cert["composed_rule"]["gml"] = _PRESERVING_BUT_INVERTED_BY_R_TAMPER
+    _refresh_hash(cert)
+    assert _write_and_verify(cert, tmp_path) == 10
+
+
+# =============================================================================
 # Stereo-policy advisory propagation — docs/adversarial_verifier_roadmap.md §3.
 # When a cert uses an advisory_only rule (rcm, biaryl_etherification,
 # hwe_olefination), it MUST publish the matching stereo advisory.

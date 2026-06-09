@@ -81,6 +81,13 @@ NEW_RULE_REAGENT_MASS: dict[str, float] = {
     "macrolactamization": 638.0,
     "rcm": 30.0,
     "transannular_diels_alder": 10.0,
+    # Workstream F #35 stereo-aware TDA siblings (commit c245bf2).
+    # Mass values inherited from base transannular_diels_alder per
+    # data/rules/transannular_diels_alder_{endo,exo}.meta.yaml.
+    "transannular_diels_alder_endo": 10.0,
+    "transannular_diels_alder_exo": 10.0,
+    # HWE olefination (commit 0ec8a3d). Mass per data/rules/hwe_olefination.meta.yaml.
+    "hwe_olefination": 5.0,
 }
 
 # Per-rule atom-map break: a (needle, replacement) pair that swaps the
