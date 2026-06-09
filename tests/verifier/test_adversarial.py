@@ -286,6 +286,72 @@ def test_suzuki_off_by_one_boron_oxygen_rejected(good_cert_per_rule, tmp_path):
 
 
 # =============================================================================
+# Infeasibility-certificate spoofing — docs/adversarial_verifier_roadmap.md §6.
+# Most existing tests target optimal certs. The 7 §5 deliverables also
+# emit ~12 no-go certs each; ensuring those can't be silently flipped to
+# optimal is critical for the proposal's no-go-cert claims.
+# =============================================================================
+
+
+@pytest.fixture(scope="module")
+def good_infeasible_cert() -> dict[str, Any]:
+    path = Path("artifacts/toy_infeasible/certificate.json")
+    if not path.exists():
+        subprocess.run(
+            [sys.executable, "-m", "macrocert.cli", "run",
+             "data/targets/toy_infeasible"],
+            check=True, capture_output=True,
+        )
+    return json.loads(path.read_text())
+
+
+def test_good_infeasible_certificate_verifies(good_infeasible_cert, tmp_path):
+    assert _write_and_verify(good_infeasible_cert, tmp_path) == 0
+
+
+def test_infeasible_flipped_to_optimal_with_empty_flow_rejected(
+    good_infeasible_cert, tmp_path,
+):
+    """Forging optimal kind without populating a valid flow: the verifier's
+    flow-balance and macrocyclization checks reject because the empty
+    flow has 0 macrocyclization firings (must be == 1)."""
+    cert = copy.deepcopy(good_infeasible_cert)
+    cert["solver_witness"] = {
+        "kind": "optimal",
+        "obj_value": 0.0,
+        "dual_bound": 0.0,
+    }
+    assert _write_and_verify(cert, tmp_path) == 20
+
+
+def test_infeasible_iis_stripped_rejected(good_infeasible_cert, tmp_path):
+    """An infeasibility cert must publish at least one IIS row OR a
+    Farkas multiplier (the verifier's witness-validity rule). Stripping
+    both is the canonical 'no-go without proof' attack."""
+    cert = copy.deepcopy(good_infeasible_cert)
+    cert["solver_witness"]["iis_constraint_ids"] = []
+    cert["solver_witness"]["farkas_multipliers"] = {}
+    assert _write_and_verify(cert, tmp_path) == 20
+
+
+def test_infeasible_with_fabricated_flow_still_rejected(
+    good_infeasible_cert, tmp_path,
+):
+    """Adversary tries to make the no-go look like an optimal route by
+    declaring kind=optimal AND fabricating a flow entry — but the
+    fabricated edge_id doesn't exist in the empty derivation_graph, so
+    the verifier's 'unknown edge in flow' check rejects."""
+    cert = copy.deepcopy(good_infeasible_cert)
+    cert["solver_witness"] = {
+        "kind": "optimal",
+        "obj_value": 18.015,
+        "dual_bound": 18.015,
+    }
+    cert["flow"] = {"fabricated_edge_id": 1}
+    assert _write_and_verify(cert, tmp_path) == 20
+
+
+# =============================================================================
 # Legacy-rule parametrization — docs/adversarial_verifier_roadmap.md §1.
 #
 # macrolactamization + rcm have GML bodies that redeclare atoms in both
