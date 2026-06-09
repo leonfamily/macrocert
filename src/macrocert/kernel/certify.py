@@ -3,9 +3,17 @@
 The schema lives at src/macrocert/verifier/schema/certificate.schema.json
 and is the one source of truth for the format. The verifier loads it
 on every run.
+
+Cert integrity hash (Workstream-F #36 / adversarial-roadmap §7,
+2026-06). Every emitted cert carries an ``integrity_hash`` =
+sha256(canonical_json(cert ∖ {integrity_hash})). The verifier
+recomputes and rejects mismatches with exit 30. The field is OPTIONAL
+in the schema — pre-#7 certs without the hash continue to verify
+unchanged, but any cert that publishes the hash is held to it.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import asdict
 from pathlib import Path
@@ -18,6 +26,7 @@ from .ir import HyperFlowIR, Witness, Solution
 
 
 SCHEMA_VERSION = "1.0"
+INTEGRITY_HASH_FIELD = "integrity_hash"
 
 
 def emit(
@@ -42,7 +51,19 @@ def emit(
         ),
         "provenance": _build_provenance(ir, composed, library),
     }
+    cert[INTEGRITY_HASH_FIELD] = compute_integrity_hash(cert)
     return cert
+
+
+def compute_integrity_hash(cert: dict[str, Any]) -> str:
+    """SHA-256 over canonical JSON of the cert minus its own integrity_hash.
+
+    Canonical = sort_keys + compact separators, so the hash is stable
+    under whitespace differences (e.g., reformatting). Bytes only.
+    """
+    payload = {k: v for k, v in cert.items() if k != INTEGRITY_HASH_FIELD}
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    return hashlib.sha256(canonical).hexdigest()
 
 
 def _build_provenance(

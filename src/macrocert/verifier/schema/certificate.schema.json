@@ -17,6 +17,11 @@
       "pattern": "^[0-9a-f]{64}$",
       "description": "SHA-256 of the RunSpec contents that produced this run."
     },
+    "integrity_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Optional SHA-256 over canonical JSON of the certificate excluding this field. Producers SHOULD emit it; the verifier rejects mismatches with exit 30. Absent for pre-2026-06 certificates."
+    },
     "derivation_graph": {
       "type": "object",
       "required": ["vertices", "hyperedges", "sink", "sources", "max_steps"],

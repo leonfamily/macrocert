@@ -42,6 +42,21 @@ def _write_and_verify(cert: dict[str, Any], tmp_path: Path) -> int:
     return result.returncode
 
 
+def _refresh_hash(cert: dict[str, Any]) -> dict[str, Any]:
+    """Recompute the cert's integrity_hash after a mutation.
+
+    Tests targeting deeper checks (conservation, witness validity, etc.)
+    must refresh the hash post-mutation, otherwise the integrity check
+    (exit 30) fires first and masks the deeper check the test cares
+    about. Tests targeting the integrity layer itself omit this call
+    so the hash check is the one that triggers.
+    """
+    from macrocert.kernel.certify import compute_integrity_hash
+    if "integrity_hash" in cert:
+        cert["integrity_hash"] = compute_integrity_hash(cert)
+    return cert
+
+
 def test_good_certificate_verifies(good_cert, tmp_path):
     assert _write_and_verify(good_cert, tmp_path) == 0
 
@@ -54,12 +69,14 @@ def test_atom_map_break_rejected(good_cert, tmp_path):
     cert["composed_rule"]["gml"] = (
         gml[:left_o] + 'id 2 label "S"' + gml[left_o + len('id 2 label "O"'):]
     )
+    _refresh_hash(cert)
     assert _write_and_verify(cert, tmp_path) == 10
 
 
 def test_tampered_expelled_mass_rejected(good_cert, tmp_path):
     cert = copy.deepcopy(good_cert)
     cert["composed_rule"]["expelled_mass_g_per_mol"] = 999.0
+    _refresh_hash(cert)
     assert _write_and_verify(cert, tmp_path) == 10
 
 
@@ -67,6 +84,7 @@ def test_tampered_expelled_mass_rejected(good_cert, tmp_path):
 def test_dual_bound_above_obj_rejected(good_cert, tmp_path):
     cert = copy.deepcopy(good_cert)
     cert["solver_witness"]["dual_bound"] = cert["solver_witness"]["obj_value"] + 1.0
+    _refresh_hash(cert)
     assert _write_and_verify(cert, tmp_path) == 20
 
 
@@ -74,18 +92,21 @@ def test_obj_value_disagrees_with_recomputed_flow_rejected(good_cert, tmp_path):
     cert = copy.deepcopy(good_cert)
     cert["solver_witness"]["obj_value"] = 0.0
     cert["solver_witness"]["dual_bound"] = 0.0
+    _refresh_hash(cert)
     assert _write_and_verify(cert, tmp_path) == 20
 
 
 def test_missing_macrocyclization_in_flow_rejected(good_cert, tmp_path):
     cert = copy.deepcopy(good_cert)
     cert["flow"] = {}
+    _refresh_hash(cert)
     assert _write_and_verify(cert, tmp_path) == 20
 
 
 def test_infeasible_witness_missing_iis_rejected(good_cert, tmp_path):
     cert = copy.deepcopy(good_cert)
     cert["solver_witness"] = {"kind": "infeasible"}
+    _refresh_hash(cert)
     assert _write_and_verify(cert, tmp_path) == 20
 
 
@@ -283,6 +304,49 @@ def test_suzuki_off_by_one_boron_oxygen_rejected(good_cert_per_rule, tmp_path):
     assert needle in tail, "suzuki right block missing id 8 O"
     cert["composed_rule"]["gml"] = head + tail.replace(needle, replacement, 1)
     assert _write_and_verify(cert, tmp_path) == 10
+
+
+# =============================================================================
+# Cert integrity SHA — docs/adversarial_verifier_roadmap.md §7.
+# The integrity_hash field is OPTIONAL in the schema (pre-#7 certs are
+# accepted without it), but when present every field of the certificate
+# is held to it. Any one-byte tamper changes the canonical JSON and
+# therefore the hash.
+# =============================================================================
+
+
+def test_good_cert_carries_integrity_hash(good_cert):
+    """Producers SHOULD emit integrity_hash. A fresh cert from
+    pipeline.run carries one."""
+    assert "integrity_hash" in good_cert
+    assert len(good_cert["integrity_hash"]) == 64
+
+
+def test_integrity_hash_tamper_composed_gml_rejected(good_cert, tmp_path):
+    cert = copy.deepcopy(good_cert)
+    cert["composed_rule"]["gml"] = cert["composed_rule"]["gml"] + "\n"
+    assert _write_and_verify(cert, tmp_path) == 30
+
+
+def test_integrity_hash_tamper_flow_rejected(good_cert, tmp_path):
+    cert = copy.deepcopy(good_cert)
+    cert["flow"] = {**cert["flow"], "unused_phantom_edge": 0}
+    assert _write_and_verify(cert, tmp_path) == 30
+
+
+def test_integrity_hash_self_tampered_rejected(good_cert, tmp_path):
+    """Even tampering the integrity_hash itself can't fool the verifier:
+    the recompute path produces the correct hash regardless."""
+    cert = copy.deepcopy(good_cert)
+    cert["integrity_hash"] = "0" * 64
+    assert _write_and_verify(cert, tmp_path) == 30
+
+
+def test_integrity_hash_absent_accepted(good_cert, tmp_path):
+    """Backward compat: pre-#7 certs (no integrity_hash) still verify."""
+    cert = copy.deepcopy(good_cert)
+    cert.pop("integrity_hash", None)
+    assert _write_and_verify(cert, tmp_path) == 0
 
 
 # =============================================================================

@@ -13,6 +13,7 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from collections import Counter
@@ -22,6 +23,7 @@ from typing import Any
 from .conservation import check_rule_conservation, expelled_mass_g_per_mol
 
 _SCHEMA_PATH = Path(__file__).parent / "schema" / "certificate.schema.json"
+_INTEGRITY_HASH_FIELD = "integrity_hash"
 
 
 def verify_certificate(cert_path: Path) -> int:
@@ -34,6 +36,10 @@ def verify_certificate(cert_path: Path) -> int:
     schema_rc = _check_schema(cert)
     if schema_rc:
         return schema_rc
+
+    rc = _check_integrity_hash(cert)
+    if rc:
+        return rc
 
     rc = _check_composed_rule(cert)
     if rc:
@@ -48,6 +54,32 @@ def verify_certificate(cert_path: Path) -> int:
         return rc
 
     print(f"OK  {cert_path}")
+    return 0
+
+
+def _check_integrity_hash(cert: dict[str, Any]) -> int:
+    """Recompute and validate the cert's integrity_hash, if published.
+
+    Pre-#7 certificates without the field continue to verify unchanged
+    (the field is OPTIONAL per the schema). Certificates that publish
+    the hash are held to it: any single-field tamper changes the hash.
+
+    The canonical form mirrors :func:`macrocert.kernel.certify.compute_integrity_hash`:
+    sort_keys + compact separators. Hash bytes only (no whitespace).
+    """
+    declared = cert.get(_INTEGRITY_HASH_FIELD)
+    if declared is None:
+        return 0
+    payload = {k: v for k, v in cert.items() if k != _INTEGRITY_HASH_FIELD}
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    recomputed = hashlib.sha256(canonical).hexdigest()
+    if recomputed != declared:
+        print(
+            f"integrity_hash mismatch: declared {declared}, "
+            f"recomputed {recomputed} — certificate has been tampered with",
+            file=sys.stderr,
+        )
+        return 30
     return 0
 
 
