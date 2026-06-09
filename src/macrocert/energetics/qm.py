@@ -23,7 +23,14 @@ class EnergyResult:
 
 
 def smiles_to_atoms(smiles: str, *, random_seed: int = 0xC0FFEE):
-    """SMILES → ASE Atoms with MMFF-optimized 3D coordinates."""
+    """SMILES → ASE Atoms with MMFF-optimized 3D coordinates.
+
+    Single-conformer fast path. For macrocycles (≥ 8-membered rings)
+    use :func:`smiles_to_atoms_best_conformer` instead — a single
+    random embedding picks an arbitrary conformer, which on a flexible
+    ring biases the downstream energy by 5–20 kcal/mol vs the local
+    minimum (Cao & Wales 2014, DOI:10.1021/ct500522r).
+    """
     from ase import Atoms
     from rdkit import Chem
     from rdkit.Chem import AllChem
@@ -40,6 +47,81 @@ def smiles_to_atoms(smiles: str, *, random_seed: int = 0xC0FFEE):
         AllChem.UFFOptimizeMolecule(mol_h, maxIters=500)
 
     conf = mol_h.GetConformer()
+    positions = [list(conf.GetAtomPosition(i)) for i in range(mol_h.GetNumAtoms())]
+    symbols = [a.GetSymbol() for a in mol_h.GetAtoms()]
+    return Atoms(symbols=symbols, positions=positions)
+
+
+def smiles_to_atoms_best_conformer(
+    smiles: str,
+    *,
+    n_conformers: int = 20,
+    random_seed: int = 0xC0FFEE,
+):
+    """SMILES → ASE Atoms picking the lowest-MMFF-energy conformer
+    out of ``n_conformers`` ETKDG embeddings.
+
+    Closes docs/energetics_ts_search_landed.md §8 final follow-up
+    (conformational sampling). For macrocycles the cheapest reasonable
+    pre-sample is RDKit's ETKDG (Riniker & Landrum 2015,
+    DOI:10.1021/acs.jcim.5b00654) which uses experimental torsion-angle
+    preferences plus knowledge-based corrections — substantially
+    cheaper than CREST/CENSO and adequate as the *input* to a Sella
+    refinement on a higher tier.
+
+    Falls back to UFF if MMFF parameterization fails (typical for
+    transition metals or unusual coordination); falls back further to
+    the single-conformer fast path if multi-conformer embedding fails
+    entirely (typical for tiny molecules where ETKDG over-samples).
+    """
+    from ase import Atoms
+    from rdkit import Chem
+    from rdkit.Chem import AllChem
+
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise ValueError(f"RDKit could not parse SMILES {smiles!r}")
+    mol_h = Chem.AddHs(mol)
+
+    params = AllChem.ETKDGv3()
+    params.randomSeed = random_seed
+    params.useRandomCoords = True
+    params.numThreads = 0  # all cores
+    conf_ids = AllChem.EmbedMultipleConfs(mol_h, numConfs=n_conformers, params=params)
+    if len(conf_ids) == 0:
+        return smiles_to_atoms(smiles, random_seed=random_seed)
+
+    # MMFF-optimize each conformer and pick the lowest-energy one.
+    energies: list[tuple[float, int]] = []
+    for cid in conf_ids:
+        try:
+            res = AllChem.MMFFOptimizeMoleculeConfs(
+                mol_h, mmffVariant="MMFF94s", maxIters=500,
+            )
+            # MMFFOptimizeMoleculeConfs returns [(not_converged, energy), ...]
+            # indexed by conformer id. Break after one call — it processes all.
+            for cid_local, (_not_converged, energy) in enumerate(res):
+                energies.append((float(energy), cid_local))
+            break
+        except Exception:
+            energies = []
+            break
+
+    if not energies:
+        # Fall back to UFF per-conformer
+        for cid in conf_ids:
+            try:
+                if AllChem.UFFOptimizeMolecule(mol_h, confId=cid, maxIters=500) == 0:
+                    ff = AllChem.UFFGetMoleculeForceField(mol_h, confId=cid)
+                    if ff is not None:
+                        energies.append((float(ff.CalcEnergy()), cid))
+            except Exception:
+                continue
+    if not energies:
+        return smiles_to_atoms(smiles, random_seed=random_seed)
+
+    best_energy, best_cid = min(energies, key=lambda pair: pair[0])
+    conf = mol_h.GetConformer(best_cid)
     positions = [list(conf.GetAtomPosition(i)) for i in range(mol_h.GetNumAtoms())]
     symbols = [a.GetSymbol() for a in mol_h.GetAtoms()]
     return Atoms(symbols=symbols, positions=positions)
